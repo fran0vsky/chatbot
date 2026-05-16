@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { HumanMessage, AIMessage, BaseMessage } from '@langchain/core/messages';
 import { StateGraph, END, START, Annotation } from '@langchain/langgraph';
 import { MemorySaver } from '@langchain/langgraph';
@@ -26,14 +26,14 @@ const searchTool = tool(
 @Injectable()
 export class AgentsService {
   private readonly logger = new Logger(AgentsService.name);
-  private readonly model: ChatAnthropic;
+  private readonly model: ChatGoogleGenerativeAI;
   private readonly graph: ReturnType<typeof this.buildGraph>;
   private readonly checkpointer = new MemorySaver();
 
   constructor() {
-    this.model = new ChatAnthropic({
-      model: 'claude-sonnet-4-6',
-      apiKey: process.env['ANTHROPIC_API_KEY'],
+    this.model = new ChatGoogleGenerativeAI({
+      model: 'gemini-2.0-flash-lite',
+      apiKey: process.env['GOOGLE_API_KEY'],
     });
     this.graph = this.buildGraph();
   }
