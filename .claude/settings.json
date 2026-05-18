@@ -9,5 +9,20 @@
   },
   "enabledPlugins": {
     "nx@nx-claude-plugins": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Based on the conversation so far, estimate whether the context window is likely 65%+ full. Respond with ONLY 'yes' or 'no'. Answer 'yes' if many messages have been exchanged or files read.",
+            "statusMessage": "Checking context usage...",
+            "model": "claude-haiku-4-5-20251001",
+            "continueOnBlock": true
+          }
+        ]
+      }
+    ]
   }
 }

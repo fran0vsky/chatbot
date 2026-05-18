@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { ChatComponent } from './chat/chat';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
+  imports: [ChatComponent],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected title = 'frontend';
-}
+export class App {}

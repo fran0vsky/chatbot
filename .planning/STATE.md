@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-05-17T21:43:00.107Z"
-last_activity: 2026-05-17 — Roadmap created; requirements mapped to 2 phases
+status: executing
+stopped_at: Phase 1 code complete; awaiting human GCP/Firebase setup before first main push
+last_updated: "2026-05-18T16:35:00.000Z"
+last_activity: 2026-05-18 — Phase 1 plans 01–03 executed; SUMMARY.md files written
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 3
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 ## Current Position
 
 Phase: 1 of 2 (Working Chat)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-05-17 — Roadmap created; requirements mapped to 2 phases
+Plan: 3 of 3 in current phase (code complete)
+Status: Code complete; pending human GCP/Firebase one-time setup (Plan 03 Task 2) before first main push
+Last activity: 2026-05-18 — Phase 1 plans 01–03 executed; all static gates green
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -67,12 +67,16 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- Human one-time setup (Plan 03 Task 2): GCP project + APIs, Artifact Registry repo, Secret Manager `openrouter-api-key`, Cloud Run service `chatbot-backend`, Workload Identity Federation, Firebase project + Hosting, 8 GitHub Actions variables + 2 secrets. Full checklist in `README.md` `## Deployment`.
+- Local smoke test of the backend + frontend (requires `OPENROUTER_API_KEY` in `.env`).
+- Local Playwright E2E dry-run (`npx nx e2e frontend-e2e` with `OPENROUTER_API_KEY` exported).
+- Commit the Phase 1 changes (commit not auto-created — user denied the commit during execution).
 
 ### Blockers/Concerns
 
-- OPENROUTER_API_KEY must be obtained and added to .env before Phase 1 can run end-to-end
-- Confirm @langchain/openai peer dep compatibility with @langchain/core ^1.1.46 during npm install
+- `@langchain/openai ^1.10.0` (planned version) was not on npm; pinned to `^1.4.0` (latest published 1.x is 1.4.5). No peer-dep conflict; `npm install --legacy-peer-deps` succeeded.
+- Docker not installed on the dev machine — Plan 01-01's Dockerfile fix will first be exercised by CI `deploy-backend`. If it fails, the root cause is likely the order of `COPY libs/` vs `npm ci`.
+- `apps/frontend/src/main.ts` has a pre-existing `console.error(err)` triggering a lint warning (1 warning, 0 errors). Not introduced by this phase.
 
 ## Deferred Items
 
@@ -84,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-17T21:43:00.102Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-working-chat/01-CONTEXT.md
+Last session: 2026-05-18T16:35:00.000Z
+Stopped at: Phase 1 code complete; awaiting human GCP/Firebase setup
+Resume file: README.md `## Deployment` (human setup checklist) and .planning/phases/01-working-chat/01-03-SUMMARY.md

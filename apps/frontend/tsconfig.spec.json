@@ -2,7 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "rootDir": "./src",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "emitDeclarationOnly": false,
+    "composite": false,
+    "declarationMap": false
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"]
 }

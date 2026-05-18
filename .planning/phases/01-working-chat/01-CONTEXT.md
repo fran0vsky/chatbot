@@ -1,6 +1,7 @@
 # Phase 1: Working Chat - Context
 
 **Gathered:** 2026-05-17
+**Updated:** 2026-05-18 — added deployment decisions D-17 through D-26 (GCP Cloud Run + Firebase Hosting + CI/CD)
 **Status:** Ready for planning
 
 <domain>
@@ -42,6 +43,22 @@ Phase 1 delivers a fully working end-to-end chat application:
 
 ### Claude's Discretion
 - **Color scheme:** Claude picks a clean neutral light theme using Tailwind defaults (white/light-gray backgrounds, appropriate text contrast). No dark mode required for Phase 1.
+
+### Deployment — Backend (GCP Cloud Run)
+- **D-17:** Backend deploys to GCP Cloud Run. Container image stored in GCP Artifact Registry (not GHCR). Cloud Run handles HTTPS, scaling to zero, and public URL.
+- **D-18:** GitHub Actions authenticates to GCP via Workload Identity Federation (WIF) — no long-lived service account JSON keys stored as secrets. GCP project ID and WIF pool/provider stored as GitHub Actions variables (not secrets).
+- **D-19:** `OPENROUTER_API_KEY` is stored in GCP Secret Manager and mounted as an environment variable in the Cloud Run service (not passed as a build arg or hardcoded).
+- **D-20:** `CORS_ORIGIN` env var in Cloud Run is set to the Firebase Hosting URL so the backend only accepts requests from the deployed frontend.
+
+### Deployment — Frontend (Firebase Hosting)
+- **D-21:** Frontend deploys to Firebase Hosting. `firebase.json` and `.firebaserc` in repo root define the hosting config (`dist/apps/frontend/browser` as the public directory, SPA rewrite to `index.html`).
+- **D-22:** Firebase deploy in GitHub Actions uses a Firebase service account key stored as `FIREBASE_SERVICE_ACCOUNT` GitHub secret (standard Firebase CI approach).
+- **D-23:** Frontend build passes the Cloud Run service URL as `BACKEND_URL` via Angular environment files (`environment.prod.ts`) so the deployed frontend hits the real Cloud Run backend.
+
+### CI/CD Pipeline
+- **D-24:** `.github/workflows/ci.yml` is updated to add two deploy jobs after the existing `lint-test-build` job succeeds on `main`: `deploy-backend` (build Docker image → push to Artifact Registry → update Cloud Run service) and `deploy-frontend` (build Angular → firebase deploy).
+- **D-25:** Existing GHCR push step is removed and replaced with Artifact Registry push.
+- **D-26:** E2E Playwright test runs in CI against local dev servers (backend served via `nx serve backend`, frontend via `nx serve frontend`) with `OPENROUTER_API_KEY` available as a GitHub Actions secret. E2E covers: page loads, user types message, assistant response bubble appears.
 
 </decisions>
 
