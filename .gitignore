@@ -29,6 +29,15 @@ node_modules
 .env.local
 .env.*.local
 
+# Firebase service account key (never commit — paste into GitHub Actions secrets instead)
+firebase-service-account*.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+
+# Playwright + Nx test artifacts
+playwright-report/
+playwright/.cache/
+
 # misc
 /.sass-cache
 /connect.lock

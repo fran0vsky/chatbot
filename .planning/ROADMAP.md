@@ -32,7 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   7. The backend is running on GCP Cloud Run and reachable from the deployed frontend
   8. GitHub Actions CI/CD pipeline passes (lint, build, deploy) on push to main
   9. Playwright E2E test passes: app loads at the deployed URL, user sends a message, assistant response appears
-**Plans**: TBD
+**Plans**:
+  - 01-01: Backend on OpenRouter (BACK-01..05) — code complete
+  - 01-02: Angular chat UI (UI-01..04, CONV-01, CONV-02) — code complete
+  - 01-03: Deployment + CI/CD (DEPLOY-01..03, E2E-01) — code complete; awaiting human GCP/Firebase setup
 **UI hint**: yes
 
 ### Phase 2: Choose Your Model
@@ -53,5 +56,5 @@ Phases execute in numeric order: 1 → 2
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Working Chat | 0/? | Not started | - |
+| 1. Working Chat | 3/3 | Code complete; awaiting human deploy setup | - |
 | 2. Choose Your Model | 0/? | Not started | - |
