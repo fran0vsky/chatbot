@@ -11,7 +11,7 @@ COPY apps/backend ./apps/backend
 COPY apps/backend-e2e ./apps/backend-e2e
 COPY libs/ libs/
 
-RUN npx nx build backend --prod
+RUN npx nx sync && npx nx build backend --prod
 
 # ---- Production image ----
 FROM node:24-alpine AS runner
