@@ -3,7 +3,7 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-COPY nx.json tsconfig.json ./
+COPY nx.json tsconfig.json tsconfig.base.json ./
 
 RUN npm ci --legacy-peer-deps
 
