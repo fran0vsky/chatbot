@@ -19,7 +19,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /app/dist/apps/backend ./dist
+COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/package*.json ./
 
 RUN npm ci --omit=dev --legacy-peer-deps
