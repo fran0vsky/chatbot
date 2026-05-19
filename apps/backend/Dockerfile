@@ -4,12 +4,11 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY nx.json tsconfig.json tsconfig.base.json ./
+COPY libs/ libs/
 
 RUN npm ci --legacy-peer-deps
 
 COPY apps/backend ./apps/backend
-COPY apps/backend-e2e ./apps/backend-e2e
-COPY libs/ libs/
 
 RUN npx nx sync && npx nx build backend --prod
 
@@ -22,7 +21,6 @@ ENV NODE_ENV=production
 
 COPY --from=builder /app/dist/apps/backend ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/libs ./libs
 
 RUN npm ci --omit=dev --legacy-peer-deps
 
