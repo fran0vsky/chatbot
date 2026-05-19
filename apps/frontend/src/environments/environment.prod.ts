@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://YOUR_CLOUD_RUN_URL',
+  apiUrl: 'https://chatbot-backend-oihaopzolq-ew.a.run.app',
 };

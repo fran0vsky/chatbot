@@ -17,13 +17,14 @@
 #
 # Idempotent — re-running skips anything that already exists.
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Continue'
+$PSNativeCommandUseErrorActionPreference = $false
 
 # --- CONFIG - EDIT THESE -----------------------------------------------------
-$ProjectId        = ''               # e.g. chatbot-prod-12345
+$ProjectId        = 'chatbot-franek-2026'               # e.g. chatbot-prod-12345
 $Region           = 'europe-west1'   # e.g. europe-west1, us-central1
-$GithubRepo       = ''               # e.g. franek/chatbot - "org/repo" form
-$OpenRouterApiKey = ''               # paste your OpenRouter key here
+$GithubRepo       = 'fran0vsky/chatbot'               # e.g. franek/chatbot - "org/repo" form
+$OpenRouterApiKey = ''               # leave empty - auto-loaded from the git-ignored .env file below
 
 # Fine to leave as-is:
 $ArtifactRepo    = 'chatbot'
@@ -33,6 +34,15 @@ $WifPool         = 'github-pool'
 $WifProvider     = 'github-provider'
 $DeploySa        = 'github-deployer'
 # -----------------------------------------------------------------------------
+
+# Load OpenRouter key from the git-ignored .env file (never hardcode it here).
+if ([string]::IsNullOrWhiteSpace($OpenRouterApiKey)) {
+    $envFile = Join-Path $PSScriptRoot '..\.env'
+    if (Test-Path $envFile) {
+        $line = Get-Content $envFile | Where-Object { $_ -match '^\s*OPENROUTER_API_KEY\s*=' } | Select-Object -First 1
+        if ($line) { $OpenRouterApiKey = ($line -split '=', 2)[1].Trim() }
+    }
+}
 
 foreach ($pair in @(
     @{ Name = 'ProjectId'; Value = $ProjectId },
