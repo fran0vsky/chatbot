@@ -2,4 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prism.js light theme for fenced code block syntax highlighting (ngx-markdown). */
+@import 'prismjs/themes/prism.css';
+
 /* You can add global styles to this file, and also import other style files */

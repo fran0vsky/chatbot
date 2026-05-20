@@ -1,1 +1,92 @@
-/* Styling handled by Tailwind utilities in the template (per apps/frontend/CLAUDE.md). */
+/*
+ * Markdown content styling for assistant bubbles.
+ * ngx-markdown renders raw HTML elements (<h1>, <ul>, <pre>, <code>) that
+ * cannot carry Tailwind class attributes, so Tailwind utilities are applied
+ * here via @apply scoped under .markdown-bubble (still Tailwind-only, per
+ * apps/frontend/CLAUDE.md — no hand-rolled CSS values).
+ */
+.markdown-bubble {
+  ::ng-deep {
+    > markdown > *:first-child {
+      @apply mt-0;
+    }
+
+    > markdown > *:last-child {
+      @apply mb-0;
+    }
+
+    h1 {
+      @apply text-base font-semibold mt-3 mb-1;
+    }
+
+    h2 {
+      @apply text-sm font-semibold mt-3 mb-1;
+    }
+
+    h3,
+    h4,
+    h5,
+    h6 {
+      @apply text-sm font-semibold mt-2 mb-1;
+    }
+
+    p {
+      @apply my-2;
+    }
+
+    ul {
+      @apply list-disc pl-5 my-2;
+    }
+
+    ol {
+      @apply list-decimal pl-5 my-2;
+    }
+
+    li {
+      @apply my-0.5;
+    }
+
+    a {
+      @apply text-blue-600 underline break-all;
+    }
+
+    strong {
+      @apply font-semibold;
+    }
+
+    em {
+      @apply italic;
+    }
+
+    blockquote {
+      @apply border-l-2 border-gray-300 pl-3 my-2 text-gray-600 italic;
+    }
+
+    /* Inline code */
+    code {
+      @apply rounded bg-gray-200 px-1 py-0.5 text-xs font-mono;
+    }
+
+    /* Fenced code block */
+    pre {
+      @apply rounded-lg bg-gray-800 text-gray-100 p-3 my-2 overflow-x-auto text-xs;
+    }
+
+    pre code {
+      @apply bg-transparent p-0 text-xs;
+    }
+
+    table {
+      @apply my-2 border-collapse text-xs;
+    }
+
+    th,
+    td {
+      @apply border border-gray-300 px-2 py-1;
+    }
+
+    hr {
+      @apply my-3 border-gray-300;
+    }
+  }
+}

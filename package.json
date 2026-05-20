@@ -70,6 +70,9 @@
     "@nestjs/platform-express": "^11.0.0",
     "axios": "^1.6.0",
     "langchain": "^1.4.0",
+    "marked": "^18.0.4",
+    "ngx-markdown": "^21.3.0",
+    "prismjs": "^1.30.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0"
   }

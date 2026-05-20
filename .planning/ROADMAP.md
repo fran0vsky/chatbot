@@ -56,7 +56,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Goal**: Polish and improve the chat UI for a better user experience
 **Mode:** mvp
 **Depends on**: Phase 2
-**Plans**: None yet
+**Plans**:
+  - 03-01: Markdown rendering in assistant messages (Wave 1)
+  - 03-03: Chat shell polish — placeholder, new chat, send button, header (Wave 1)
+  - 03-02: Copy button on assistant bubbles (Wave 2 — blocked on 03-01)
 
 ## Progress
 
@@ -67,4 +70,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Working Chat | 3/3 | Code complete; awaiting human deploy setup | - |
 | 2. Choose Your Model | 2/2 | Code complete | 2026-05-20 |
-| 3. UI/UX Refinement | 0/0 | Not planned yet | - |
+| 3. UI/UX Refinement | 0/3 | Planned | - |

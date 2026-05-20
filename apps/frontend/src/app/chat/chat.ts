@@ -3,6 +3,8 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  OnDestroy,
+  OnInit,
   ViewChild,
   inject,
 } from '@angular/core';
@@ -12,6 +14,15 @@ import { ChatService } from './chat.service';
 import { ChatMessage } from './chat.types';
 import { MessageBubble } from './message-bubble/message-bubble';
 
+const PLACEHOLDER_EXAMPLES = [
+  'Explain quantum computing in simple terms...',
+  'Write a poem about the ocean...',
+  'Help me debug a TypeScript error...',
+  'Summarize the history of jazz...',
+] as const;
+
+const PLACEHOLDER_NEUTRAL = 'Message';
+
 @Component({
   standalone: true,
   selector: 'app-chat',
@@ -20,7 +31,7 @@ import { MessageBubble } from './message-bubble/message-bubble';
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
 })
-export class ChatComponent {
+export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -28,6 +39,8 @@ export class ChatComponent {
   draft = '';
   isLoading = false;
   selectedModel = 'openai/gpt-4o-mini';
+  placeholder: string = PLACEHOLDER_EXAMPLES[0];
+
   readonly models = [
     { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
     { id: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku' },
@@ -35,6 +48,39 @@ export class ChatComponent {
 
   @ViewChild('messageEnd') messageEnd?: ElementRef<HTMLElement>;
   @ViewChild('textareaRef') textareaRef?: ElementRef<HTMLTextAreaElement>;
+
+  private placeholderIndex = 0;
+  private placeholderTimer: ReturnType<typeof setInterval> | null = null;
+
+  ngOnInit(): void {
+    this.placeholderTimer = setInterval(() => {
+      this.placeholderIndex = (this.placeholderIndex + 1) % PLACEHOLDER_EXAMPLES.length;
+      this.placeholder = PLACEHOLDER_EXAMPLES[this.placeholderIndex];
+      this.cdr.markForCheck();
+    }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    this.stopPlaceholderRotation();
+  }
+
+  stopPlaceholderRotation(): void {
+    if (this.placeholderTimer !== null) {
+      clearInterval(this.placeholderTimer);
+      this.placeholderTimer = null;
+      this.placeholder = PLACEHOLDER_NEUTRAL;
+    }
+  }
+
+  newChat(): void {
+    this.messages = [];
+    this.draft = '';
+    this.chatService.resetThread();
+    if (this.textareaRef) {
+      this.autoResize(this.textareaRef.nativeElement);
+    }
+    this.cdr.detectChanges();
+  }
 
   send(): void {
     if (this.isLoading) return;
