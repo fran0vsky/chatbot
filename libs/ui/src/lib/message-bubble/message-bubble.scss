@@ -2,8 +2,7 @@
  * Markdown content styling for assistant bubbles.
  * ngx-markdown renders raw HTML elements (<h1>, <ul>, <pre>, <code>) that
  * cannot carry Tailwind class attributes, so Tailwind utilities are applied
- * here via @apply scoped under .markdown-bubble (still Tailwind-only, per
- * apps/frontend/CLAUDE.md — no hand-rolled CSS values).
+ * here via @apply scoped under .markdown-bubble.
  */
 .markdown-bubble {
   ::ng-deep {
@@ -62,12 +61,10 @@
       @apply border-l-2 border-desert-border dark:border-desert-night-border pl-3 my-2 text-desert-brown-muted dark:text-desert-night-muted italic;
     }
 
-    /* Inline code */
     code {
       @apply rounded bg-desert-border dark:bg-desert-night-border px-1 py-0.5 text-xs font-mono text-desert-brown dark:text-desert-night-text;
     }
 
-    /* Fenced code block */
     pre {
       @apply rounded-lg bg-[#2d2d2d] text-[#ccc] p-3 my-2 overflow-x-auto text-xs;
     }
@@ -90,8 +87,3 @@
     }
   }
 }
-
-/* Typing indicator dot stagger delays */
-.dot-delay-0   { animation-delay: 0ms; }
-.dot-delay-150 { animation-delay: 150ms; }
-.dot-delay-300 { animation-delay: 300ms; }

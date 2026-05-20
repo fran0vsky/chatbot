@@ -1,0 +1,12 @@
+<button
+  type="button"
+  (click)="clicked.emit()"
+  [disabled]="disabled"
+  class="flex items-center justify-center w-8 h-8 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-surface transition disabled:opacity-50 disabled:cursor-not-allowed"
+  aria-label="New chat"
+>
+  <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.182L7.5 19.213l-4.5 1 1-4.5L16.862 3.487z" />
+  </svg>
+  <span class="sr-only">New chat</span>
+</button>

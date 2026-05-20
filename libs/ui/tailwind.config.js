@@ -1,11 +1,9 @@
-const { createGlobPatternsForDependencies } = require('@nx/angular/tailwind');
 const { join } = require('path');
 
 module.exports = {
   content: [
-    join(__dirname, 'src/**/!(*.stories|*.spec).{ts,html}'),
-    join(__dirname, '../../libs/ui/src/**/!(*.stories|*.spec).{ts,html}'),
-    ...createGlobPatternsForDependencies(__dirname),
+    join(__dirname, 'src/**/*.{ts,html}'),
+    join(__dirname, '.storybook/**/*.{ts,html}'),
   ],
   darkMode: ['class', '.night-mode'],
   theme: {

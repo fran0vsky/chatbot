@@ -1,0 +1,10 @@
+<select
+  [value]="selectedModel"
+  (change)="modelChange.emit($any($event.target).value)"
+  [disabled]="disabled"
+  class="appearance-none bg-desert-sand-light dark:bg-desert-night-surface border border-desert-border dark:border-desert-night-border rounded px-2 py-1 text-sm text-desert-brown dark:text-desert-night-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  @for (m of models; track m.id) {
+    <option [value]="m.id">{{ m.label }}</option>
+  }
+</select>

@@ -14,21 +14,23 @@
     </div>
   </div>
 } @else if (typing) {
-  <div class="flex w-full justify-start items-end gap-2">
-    <div class="snake-avatar flex-shrink-0 self-end mb-1"
-         [innerHTML]="snakeSvg"
-         aria-hidden="true"></div>
-    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text flex items-center gap-1">
-      <span class="inline-block w-1.5 h-1.5 rounded-full bg-desert-brown-muted dark:bg-desert-night-muted animate-bounce dot-delay-0"></span>
-      <span class="inline-block w-1.5 h-1.5 rounded-full bg-desert-brown-muted dark:bg-desert-night-muted animate-bounce dot-delay-150"></span>
-      <span class="inline-block w-1.5 h-1.5 rounded-full bg-desert-brown-muted dark:bg-desert-night-muted animate-bounce dot-delay-300"></span>
-    </div>
-  </div>
+  <app-typing-indicator />
 } @else {
   <div class="flex w-full justify-start items-end gap-2">
-    <div class="snake-avatar flex-shrink-0 self-end mb-1"
-         [innerHTML]="snakeSvg"
-         aria-hidden="true"></div>
+    <div class="flex-shrink-0 self-end mb-1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
+        <rect x="2" y="0" width="2" height="1" fill="#4A7C59"/>
+        <rect x="1" y="1" width="4" height="1" fill="#4A7C59"/>
+        <rect x="0" y="2" width="5" height="1" fill="#4A7C59"/>
+        <rect x="1" y="2" width="1" height="1" fill="#1A1209"/>
+        <rect x="3" y="2" width="1" height="1" fill="#1A1209"/>
+        <rect x="1" y="3" width="6" height="1" fill="#4A7C59"/>
+        <rect x="2" y="4" width="5" height="1" fill="#4A7C59"/>
+        <rect x="3" y="5" width="3" height="1" fill="#4A7C59"/>
+        <rect x="5" y="6" width="2" height="1" fill="#4A7C59"/>
+        <rect x="0" y="2" width="1" height="1" fill="#C1644A"/>
+      </svg>
+    </div>
     <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-4 pt-2 pb-2 pr-8 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text break-words text-sm">
       <markdown [data]="message.text"></markdown>
       <button
@@ -38,12 +40,10 @@
         [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
       >
         @if (copied) {
-          <!-- Check icon — shown briefly after copy -->
           <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />
           </svg>
         } @else {
-          <!-- Copy icon -->
           <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
             <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
