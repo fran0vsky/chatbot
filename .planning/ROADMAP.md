@@ -14,6 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Working Chat** - OpenRouter backend + bubble chat UI + deployed to GCP Cloud Run & Firebase Hosting with CI/CD and E2E test
 - [ ] **Phase 2: Choose Your Model** - Model selector in the UI so the user can switch LLMs mid-session
+- [ ] **Phase 3: UI/UX Refinement** - Polish and improve the chat UI for a better user experience
 
 ## Phase Details
 
@@ -51,12 +52,19 @@ Decimal phases appear between their surrounding integers in numeric order.
   - 02-01: Shared types + backend model routing (MODEL-01, Wave 1)
   - 02-02: Frontend model selector (MODEL-01, Wave 2 — blocked on 02-01)
 
+### Phase 3: UI/UX Refinement
+**Goal**: Polish and improve the chat UI for a better user experience
+**Mode:** mvp
+**Depends on**: Phase 2
+**Plans**: None yet
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2
+Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Working Chat | 3/3 | Code complete; awaiting human deploy setup | - |
 | 2. Choose Your Model | 2/2 | Code complete | 2026-05-20 |
+| 3. UI/UX Refinement | 0/0 | Not planned yet | - |
