@@ -1,30 +1,29 @@
 <form
-  class="border-t border-desert-border dark:border-desert-night-border px-4 py-3 bg-desert-header dark:bg-desert-night-surface"
+  class="sticky bottom-0 w-full pb-4 bg-transparent"
   (submit)="$event.preventDefault(); submit()"
 >
-  <div class="flex items-end gap-2">
-    <textarea
-      #textareaRef
-      rows="1"
-      [placeholder]="placeholder"
-      class="flex-1 resize-none rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-desert-terracotta dark:focus:ring-desert-night-amber disabled:opacity-60 disabled:cursor-not-allowed"
-      [class.overflow-y-auto]="atMaxHeight"
-      [class.overflow-hidden]="!atMaxHeight"
-      [(ngModel)]="draft"
-      name="draft"
-      [disabled]="disabled"
-      (keydown)="onKeydown($event)"
-      (input)="autoResize(textareaRef)"
-    ></textarea>
-    <button
-      type="submit"
-      [disabled]="disabled || draft.trim().length === 0"
-      class="flex items-center justify-center w-10 h-10 rounded-lg bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
-      </svg>
-      <span class="sr-only">Send</span>
-    </button>
+  <div class="w-full max-w-[1344px] mx-auto rounded-2xl shadow-lg bg-desert-sand-light dark:bg-desert-night-surface border border-desert-border dark:border-desert-night-border px-4 py-3">
+    <div class="flex items-end gap-2">
+      <textarea
+        #textareaRef
+        rows="1"
+        [placeholder]="placeholder"
+        class="flex-1 resize-none rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-desert-terracotta dark:focus:ring-desert-night-amber disabled:opacity-60 disabled:cursor-not-allowed"
+        [class.overflow-y-auto]="atMaxHeight"
+        [class.overflow-hidden]="!atMaxHeight"
+        [(ngModel)]="draft"
+        name="draft"
+        [disabled]="disabled"
+        (keydown)="onKeydown($event)"
+        (input)="autoResize(textareaRef)"
+      ></textarea>
+      <button type="submit" [disabled]="disabled || draft.trim().length === 0"
+        class="flex items-center justify-center w-8 h-8 rounded-full bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
+        </svg>
+        <span class="sr-only">Send</span>
+      </button>
+    </div>
   </div>
 </form>

@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Choose Your Model** - Model selector in the UI so the user can switch LLMs mid-session
 - [ ] **Phase 3: UI/UX Refinement** - Polish and improve the chat UI for a better user experience
 - [ ] **Phase 5: Further UI/UX Work** - Further work on looks and UI
+- [ ] **Phase 6: Desert UI Elevation** - Pixel snake avatar, background cacti, floating pill input, typography polish
 
 ## Phase Details
 
@@ -74,6 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3
 | 3. UI/UX Refinement | 3/3 | Code complete | 2026-05-20 |
 | 4. Dark Theme and Visual Polish | 3/3 | Code complete | 2026-05-20 |
 | 5. Further UI/UX Work | 0/3 | Planned | - |
+| 6. Desert UI Elevation | 0/2 | Planned | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -100,3 +102,20 @@ Plans:
   - 05-01: Message entry animations on MessageBubble (Wave 1)
   - 05-02: Textarea overflow-at-max-height fix on ChatInput (Wave 1)
   - 05-03: Code block header bar — language label + copy button (Wave 2 — blocked on 05-01)
+
+### Phase 6: Desert UI Elevation
+**Goal:** Elevate the chatbot UI while keeping the desert western aesthetic — pixel snake avatar, background cactus silhouettes, floating pill input, typography polish, optional color refinements
+**Mode:** mvp
+**Depends on:** Phase 5
+**Requirements**: SC-1, SC-2, SC-3, SC-4, SC-5
+**Success Criteria** (what must be TRUE):
+  1. Pixel snake avatar is clearly recognizable as a snake at rendered size; replaces current pixel art in message-bubble
+  2. Decorative cactus silhouettes appear in the chat background at low opacity; never overlap message content
+  3. Chat input is a floating pill-style card with send button embedded on the right; both day and night modes work
+  4. Typography in the header is reviewed and intentionally chosen (Playfair Display kept or replaced with reasoning)
+  5. App runs with no regressions in chat functionality
+**Plans:** 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Snake avatar + cactus silhouettes: 24×24 profile snake SVG in message-bubble, 5 decorative cactus SVGs in chat main area (Wave 1)
+- [ ] 06-02-PLAN.md — Pill input + Cinzel typography: floating rounded-2xl pill with shadow, Playfair Display → Cinzel font swap, all-caps CHATBOT header (Wave 1)

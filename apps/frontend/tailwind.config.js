@@ -33,7 +33,7 @@ module.exports = {
         'cactus-green-light': '#6BAF82',
       },
       fontFamily: {
-        title: ["'Playfair Display'", 'Georgia', 'serif'],
+        title: ["'Cinzel'", 'Georgia', 'serif'],
       },
     },
   },
