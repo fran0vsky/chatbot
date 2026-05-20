@@ -22,6 +22,7 @@ export class ChatInput {
   @Output() send = new EventEmitter<string>();
 
   draft = '';
+  atMaxHeight = false;
 
   @ViewChild('textareaRef') private textareaRef?: ElementRef<HTMLTextAreaElement>;
 
@@ -44,8 +45,13 @@ export class ChatInput {
 
   autoResize(textarea: HTMLTextAreaElement): void {
     textarea.style.height = 'auto';
-    const lineHeight = 24;
+    const computed = getComputedStyle(textarea);
+    const parsed = parseFloat(computed.lineHeight);
+    const lineHeight = Number.isNaN(parsed) ? 24 : parsed;
     const maxRows = 5;
-    textarea.style.height = Math.min(textarea.scrollHeight, lineHeight * maxRows) + 'px';
+    const maxHeight = lineHeight * maxRows;
+    const target = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = target + 'px';
+    this.atMaxHeight = textarea.scrollHeight > maxHeight;
   }
 }

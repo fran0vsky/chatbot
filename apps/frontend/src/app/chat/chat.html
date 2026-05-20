@@ -11,10 +11,10 @@
 
   <main class="flex-1 overflow-y-auto px-4 py-4 space-y-3 chat-scroll-area">
     @for (m of messages; track $index) {
-      <app-message-bubble [message]="m" />
+      <app-message-bubble [message]="m" [animate]="$index >= 1" />
     }
     @if (isLoading) {
-      <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" />
+      <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />
     }
     <div #messageEnd></div>
   </main>

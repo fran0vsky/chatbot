@@ -15,6 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Working Chat** - OpenRouter backend + bubble chat UI + deployed to GCP Cloud Run & Firebase Hosting with CI/CD and E2E test
 - [ ] **Phase 2: Choose Your Model** - Model selector in the UI so the user can switch LLMs mid-session
 - [ ] **Phase 3: UI/UX Refinement** - Polish and improve the chat UI for a better user experience
+- [ ] **Phase 5: Further UI/UX Work** - Further work on looks and UI
 
 ## Phase Details
 
@@ -72,6 +73,7 @@ Phases execute in numeric order: 1 → 2 → 3
 | 2. Choose Your Model | 2/2 | Code complete | 2026-05-20 |
 | 3. UI/UX Refinement | 3/3 | Code complete | 2026-05-20 |
 | 4. Dark Theme and Visual Polish | 3/3 | Code complete | 2026-05-20 |
+| 5. Further UI/UX Work | 0/3 | Planned | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -84,3 +86,17 @@ Plans:
 - [x] 04-01-PLAN.md — Desert foundation: Tailwind color tokens, CSS custom properties, scoped Prism themes, cactus scrollbar, Google Fonts link (Wave 1)
 - [x] 04-02-PLAN.md — Theme toggle: day/night switch in ChatComponent with localStorage persistence, sun/moon button, desert shell classes (Wave 2)
 - [x] 04-03-PLAN.md — Bubble restyling + snake mascot: terracotta user bubbles, parchment assistant bubbles, pixel art snake avatar, markdown desert palette (Wave 2)
+
+### Phase 5: Further UI/UX Work
+**Goal:** Continue improving the look and feel of the chatbot UI
+**Mode:** mvp
+**Depends on:** Phase 4
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. New messages slide+fade in from their own side (~150ms); the greeting appears instantly
+  2. The chat textarea caps at 5 lines and shows a scrollbar only when content overflows the cap
+  3. Every assistant code block has an always-visible header bar with a language label and a copy button
+**Plans**:
+  - 05-01: Message entry animations on MessageBubble (Wave 1)
+  - 05-02: Textarea overflow-at-max-height fix on ChatInput (Wave 1)
+  - 05-03: Code block header bar — language label + copy button (Wave 2 — blocked on 05-01)

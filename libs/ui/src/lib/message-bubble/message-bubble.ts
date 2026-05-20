@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   Input,
   inject,
 } from '@angular/core';
@@ -20,9 +21,22 @@ import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
 export class MessageBubble {
   @Input({ required: true }) message!: ChatMessage;
   @Input() typing = false;
+  @Input() animate = false;
 
   copied = false;
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  private readonly COPY_ICON_SVG =
+    '<svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">' +
+    '<path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />' +
+    '<path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />' +
+    '</svg>';
+
+  private readonly CHECK_ICON_SVG =
+    '<svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">' +
+    '<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />' +
+    '</svg>';
 
   copyMessage(): void {
     navigator.clipboard.writeText(this.message.text).then(
@@ -33,6 +47,66 @@ export class MessageBubble {
           this.copied = false;
           this.cdr.markForCheck();
         }, 1500);
+      },
+      () => {},
+    );
+  }
+
+  onMarkdownReady(): void {
+    const pres = this.host.nativeElement.querySelectorAll('pre');
+    pres.forEach((pre: HTMLPreElement) => {
+      if (pre.dataset['headerInjected'] === 'true') return;
+      pre.dataset['headerInjected'] = 'true';
+
+      const code = pre.querySelector('code');
+      if (!code) return;
+
+      let language = '';
+      code.classList.forEach((cls) => {
+        if (cls.startsWith('language-')) {
+          language = cls.slice('language-'.length).toLowerCase();
+        }
+      });
+      if (language === 'none' || language === 'text') {
+        language = '';
+      }
+
+      const header: HTMLDivElement = document.createElement('div');
+      header.className =
+        'flex items-center justify-between px-3 py-2 ' +
+        'bg-desert-parchment dark:bg-desert-night-parchment ' +
+        'border-b border-desert-border dark:border-desert-night-border';
+
+      const label: HTMLSpanElement = document.createElement('span');
+      label.className =
+        'text-xs font-mono text-desert-brown-muted dark:text-desert-night-muted';
+      label.textContent = language;
+
+      const button: HTMLButtonElement = document.createElement('button');
+      button.type = 'button';
+      button.className =
+        'p-1 rounded text-desert-brown-muted dark:text-desert-night-muted ' +
+        'hover:bg-desert-border dark:hover:bg-desert-night-border ' +
+        'hover:text-desert-brown dark:hover:text-desert-night-text transition-colors';
+      button.setAttribute('aria-label', 'Copy code');
+      button.innerHTML = this.COPY_ICON_SVG;
+      button.addEventListener('click', () => this.copyCodeBlock(button, code));
+
+      header.appendChild(label);
+      header.appendChild(button);
+      pre.insertBefore(header, pre.firstChild);
+    });
+  }
+
+  private copyCodeBlock(button: HTMLButtonElement, code: HTMLElement): void {
+    navigator.clipboard.writeText(code.textContent ?? '').then(
+      () => {
+        button.innerHTML = this.CHECK_ICON_SVG;
+        button.setAttribute('aria-label', 'Copied');
+        setTimeout(() => {
+          button.innerHTML = this.COPY_ICON_SVG;
+          button.setAttribute('aria-label', 'Copy code');
+        }, 2000);
       },
       () => {},
     );

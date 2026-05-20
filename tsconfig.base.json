@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@chatbot/ui": ["libs/ui/src/index.ts"],
+      "@org/shared-types": ["libs/shared-types/src/index.ts"]
+    },
     "composite": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,

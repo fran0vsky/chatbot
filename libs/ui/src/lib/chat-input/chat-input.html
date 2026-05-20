@@ -7,7 +7,9 @@
       #textareaRef
       rows="1"
       [placeholder]="placeholder"
-      class="flex-1 resize-none overflow-hidden rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-desert-terracotta dark:focus:ring-desert-night-amber disabled:opacity-60 disabled:cursor-not-allowed"
+      class="flex-1 resize-none rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-desert-terracotta dark:focus:ring-desert-night-amber disabled:opacity-60 disabled:cursor-not-allowed"
+      [class.overflow-y-auto]="atMaxHeight"
+      [class.overflow-hidden]="!atMaxHeight"
       [(ngModel)]="draft"
       name="draft"
       [disabled]="disabled"
