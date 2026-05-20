@@ -2,7 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prism.js light theme for fenced code block syntax highlighting (ngx-markdown). */
-@import 'prismjs/themes/prism.css';
+/* Prism.js themes — both loaded at root level; night mode wins via scoped override */
+@import 'prismjs/themes/prism-solarizedlight.css';
+@import 'prismjs/themes/prism-tomorrow.css';
 
-/* You can add global styles to this file, and also import other style files */
+/* Night mode Prism override — higher specificity wins over solarizedlight defaults */
+.night-mode pre[class*="language-"],
+.night-mode code[class*="language-"] {
+  background: #2d2d2d;
+  color: #ccc;
+}
+
+html, body {
+  height: 100%;
+}
+
+/* Desert palette CSS custom properties */
+.day-mode {
+  --color-bg: #F5E6C8;
+  --color-surface: #EDD9A3;
+  --color-text: #4A2E1A;
+  --color-border: #D4B896;
+  --color-accent: #C1644A;
+  --scrollbar-thumb: #4A7C59;
+  --scrollbar-track: #EDD9A3;
+}
+
+.night-mode {
+  --color-bg: #1A1209;
+  --color-surface: #251C10;
+  --color-text: #E8D5B0;
+  --color-border: #3D2E1C;
+  --color-accent: #D4872A;
+  --scrollbar-thumb: #6BAF82;
+  --scrollbar-track: #2E2318;
+}
+
+/* Cactus scrollbar */
+.chat-scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.chat-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 3px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.1);
+}

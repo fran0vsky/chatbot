@@ -1,6 +1,6 @@
 @if (message.role === 'user') {
   <div class="flex w-full justify-end">
-    <div class="max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2 bg-blue-500 text-white whitespace-pre-wrap break-words">
+    <div class="max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words">
       {{ message.text }}
     </div>
   </div>
@@ -14,21 +14,27 @@
     </div>
   </div>
 } @else if (typing) {
-  <div class="flex w-full justify-start">
-    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-gray-100 text-gray-800 flex items-center gap-1">
-      <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" [style.animation-delay]="'0ms'"></span>
-      <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" [style.animation-delay]="'150ms'"></span>
-      <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" [style.animation-delay]="'300ms'"></span>
+  <div class="flex w-full justify-start items-end gap-2">
+    <div class="snake-avatar flex-shrink-0 self-end mb-1"
+         [innerHTML]="snakeSvg"
+         aria-hidden="true"></div>
+    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text flex items-center gap-1">
+      <span class="inline-block w-1.5 h-1.5 rounded-full bg-desert-brown-muted dark:bg-desert-night-muted animate-bounce dot-delay-0"></span>
+      <span class="inline-block w-1.5 h-1.5 rounded-full bg-desert-brown-muted dark:bg-desert-night-muted animate-bounce dot-delay-150"></span>
+      <span class="inline-block w-1.5 h-1.5 rounded-full bg-desert-brown-muted dark:bg-desert-night-muted animate-bounce dot-delay-300"></span>
     </div>
   </div>
 } @else {
-  <div class="flex w-full justify-start">
-    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-4 pt-2 pb-2 pr-8 bg-gray-100 text-gray-800 break-words text-sm">
+  <div class="flex w-full justify-start items-end gap-2">
+    <div class="snake-avatar flex-shrink-0 self-end mb-1"
+         [innerHTML]="snakeSvg"
+         aria-hidden="true"></div>
+    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-4 pt-2 pb-2 pr-8 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text break-words text-sm">
       <markdown [data]="message.text"></markdown>
       <button
         type="button"
         (click)="copyMessage()"
-        class="absolute top-1 right-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+        class="absolute top-1 right-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-desert-border dark:hover:bg-desert-night-border text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text"
         [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
       >
         @if (copied) {

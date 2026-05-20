@@ -47,7 +47,7 @@
     }
 
     a {
-      @apply text-blue-600 underline break-all;
+      @apply text-desert-terracotta dark:text-desert-night-sage underline break-all;
     }
 
     strong {
@@ -59,17 +59,17 @@
     }
 
     blockquote {
-      @apply border-l-2 border-gray-300 pl-3 my-2 text-gray-600 italic;
+      @apply border-l-2 border-desert-border dark:border-desert-night-border pl-3 my-2 text-desert-brown-muted dark:text-desert-night-muted italic;
     }
 
     /* Inline code */
     code {
-      @apply rounded bg-gray-200 px-1 py-0.5 text-xs font-mono;
+      @apply rounded bg-desert-border dark:bg-desert-night-border px-1 py-0.5 text-xs font-mono text-desert-brown dark:text-desert-night-text;
     }
 
     /* Fenced code block */
     pre {
-      @apply rounded-lg bg-gray-800 text-gray-100 p-3 my-2 overflow-x-auto text-xs;
+      @apply rounded-lg bg-[#2d2d2d] text-[#ccc] p-3 my-2 overflow-x-auto text-xs;
     }
 
     pre code {
@@ -82,11 +82,16 @@
 
     th,
     td {
-      @apply border border-gray-300 px-2 py-1;
+      @apply border border-desert-border dark:border-desert-night-border px-2 py-1;
     }
 
     hr {
-      @apply my-3 border-gray-300;
+      @apply my-3 border-desert-border dark:border-desert-night-border;
     }
   }
 }
+
+/* Typing indicator dot stagger delays */
+.dot-delay-0   { animation-delay: 0ms; }
+.dot-delay-150 { animation-delay: 150ms; }
+.dot-delay-300 { animation-delay: 300ms; }

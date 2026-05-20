@@ -35,11 +35,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  messages: ChatMessage[] = [];
+  messages: ChatMessage[] = [{ text: 'Hello! How can I assist you today?', role: 'assistant' }];
   draft = '';
   isLoading = false;
   selectedModel = 'openai/gpt-4o-mini';
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
+  isDayMode = false;
 
   readonly models = [
     { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
@@ -53,11 +54,26 @@ export class ChatComponent implements OnInit, OnDestroy {
   private placeholderTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
+    const saved = localStorage.getItem('desert-theme') as 'day' | 'night' | null;
+    this.applyTheme(saved === 'day' ? 'day' : 'night');
     this.placeholderTimer = setInterval(() => {
       this.placeholderIndex = (this.placeholderIndex + 1) % PLACEHOLDER_EXAMPLES.length;
       this.placeholder = PLACEHOLDER_EXAMPLES[this.placeholderIndex];
       this.cdr.markForCheck();
     }, 3000);
+  }
+
+  private applyTheme(mode: 'day' | 'night'): void {
+    this.isDayMode = (mode === 'day');
+    document.documentElement.classList.remove('day-mode', 'night-mode');
+    document.documentElement.classList.add(mode === 'day' ? 'day-mode' : 'night-mode');
+    this.cdr.markForCheck();
+  }
+
+  toggleTheme(): void {
+    const next = this.isDayMode ? 'night' : 'day';
+    localStorage.setItem('desert-theme', next);
+    this.applyTheme(next);
   }
 
   ngOnDestroy(): void {
@@ -73,7 +89,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   newChat(): void {
-    this.messages = [];
+    this.messages = [{ text: 'Hello! How can I assist you today?', role: 'assistant' }];
     this.draft = '';
     this.chatService.resetThread();
     if (this.textareaRef) {

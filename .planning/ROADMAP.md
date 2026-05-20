@@ -70,4 +70,17 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Working Chat | 3/3 | Code complete; awaiting human deploy setup | - |
 | 2. Choose Your Model | 2/2 | Code complete | 2026-05-20 |
-| 3. UI/UX Refinement | 0/3 | Planned | - |
+| 3. UI/UX Refinement | 3/3 | Code complete | 2026-05-20 |
+| 4. Dark Theme and Visual Polish | 3/3 | Code complete | 2026-05-20 |
+
+### Phase 4: Dark Theme and Visual Polish
+
+**Goal:** Give the chatbot a cohesive desert aesthetic with day/night toggle, pixel art snake mascot, cactus scrollbar, and two Prism.js themes
+**Requirements**: TBD
+**Depends on:** Phase 3
+**Plans:** 3 plans
+
+Plans:
+- [x] 04-01-PLAN.md — Desert foundation: Tailwind color tokens, CSS custom properties, scoped Prism themes, cactus scrollbar, Google Fonts link (Wave 1)
+- [x] 04-02-PLAN.md — Theme toggle: day/night switch in ChatComponent with localStorage persistence, sun/moon button, desert shell classes (Wave 2)
+- [x] 04-03-PLAN.md — Bubble restyling + snake mascot: terracotta user bubbles, parchment assistant bubbles, pixel art snake avatar, markdown desert palette (Wave 2)

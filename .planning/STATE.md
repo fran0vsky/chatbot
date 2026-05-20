@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 2 complete — all code done, awaiting commit + deploy
+stopped_at: Phase 4 complete — desert theme, snake mascot, day/night toggle all implemented
 last_updated: "2026-05-20T00:00:00.000Z"
-last_activity: 2026-05-20 — Phase 2 plans 02-01 and 02-02 executed; all type-check and grep gates green
+last_activity: 2026-05-20 — Phase 4 plans 04-01, 04-02, 04-03 executed; build verified clean by agents
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 
 ## Current Position
 
-Phase: 2 of 2 (Choose Your Model)
-Plan: 2 of 2 in current phase (code complete)
-Status: Both phases code complete; pending commit and human GCP/Firebase one-time setup before first production deploy
-Last activity: 2026-05-20 — Phase 2 plans 02-01 and 02-02 executed; all type-check and grep gates green
+Phase: 4 of 4 (Dark Theme and Visual Polish)
+Plan: 3 of 3 in current phase (code complete)
+Status: All 4 phases code complete; pending commit and human GCP/Firebase one-time setup before first production deploy
+Last activity: 2026-05-20 — Phase 4 plans 04-01, 04-02, 04-03 executed; desert theme, day/night toggle, snake mascot implemented
 
 Progress: [██████████] 100%
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 ### Roadmap Evolution
 
 - Phase 3 added: UI/UX Refinement Phase
+- Phase 4 added: Dark Theme and Visual Polish
 
 ### Decisions
 
@@ -67,7 +68,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- **Commit Phase 1 + Phase 2 changes** (both denied during execution; user should commit manually).
+- **Commit all changes (Phases 1–4)** — run `pnpm nx build frontend` first to verify, then commit with message: `feat(phase-4): desert theme — day/night toggle, snake mascot, bubble restyling, cactus scrollbar`
 - Human one-time setup (Plan 03 Task 2): GCP project + APIs, Artifact Registry repo, Secret Manager `openrouter-api-key`, Cloud Run service `chatbot-backend`, Workload Identity Federation, Firebase project + Hosting, 8 GitHub Actions variables + 2 secrets. Full checklist in `README.md` `## Deployment`.
 - Local smoke test of the full stack: `npx nx serve backend` + `npx nx serve frontend` with `OPENROUTER_API_KEY` in `.env`; verify model selector routes to both models.
 - Local Playwright E2E dry-run (`npx nx e2e frontend-e2e` with `OPENROUTER_API_KEY` exported).

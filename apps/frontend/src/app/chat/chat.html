@@ -1,12 +1,32 @@
-<div class="flex flex-col h-screen bg-white">
-  <header class="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-white">
-    <h1 class="text-lg font-semibold text-gray-900">Chatbot</h1>
+<div class="flex flex-col h-screen bg-desert-sand dark:bg-desert-night">
+  <header class="flex justify-between items-center px-4 py-3 border-b border-desert-border dark:border-desert-night-border bg-desert-header dark:bg-desert-night-surface">
+    <h1 class="font-title text-lg font-semibold text-desert-brown dark:text-desert-night-text">Chatbot</h1>
     <div class="flex items-center gap-2">
+      <button
+        type="button"
+        (click)="toggleTheme()"
+        [disabled]="isLoading"
+        class="flex items-center justify-center w-8 h-8 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-surface transition disabled:opacity-50 disabled:cursor-not-allowed"
+        [attr.aria-label]="isDayMode ? 'Switch to night mode' : 'Switch to day mode'"
+      >
+        @if (isDayMode) {
+          <!-- Moon icon — shown in day mode -->
+          <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+          </svg>
+        } @else {
+          <!-- Sun icon — shown in night mode -->
+          <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
+          </svg>
+        }
+        <span class="sr-only">{{ isDayMode ? 'Switch to night mode' : 'Switch to day mode' }}</span>
+      </button>
       <button
         type="button"
         (click)="newChat()"
         [disabled]="isLoading"
-        class="flex items-center justify-center w-8 h-8 rounded text-gray-600 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        class="flex items-center justify-center w-8 h-8 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-surface transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.182L7.5 19.213l-4.5 1 1-4.5L16.862 3.487z" />
@@ -17,7 +37,7 @@
         [value]="selectedModel"
         (change)="selectedModel = $any($event.target).value"
         [disabled]="isLoading"
-        class="appearance-none bg-white border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+        class="appearance-none bg-desert-sand-light dark:bg-desert-night-surface border border-desert-border dark:border-desert-night-border rounded px-2 py-1 text-sm text-desert-brown dark:text-desert-night-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
         @for (m of models; track m.id) {
           <option [value]="m.id">{{ m.label }}</option>
         }
@@ -25,7 +45,7 @@
     </div>
   </header>
 
-  <main class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+  <main class="flex-1 overflow-y-auto px-4 py-4 space-y-3 chat-scroll-area">
     @for (m of messages; track $index) {
       <app-message-bubble [message]="m" />
     }
@@ -35,13 +55,13 @@
     <div #messageEnd></div>
   </main>
 
-  <form class="border-t border-gray-200 px-4 py-3 bg-white" (submit)="$event.preventDefault(); send()">
+  <form class="border-t border-desert-border dark:border-desert-night-border px-4 py-3 bg-desert-header dark:bg-desert-night-surface" (submit)="$event.preventDefault(); send()">
     <div class="flex items-end gap-2">
       <textarea
         #textareaRef
         rows="1"
         [placeholder]="placeholder"
-        class="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        class="flex-1 resize-none overflow-hidden rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-desert-terracotta dark:focus:ring-desert-night-amber disabled:opacity-60 disabled:cursor-not-allowed"
         [(ngModel)]="draft"
         name="draft"
         [disabled]="isLoading"
@@ -52,7 +72,7 @@
       <button
         type="submit"
         [disabled]="isLoading || draft.trim().length === 0"
-        class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+        class="flex items-center justify-center w-10 h-10 rounded-lg bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
