@@ -9,8 +9,8 @@ export class ChatService {
   private readonly http = inject(HttpClient);
   readonly threadId = crypto.randomUUID();
 
-  sendMessage(message: string): Observable<ChatResponse> {
-    const body: ChatRequest = { message, threadId: this.threadId };
+  sendMessage(message: string, model?: string): Observable<ChatResponse> {
+    const body: ChatRequest = { message, threadId: this.threadId, model };
     return this.http.post<ChatResponse>(`${environment.apiUrl}/api/agents/chat`, body);
   }
 }

@@ -47,7 +47,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. A model selector is visible in the chat UI showing at least two OpenRouter model options
   2. After selecting a different model, the next message is answered by that model (observable via distinct response style or confirmed via backend logs)
   3. The selected model persists for the duration of the session (switching tabs does not reset it unless the page is refreshed)
-**Plans**: TBD
+**Plans**:
+  - 02-01: Shared types + backend model routing (MODEL-01, Wave 1)
+  - 02-02: Frontend model selector (MODEL-01, Wave 2 — blocked on 02-01)
 
 ## Progress
 
@@ -57,4 +59,4 @@ Phases execute in numeric order: 1 → 2
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Working Chat | 3/3 | Code complete; awaiting human deploy setup | - |
-| 2. Choose Your Model | 0/? | Not started | - |
+| 2. Choose Your Model | 2/2 | Code complete | 2026-05-20 |

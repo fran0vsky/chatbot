@@ -1,6 +1,15 @@
 <div class="flex flex-col h-screen bg-white">
-  <header class="px-4 py-3 border-b border-gray-200 bg-white">
+  <header class="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-white">
     <h1 class="text-lg font-semibold text-gray-900">Chatbot</h1>
+    <select
+      [value]="selectedModel"
+      (change)="selectedModel = $any($event.target).value"
+      [disabled]="isLoading"
+      class="appearance-none bg-white border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+      @for (m of models; track m.id) {
+        <option [value]="m.id">{{ m.label }}</option>
+      }
+    </select>
   </header>
 
   <main class="flex-1 overflow-y-auto px-4 py-4 space-y-3">

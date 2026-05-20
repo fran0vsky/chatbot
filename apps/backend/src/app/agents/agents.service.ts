@@ -12,37 +12,41 @@ const AgentState = Annotation.Root({
 @Injectable()
 export class AgentsService {
   private readonly logger = new Logger(AgentsService.name);
-  private readonly model: ChatOpenAI;
-  private readonly graph: ReturnType<typeof this.buildGraph>;
   private readonly checkpointer = new MemorySaver();
+  private readonly SUPPORTED_MODELS = ['openai/gpt-4o-mini', 'anthropic/claude-3-haiku'] as const;
+  private readonly graphs = new Map<string, ReturnType<typeof this.buildGraph>>();
 
   constructor() {
-    this.model = new ChatOpenAI({
-      apiKey: process.env['OPENROUTER_API_KEY'],
-      modelName: 'openai/gpt-4o-mini',
-      configuration: { baseURL: 'https://openrouter.ai/api/v1' },
-    });
-    this.graph = this.buildGraph();
+    for (const modelId of this.SUPPORTED_MODELS) {
+      this.graphs.set(modelId, this.buildGraph(modelId));
+    }
   }
 
-  private buildGraph() {
+  private buildGraph(modelId: string) {
+    const model = new ChatOpenAI({
+      apiKey: process.env['OPENROUTER_API_KEY'],
+      modelName: modelId,
+      configuration: { baseURL: 'https://openrouter.ai/api/v1' },
+    });
+
     const callModel = async (state: typeof AgentState.State) => {
-      const response = await this.model.invoke(state.messages);
+      const response = await model.invoke(state.messages);
       return { messages: [response] };
     };
 
-    const workflow = new StateGraph(AgentState)
+    return new StateGraph(AgentState)
       .addNode('agent', callModel)
       .addEdge(START, 'agent')
-      .addEdge('agent', END);
-
-    return workflow.compile({ checkpointer: this.checkpointer });
+      .addEdge('agent', END)
+      .compile({ checkpointer: this.checkpointer });
   }
 
-  async runAgent(message: string, threadId = 'default'): Promise<{ response: string }> {
+  async runAgent(message: string, threadId = 'default', model = 'openai/gpt-4o-mini'): Promise<{ response: string }> {
     this.logger.log(`Running agent for thread ${threadId}: ${message}`);
 
-    const result = await this.graph.invoke(
+    const graph = this.graphs.get(model) ?? this.graphs.get('openai/gpt-4o-mini')!;
+
+    const result = await graph.invoke(
       { messages: [new HumanMessage(message)] },
       { configurable: { thread_id: threadId } },
     );

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 1 code complete; awaiting human GCP/Firebase setup before first main push
-last_updated: "2026-05-18T16:35:00.000Z"
-last_activity: 2026-05-18 — Phase 1 plans 01–03 executed; SUMMARY.md files written
+status: completed
+stopped_at: Phase 2 complete — all code done, awaiting commit + deploy
+last_updated: "2026-05-20T00:00:00.000Z"
+last_activity: 2026-05-20 — Phase 2 plans 02-01 and 02-02 executed; all type-check and grep gates green
 progress:
   total_phases: 2
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 3
-  percent: 50
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,37 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-17)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 1 — Working Chat
+**Current focus:** Phase 2 complete — model selector wired end-to-end
 
 ## Current Position
 
-Phase: 1 of 2 (Working Chat)
-Plan: 3 of 3 in current phase (code complete)
-Status: Code complete; pending human GCP/Firebase one-time setup (Plan 03 Task 2) before first main push
-Last activity: 2026-05-18 — Phase 1 plans 01–03 executed; all static gates green
+Phase: 2 of 2 (Choose Your Model)
+Plan: 2 of 2 in current phase (code complete)
+Status: Both phases code complete; pending commit and human GCP/Firebase one-time setup before first production deploy
+Last activity: 2026-05-20 — Phase 2 plans 02-01 and 02-02 executed; all type-check and grep gates green
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 5
 - Average duration: —
-- Total execution time: 0 hours
+- Total execution time: —
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
-
-*Updated after each plan completion*
+| 1. Working Chat | 3 | — | — |
+| 2. Choose Your Model | 2 | — | — |
 
 ## Accumulated Context
 
@@ -63,20 +57,23 @@ Recent decisions affecting current work:
 - Init: OpenRouter replaces Gemini; @langchain/openai with configuration.baseURL
 - Init: GPT-4o mini as default model (`openai/gpt-4o-mini` namespaced ID required)
 - Init: MemorySaver kept for per-session memory; no database needed
-- Init: Three pre-existing bugs must be fixed first — Dockerfile missing `COPY libs`, @langchain/openai not declared in package.json, unsafe ToolMessage cast
+- Phase 2: Per-request model selection via Map<modelId, CompiledGraph> — one MemorySaver shared across all graphs preserves thread history across model switches (D-09, D-10)
+- Phase 2: Unknown model IDs fall back silently to gpt-4o-mini (D-11)
+- Phase 2: Frontend uses plain class properties (not signals) — OnPush + ChangeDetectorRef pattern, consistent with existing isLoading field
 
 ### Pending Todos
 
+- **Commit Phase 1 + Phase 2 changes** (both denied during execution; user should commit manually).
 - Human one-time setup (Plan 03 Task 2): GCP project + APIs, Artifact Registry repo, Secret Manager `openrouter-api-key`, Cloud Run service `chatbot-backend`, Workload Identity Federation, Firebase project + Hosting, 8 GitHub Actions variables + 2 secrets. Full checklist in `README.md` `## Deployment`.
-- Local smoke test of the backend + frontend (requires `OPENROUTER_API_KEY` in `.env`).
+- Local smoke test of the full stack: `npx nx serve backend` + `npx nx serve frontend` with `OPENROUTER_API_KEY` in `.env`; verify model selector routes to both models.
 - Local Playwright E2E dry-run (`npx nx e2e frontend-e2e` with `OPENROUTER_API_KEY` exported).
-- Commit the Phase 1 changes (commit not auto-created — user denied the commit during execution).
 
 ### Blockers/Concerns
 
-- `@langchain/openai ^1.10.0` (planned version) was not on npm; pinned to `^1.4.0` (latest published 1.x is 1.4.5). No peer-dep conflict; `npm install --legacy-peer-deps` succeeded.
-- Docker not installed on the dev machine — Plan 01-01's Dockerfile fix will first be exercised by CI `deploy-backend`. If it fails, the root cause is likely the order of `COPY libs/` vs `npm ci`.
-- `apps/frontend/src/main.ts` has a pre-existing `console.error(err)` triggering a lint warning (1 warning, 0 errors). Not introduced by this phase.
+- `npx nx build` fails on this dev machine: Nx 22.7.0 + Node 24.12.0 causes `ERR_UNSUPPORTED_ESM_URL_SCHEME` on Windows. This is pre-existing (Phase 1 commits were also CI-verified only). TypeScript compilation (tsc --noEmit) passes clean on all changed packages. Full build verification happens on CI push.
+- `@langchain/openai ^1.10.0` was not on npm; pinned to `^1.4.0` (latest published 1.x is 1.4.5).
+- Docker not installed on the dev machine — Dockerfile changes are CI-only.
+- `apps/frontend/src/main.ts` has a pre-existing `console.error(err)` lint warning (1 warning, 0 errors).
 
 ## Deferred Items
 
@@ -88,6 +85,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-18T16:35:00.000Z
-Stopped at: Phase 1 code complete; awaiting human GCP/Firebase setup
-Resume file: README.md `## Deployment` (human setup checklist) and .planning/phases/01-working-chat/01-03-SUMMARY.md
+Last session: 2026-05-20T00:00:00.000Z
+Stopped at: Phase 2 code complete — both plans executed, SUMMARY files written
+Resume file: .planning/phases/02-choose-your-model/02-02-SUMMARY.md

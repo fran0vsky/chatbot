@@ -8,6 +8,6 @@ export class AgentsController {
 
   @Post('chat')
   async chat(@Body() body: ChatRequest): Promise<ChatResponse> {
-    return this.agentsService.runAgent(body.message, body.threadId);
+    return this.agentsService.runAgent(body.message, body.threadId, body.model);
   }
 }

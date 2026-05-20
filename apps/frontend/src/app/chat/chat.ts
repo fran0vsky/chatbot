@@ -27,6 +27,11 @@ export class ChatComponent {
   messages: ChatMessage[] = [];
   draft = '';
   isLoading = false;
+  selectedModel = 'openai/gpt-4o-mini';
+  readonly models = [
+    { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
+    { id: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku' },
+  ] as const;
 
   @ViewChild('messageEnd') messageEnd?: ElementRef<HTMLElement>;
   @ViewChild('textareaRef') textareaRef?: ElementRef<HTMLTextAreaElement>;
@@ -45,7 +50,7 @@ export class ChatComponent {
     this.cdr.detectChanges();
     this.scrollToBottom();
 
-    this.chatService.sendMessage(text).subscribe({
+    this.chatService.sendMessage(text, this.selectedModel).subscribe({
       next: (resp) => {
         this.messages.push({ text: resp.response, role: 'assistant' });
         this.isLoading = false;
