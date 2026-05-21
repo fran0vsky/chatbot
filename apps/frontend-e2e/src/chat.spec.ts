@@ -11,11 +11,11 @@ test('user can send a message and receive an assistant reply', async ({ page }) 
 
   const assistantBubble = page
     .locator('app-message-bubble')
-    .filter({ has: page.locator('.bg-gray-100') })
+    .filter({ has: page.locator('.markdown-bubble') })
     .last();
 
-  // Wait for a completed reply — the typing indicator shares .bg-gray-100 but has no text,
-  // so we must wait for non-empty content rather than just visibility.
+  // Wait for a completed reply — .markdown-bubble only appears on finished assistant messages,
+  // not the typing indicator, so presence implies content is ready.
   await expect(assistantBubble).toHaveText(/.+/, { timeout: 60_000 });
   await expect(assistantBubble).not.toHaveText('Something went wrong. Please try again.');
 });
