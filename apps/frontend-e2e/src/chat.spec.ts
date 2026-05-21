@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('user can send a message and receive an assistant reply', async ({ page }) => {
   await page.goto('/');
 
-  const textarea = page.getByPlaceholder('Message');
+  const textarea = page.getByTestId('message-input');
   await expect(textarea).toBeVisible();
 
   await textarea.fill('Hello from the Playwright E2E test.');

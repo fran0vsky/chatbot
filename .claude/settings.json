@@ -1,14 +1,30 @@
 {
-  "extraKnownMarketplaces": {
-    "nx-claude-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "nrwl/nx-ai-agents-config"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "nx@nx-claude-plugins": true
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:4200/styles.css)",
+      "Bash(curl -s http://localhost:4200/main.js)",
+      "Bash(chromium-cli --headless --screenshot=/tmp/chat-spacing.png http://localhost:4200)",
+      "Bash(npx playwright *)",
+      "Read(//c/Users/Franek/AppData/Local/Temp/**)",
+      "Bash(npm run *)",
+      "Bash(cp \"C:\\\\Users\\\\Franek\\\\Downloads\\\\ChatGPT Image 21 maj 2026, 10_04_17.png\" \"apps/frontend/src/assets/creatures/chatbot-creature.png\")",
+      "Bash(node test-chat.js)",
+      "Bash(echo \"data:image/png;base64,$\\(base64 -w 0 apps/frontend/src/assets/creatures/chatbot-creature.png\\)\")",
+      "Read(//tmp/**)",
+      "Bash(open creature-test.png)",
+      "Bash(identify apps/frontend/src/assets/creatures/creature.png)",
+      "Bash(mkdir -p public/assets/creatures)",
+      "Bash(mv src/assets/creatures/creature.png public/assets/creatures/creature.png)",
+      "Bash(rmdir src/assets/creatures src/assets)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4200/assets/creatures/creature.png)",
+      "Bash(node -e \"require\\('sharp'\\);console.log\\('sharp ok'\\)\")",
+      "Bash(python -c \"import PIL; print\\('PIL ok'\\)\")",
+      "Bash(pip install *)",
+      "Bash(python -c ' *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Franek\\Downloads"
+    ]
   },
   "hooks": {
     "PostToolUse": [
@@ -17,12 +33,23 @@
           {
             "type": "prompt",
             "prompt": "Based on the conversation so far, estimate whether the context window is likely 65%+ full. Respond with ONLY 'yes' or 'no'. Answer 'yes' if many messages have been exchanged or files read.",
-            "statusMessage": "Checking context usage...",
             "model": "claude-haiku-4-5-20251001",
-            "continueOnBlock": true
+            "continueOnBlock": true,
+            "statusMessage": "Checking context usage..."
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "nx@nx-claude-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "nx-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nrwl/nx-ai-agents-config"
+      }
+    }
   }
 }

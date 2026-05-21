@@ -20,6 +20,7 @@ module.exports = {
         'desert-brown-muted': '#7A5C42',
         'desert-border': '#D4B896',
         'desert-header': '#EDD9A3',
+        'desert-gold': '#D4AF37',
         'desert-night': '#1A1209',
         'desert-night-surface': '#251C10',
         'desert-night-parchment': '#2E2318',
@@ -34,6 +35,8 @@ module.exports = {
       },
       fontFamily: {
         title: ["'Cinzel'", 'Georgia', 'serif'],
+        body: ["'Inter'", 'system-ui', 'sans-serif'],
+        serif: ["'Lora'", 'Georgia', 'serif'],
       },
     },
   },

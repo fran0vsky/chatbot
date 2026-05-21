@@ -121,25 +121,26 @@
       <rect x="23" y="8"  width="3"  height="34" fill="currentColor" opacity="0.3"/>
     </svg>
 
-    <!-- Landing state: greeting + centered input -->
+    <!-- Landing state: greeting + left-aligned input -->
     @if (messages.length <= 1 && !isLoading) {
-      <div class="flex-1 flex flex-col items-center justify-center px-4 pb-12 gap-6 relative z-10">
-        @if (messages.length === 1) {
-          <div class="max-w-2xl w-full">
+      <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
+        <div class="mx-auto w-full max-w-2xl">
+          @if (messages.length === 1) {
             <app-message-bubble [message]="messages[0]" [animate]="false" />
-          </div>
-        }
-        <app-chat-input
-          class="w-full max-w-2xl"
-          [placeholder]="placeholder"
-          [disabled]="isLoading"
-          (send)="onSend($event)"
-        />
+          }
+        </div>
+        <div class="mx-auto w-full max-w-2xl">
+          <app-chat-input
+            [placeholder]="placeholder"
+            [disabled]="isLoading"
+            (send)="onSend($event)"
+          />
+        </div>
       </div>
     } @else {
       <!-- Chat state: scrollable messages + sticky input -->
       <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
-        <div class="max-w-2xl mx-auto w-full space-y-3">
+        <div class="max-w-2xl mx-auto w-full space-y-5">
           @for (m of messages; track $index) {
             <app-message-bubble [message]="m" [animate]="$index >= 1" />
           }
@@ -149,11 +150,15 @@
           <div #messageEnd></div>
         </div>
       </div>
-      <app-chat-input
-        [placeholder]="placeholder"
-        [disabled]="isLoading"
-        (send)="onSend($event)"
-      />
+      <div class="px-4 flex-shrink-0 sticky bottom-4 bg-gradient-to-t from-desert-sand dark:from-desert-night to-transparent pt-4 pb-4">
+        <div class="max-w-2xl mx-auto w-full">
+          <app-chat-input
+            [placeholder]="placeholder"
+            [disabled]="isLoading"
+            (send)="onSend($event)"
+          />
+        </div>
+      </div>
     }
   </main>
 </div>

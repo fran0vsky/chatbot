@@ -15,22 +15,22 @@
     }
 
     h1 {
-      @apply text-base font-semibold mt-3 mb-1;
+      @apply text-base font-semibold mt-3 mb-1 font-serif;
     }
 
     h2 {
-      @apply text-sm font-semibold mt-3 mb-1;
+      @apply text-sm font-semibold mt-3 mb-1 font-serif;
     }
 
     h3,
     h4,
     h5,
     h6 {
-      @apply text-sm font-semibold mt-2 mb-1;
+      @apply text-sm font-semibold mt-2 mb-1 font-serif;
     }
 
     p {
-      @apply my-2;
+      @apply my-2 leading-relaxed;
     }
 
     ul {

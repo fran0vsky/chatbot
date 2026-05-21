@@ -1,11 +1,11 @@
 @if (message.role === 'user') {
-  <div class="flex w-full justify-end" [class.msg-enter-right]="animate">
-    <div class="max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words">
+  <div class="flex w-full justify-end mb-4" [class.msg-enter-right]="animate">
+    <div class="max-w-[75%] rounded-2xl rounded-br-sm px-5 py-3 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words shadow-md font-body leading-relaxed">
       {{ message.text }}
     </div>
   </div>
 } @else if (message.role === 'error') {
-  <div class="flex w-full justify-start" [class.msg-enter-left]="animate">
+  <div class="flex w-full justify-start mb-4" [class.msg-enter-left]="animate">
     <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-red-50 border border-red-200 text-red-700 whitespace-pre-wrap break-words flex items-start gap-2">
       <svg class="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.515 2.625H3.72c-1.345 0-2.188-1.458-1.515-2.625L8.485 2.495zM10 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1zm0 7a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
@@ -14,45 +14,15 @@
     </div>
   </div>
 } @else if (typing) {
-  <div [class.msg-enter-left]="animate">
+  <div class="mb-4" [class.msg-enter-left]="animate">
     <app-typing-indicator />
   </div>
 } @else {
-  <div class="flex w-full justify-start items-end gap-2" [class.msg-enter-left]="animate">
-    <div class="flex-shrink-0 self-end mb-1">
-      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="30" viewBox="0 0 40 30" shape-rendering="crispEdges" aria-hidden="true" focusable="false">
-        <!-- Tongue (forked) -->
-        <rect x="37" y="12" width="3" height="2" fill="#C1644A"/>
-        <rect x="37" y="13" width="1" height="1" fill="#C1644A"/>
-        <rect x="39" y="13" width="1" height="1" fill="#C1644A"/>
-        <!-- Head block -->
-        <rect x="26" y="9" width="11" height="8" fill="#4A7C59"/>
-        <!-- Eye -->
-        <rect x="28" y="10" width="3" height="3" fill="#1A1209"/>
-        <!-- Scale highlight -->
-        <rect x="33" y="10" width="3" height="2" fill="#6BAF82"/>
-        <!-- Neck block -->
-        <rect x="20" y="10" width="6" height="6" fill="#4A7C59"/>
-        <!-- Body block -->
-        <rect x="8" y="8" width="12" height="10" fill="#4A7C59"/>
-        <!-- Belly -->
-        <rect x="10" y="10" width="8" height="6" fill="#6BAF82"/>
-        <!-- Scale dots row -->
-        <rect x="9"  y="9" width="2" height="1" fill="#3A6248"/>
-        <rect x="13" y="9" width="2" height="1" fill="#3A6248"/>
-        <rect x="17" y="9" width="2" height="1" fill="#3A6248"/>
-        <!-- Front legs -->
-        <rect x="19" y="14" width="3" height="7" fill="#4A7C59"/>
-        <rect x="17" y="19" width="5" height="2" fill="#4A7C59"/>
-        <!-- Back legs -->
-        <rect x="7"  y="14" width="3" height="7" fill="#4A7C59"/>
-        <rect x="5"  y="19" width="5" height="2" fill="#4A7C59"/>
-        <!-- Tail (tapering left) -->
-        <rect x="2" y="10" width="6" height="6" fill="#4A7C59"/>
-        <rect x="0" y="11" width="4" height="4" fill="#4A7C59"/>
-      </svg>
+  <div class="flex w-full justify-start items-end gap-2 mb-4" [class.msg-enter-left]="animate">
+    <div class="flex-shrink-0 self-center">
+      <img src="/assets/creatures/creature.png" alt="Chatbot" class="w-16 h-auto" style="image-rendering: pixelated;" />
     </div>
-    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-4 pt-2 pb-2 pr-8 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text break-words text-sm">
+    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-5 py-4 pr-9 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text border border-desert-gold/40 dark:border-desert-night-border shadow-md dark:shadow-black/30 break-words text-sm font-body leading-relaxed">
       <markdown [data]="message.text" (ready)="onMarkdownReady()"></markdown>
       <button
         type="button"
