@@ -8,6 +8,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ChatMessage, ConversationSession } from '@org/shared-types';
 import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector } from '@chatbot/ui';
 import { ChatService } from './chat.service';
@@ -45,6 +46,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private sessionTitle = '';
   private sessionCreatedAt = 0;
+  private currentRequest: Subscription | null = null;
 
   readonly models = [
     { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
@@ -78,6 +80,21 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.placeholderTimer !== null) {
       clearInterval(this.placeholderTimer);
     }
+    this.currentRequest?.unsubscribe();
+  }
+
+  onStop(): void {
+    if (!this.isLoading) return;
+    this.currentRequest?.unsubscribe();
+    this.currentRequest = null;
+    this.isLoading = false;
+    this.sessions = this.historyService.upsertSession({
+      id: this.chatService.currentThreadId,
+      title: this.sessionTitle || 'Untitled',
+      messages: [...this.messages],
+      createdAt: this.sessionCreatedAt || Date.now(),
+    });
+    this.cdr.detectChanges();
   }
 
   private applyTheme(mode: 'day' | 'night'): void {
@@ -122,6 +139,21 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  renameSession(id: string, title: string): void {
+    const trimmed = title.trim();
+    if (trimmed.length === 0) return;
+    this.sessions = this.historyService.updateTitle(id, trimmed);
+    if (this.chatService.currentThreadId === id) {
+      this.sessionTitle = trimmed;
+    }
+    this.cdr.markForCheck();
+  }
+
+  togglePinSession(id: string): void {
+    this.sessions = this.historyService.togglePin(id);
+    this.cdr.markForCheck();
+  }
+
   newChat(): void {
     this.saveCurrentSession();
     this.startNewChat();
@@ -155,6 +187,40 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     this.messages.push({ text, role: 'user' });
+    this.beginRequest();
+    this.dispatchRequest(text);
+  }
+
+  onRegenerate(index: number): void {
+    if (this.isLoading) return;
+    if (index <= 0 || index >= this.messages.length) return;
+    const target = this.messages[index];
+    if (target.role !== 'assistant') return;
+    const prevUser = this.messages[index - 1];
+    if (!prevUser || prevUser.role !== 'user') return;
+
+    this.messages = this.messages.slice(0, index);
+    this.beginRequest();
+    this.dispatchRequest(prevUser.text);
+  }
+
+  onEditAndResend(index: number, newText: string): void {
+    if (this.isLoading) return;
+    const target = this.messages[index];
+    if (!target || target.role !== 'user') return;
+
+    this.saveCurrentSession();
+
+    const truncated = this.messages.slice(0, index);
+    this.chatService.resetThread();
+    this.sessionTitle = newText.length > 50 ? newText.slice(0, 50) + '…' : newText;
+    this.sessionCreatedAt = Date.now();
+    this.messages = [...truncated, { text: newText, role: 'user' }];
+    this.beginRequest();
+    this.dispatchRequest(newText);
+  }
+
+  private beginRequest(): void {
     this.isLoading = true;
     this.placeholder = PLACEHOLDER_NEUTRAL;
     if (this.placeholderTimer !== null) {
@@ -163,36 +229,37 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     this.cdr.detectChanges();
     this.scrollToBottom();
+  }
 
-    this.chatService.sendMessage(text, this.selectedModel).subscribe({
+  private dispatchRequest(text: string): void {
+    this.currentRequest?.unsubscribe();
+    this.currentRequest = this.chatService.sendMessage(text, this.selectedModel).subscribe({
       next: (resp) => {
         this.messages.push({ text: resp.response, role: 'assistant' });
-        this.isLoading = false;
-        this.sessions = this.historyService.upsertSession({
-          id: this.chatService.currentThreadId,
-          title: this.sessionTitle,
-          messages: [...this.messages],
-          createdAt: this.sessionCreatedAt,
-        });
-        this.cdr.detectChanges();
-        this.scrollToBottom();
+        this.currentRequest = null;
+        this.finishRequest();
       },
       error: (err: unknown) => {
         const body = (err as { error?: { message?: string; link?: string } })?.error;
         const errorText = body?.message ?? 'Something went wrong. Please try again.';
         const linkPart = body?.link ? `\n\n[View model on OpenRouter](${body.link})` : '';
         this.messages.push({ text: errorText + linkPart, role: 'error' });
-        this.isLoading = false;
-        this.sessions = this.historyService.upsertSession({
-          id: this.chatService.currentThreadId,
-          title: this.sessionTitle,
-          messages: [...this.messages],
-          createdAt: this.sessionCreatedAt,
-        });
-        this.cdr.detectChanges();
-        this.scrollToBottom();
+        this.currentRequest = null;
+        this.finishRequest();
       },
     });
+  }
+
+  private finishRequest(): void {
+    this.isLoading = false;
+    this.sessions = this.historyService.upsertSession({
+      id: this.chatService.currentThreadId,
+      title: this.sessionTitle,
+      messages: [...this.messages],
+      createdAt: this.sessionCreatedAt,
+    });
+    this.cdr.detectChanges();
+    this.scrollToBottom();
   }
 
   private scrollToBottom(): void {

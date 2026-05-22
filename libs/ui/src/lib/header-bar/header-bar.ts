@@ -6,14 +6,13 @@ import {
   Output,
 } from '@angular/core';
 import { ThemeToggle } from '../theme-toggle/theme-toggle.js';
-import { NewButton } from '../new-button/new-button.js';
 
 @Component({
   standalone: true,
   selector: 'app-header-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header-bar.html',
-  imports: [ThemeToggle, NewButton],
+  imports: [ThemeToggle],
 })
 export class HeaderBar {
   @Input() isDayMode = false;

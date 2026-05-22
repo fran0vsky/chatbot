@@ -18,17 +18,41 @@ export class HistoryService {
     const sessions = this.loadSessions();
     const idx = sessions.findIndex((s) => s.id === session.id);
     if (idx >= 0) {
-      sessions[idx] = session;
+      sessions[idx] = { ...sessions[idx], ...session };
     } else {
       sessions.unshift(session);
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    this.persist(sessions);
     return sessions;
   }
 
   deleteSession(id: string): ConversationSession[] {
     const sessions = this.loadSessions().filter((s) => s.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    this.persist(sessions);
     return sessions;
+  }
+
+  updateTitle(id: string, title: string): ConversationSession[] {
+    const sessions = this.loadSessions();
+    const idx = sessions.findIndex((s) => s.id === id);
+    if (idx >= 0) {
+      sessions[idx] = { ...sessions[idx], title };
+      this.persist(sessions);
+    }
+    return sessions;
+  }
+
+  togglePin(id: string): ConversationSession[] {
+    const sessions = this.loadSessions();
+    const idx = sessions.findIndex((s) => s.id === id);
+    if (idx >= 0) {
+      sessions[idx] = { ...sessions[idx], pinned: !sessions[idx].pinned };
+      this.persist(sessions);
+    }
+    return sessions;
+  }
+
+  private persist(sessions: ConversationSession[]): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
   }
 }

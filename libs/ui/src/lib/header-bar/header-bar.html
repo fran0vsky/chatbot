@@ -11,17 +11,25 @@
         <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
       </svg>
     </button>
-    <h1 class="font-title text-lg font-semibold uppercase text-desert-brown dark:text-desert-night-text">Chatbot</h1>
+    <button
+      type="button"
+      (click)="newChat.emit()"
+      [disabled]="disabled"
+      class="group flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-desert-border/60 dark:hover:bg-desert-night-border/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border disabled:opacity-50 disabled:cursor-not-allowed"
+      aria-label="Start new chat"
+      title="New chat"
+    >
+      <h1 class="font-title text-lg font-semibold uppercase text-desert-brown dark:text-desert-night-text">Chatbot</h1>
+      <svg class="w-3.5 h-3.5 text-desert-brown-muted dark:text-desert-night-muted opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+    </button>
   </div>
   <div class="flex items-center gap-2 ml-auto">
     <app-theme-toggle
       [isDayMode]="isDayMode"
       [disabled]="disabled"
       (toggled)="themeToggled.emit()"
-    />
-    <app-new-button
-      [disabled]="disabled"
-      (clicked)="newChat.emit()"
     />
   </div>
 </header>

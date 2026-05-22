@@ -20,4 +20,5 @@ export interface ConversationSession {
   title: string;
   messages: ChatMessage[];
   createdAt: number;
+  pinned?: boolean;
 }

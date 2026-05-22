@@ -19,7 +19,9 @@ import { FormsModule } from '@angular/forms';
 export class InputComposer {
   @Input() placeholder = 'Message';
   @Input() disabled = false;
+  @Input() loading = false;
   @Output() send = new EventEmitter<string>();
+  @Output() stop = new EventEmitter<void>();
 
   draft = '';
   atMaxHeight = false;
@@ -27,6 +29,10 @@ export class InputComposer {
   @ViewChild('textareaRef') private textareaRef?: ElementRef<HTMLTextAreaElement>;
 
   submit(): void {
+    if (this.loading) {
+      this.stop.emit();
+      return;
+    }
     if (this.disabled || this.draft.trim().length === 0) return;
     const text = this.draft.trim();
     this.draft = '';
@@ -48,7 +54,7 @@ export class InputComposer {
     const computed = getComputedStyle(textarea);
     const parsed = parseFloat(computed.lineHeight);
     const lineHeight = Number.isNaN(parsed) ? 24 : parsed;
-    const maxRows = 5;
+    const maxRows = 8;
     const maxHeight = lineHeight * maxRows;
     const target = Math.min(textarea.scrollHeight, maxHeight);
     textarea.style.height = target + 'px';

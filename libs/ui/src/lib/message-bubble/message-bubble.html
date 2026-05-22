@@ -1,10 +1,47 @@
 @if (message.role === 'user') {
   <div class="flex w-full justify-end" [class.msg-enter-right]="animate">
-    <div class="flex flex-col items-end gap-1 max-w-[75%]">
+    <div class="flex flex-col items-end gap-1 max-w-[75%] group">
       <span class="text-xs text-desert-brown-muted dark:text-desert-night-muted px-1">You</span>
-      <div class="w-full rounded-2xl rounded-br-sm px-5 py-3 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words shadow-md font-body text-sm leading-relaxed">
-        {{ message.text }}
-      </div>
+      @if (editing) {
+        <div class="w-full rounded-2xl px-3 py-2 bg-desert-sand-light dark:bg-desert-night-surface border border-desert-gold/60 dark:border-desert-night-border shadow-md">
+          <textarea
+            rows="2"
+            class="w-full resize-y min-h-[3rem] bg-transparent text-desert-brown dark:text-desert-night-text text-sm leading-relaxed focus:outline-none"
+            [(ngModel)]="editDraft"
+            (keydown)="onEditKeydown($event)"
+            autofocus
+          ></textarea>
+          <div class="flex items-center justify-end gap-2 mt-2">
+            <button type="button" (click)="cancelEdit()"
+              class="px-3 py-1 text-xs rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors">
+              Cancel
+            </button>
+            <button type="button" (click)="submitEdit()" [disabled]="editDraft.trim().length === 0"
+              class="px-3 py-1 text-xs rounded bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark disabled:opacity-50 disabled:cursor-not-allowed transition">
+              Send
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="relative w-full">
+          <div class="w-full rounded-2xl rounded-br-sm px-5 py-3 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words shadow-md font-body text-sm leading-relaxed">
+            {{ message.text }}
+          </div>
+          @if (canEdit) {
+            <button
+              type="button"
+              (click)="startEdit()"
+              class="absolute -left-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
+              aria-label="Edit and resend"
+              title="Edit and resend (forks a new chat)"
+            >
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            </button>
+          }
+        </div>
+      }
     </div>
   </div>
 } @else if (message.role === 'error') {
@@ -27,24 +64,40 @@
     </div>
     <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-5 py-4 pr-9 bg-desert-parchment dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text border border-desert-gold/40 dark:border-desert-night-border shadow-md dark:shadow-black/30 break-words text-sm font-body leading-relaxed">
       <markdown [data]="message.text" (ready)="onMarkdownReady()"></markdown>
-      <button
-        type="button"
-        (click)="copyMessage()"
-        class="absolute top-1 right-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-desert-border dark:hover:bg-desert-night-border text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
-        [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
-      >
-        @if (copied) {
-          <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />
-          </svg>
-        } @else {
-          <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-          </svg>
+      <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        @if (canRegenerate) {
+          <button
+            type="button"
+            (click)="onRegenerate()"
+            class="p-1 rounded hover:bg-desert-border dark:hover:bg-desert-night-border text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
+            aria-label="Regenerate response"
+            title="Regenerate response"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+            <span class="sr-only">Regenerate</span>
+          </button>
         }
-        <span class="sr-only">{{ copied ? 'Copied' : 'Copy message' }}</span>
-      </button>
+        <button
+          type="button"
+          (click)="copyMessage()"
+          class="p-1 rounded hover:bg-desert-border dark:hover:bg-desert-night-border text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
+          [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
+        >
+          @if (copied) {
+            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />
+            </svg>
+          } @else {
+            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+            </svg>
+          }
+          <span class="sr-only">{{ copied ? 'Copied' : 'Copy message' }}</span>
+        </button>
+      </div>
     </div>
   </div>
 }

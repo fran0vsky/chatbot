@@ -1,11 +1,18 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   Output,
+  ViewChildren,
+  QueryList,
+  AfterViewChecked,
+  inject,
 } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ConversationSession } from '@org/shared-types';
 
 interface DateGroup {
@@ -16,19 +23,30 @@ interface DateGroup {
 @Component({
   standalone: true,
   selector: 'app-history-panel',
-  imports: [NgClass],
+  imports: [NgClass, NgTemplateOutlet, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './history-panel.html',
   styles: [':host { display: contents; }'],
 })
-export class HistoryPanel {
+export class HistoryPanel implements AfterViewChecked {
   @Input() open = false;
   @Input() sessions: ConversationSession[] = [];
   @Input() activeSessionId = '';
   @Output() sessionSelected = new EventEmitter<ConversationSession>();
   @Output() sessionDeleted = new EventEmitter<string>();
+  @Output() sessionRenamed = new EventEmitter<{ id: string; title: string }>();
+  @Output() sessionPinned = new EventEmitter<string>();
   @Output() closed = new EventEmitter<void>();
   @Output() newChat = new EventEmitter<void>();
+
+  renamingId: string | null = null;
+  renameDraft = '';
+  confirmingDeleteId: string | null = null;
+
+  private readonly cdr = inject(ChangeDetectorRef);
+  private focusRenameId: string | null = null;
+
+  @ViewChildren('renameInput') private renameInputs?: QueryList<ElementRef<HTMLInputElement>>;
 
   get groupedSessions(): DateGroup[] {
     const now = new Date();
@@ -38,12 +56,17 @@ export class HistoryPanel {
       now.getDate(),
     ).getTime();
 
+    const pinnedSessions: ConversationSession[] = [];
     const todaySessions: ConversationSession[] = [];
     const yesterdaySessions: ConversationSession[] = [];
     const prev7Sessions: ConversationSession[] = [];
     const olderSessions: ConversationSession[] = [];
 
     for (const session of this.sessions) {
+      if (session.pinned) {
+        pinnedSessions.push(session);
+        continue;
+      }
       const d = new Date(session.createdAt);
       const startOfSessionDay = new Date(
         d.getFullYear(),
@@ -67,12 +90,14 @@ export class HistoryPanel {
 
     const byNewest = (a: ConversationSession, b: ConversationSession): number =>
       b.createdAt - a.createdAt;
+    pinnedSessions.sort(byNewest);
     todaySessions.sort(byNewest);
     yesterdaySessions.sort(byNewest);
     prev7Sessions.sort(byNewest);
     olderSessions.sort(byNewest);
 
     const result: DateGroup[] = [
+      { label: 'Pinned', sessions: pinnedSessions },
       { label: 'Today', sessions: todaySessions },
       { label: 'Yesterday', sessions: yesterdaySessions },
       { label: 'Previous 7 days', sessions: prev7Sessions },
@@ -95,8 +120,76 @@ export class HistoryPanel {
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
 
-  onDeleteClick(event: Event, id: string): void {
+  startRename(event: Event, session: ConversationSession): void {
     event.stopPropagation();
+    this.renamingId = session.id;
+    this.renameDraft = session.title;
+    this.confirmingDeleteId = null;
+    this.focusRenameId = session.id;
+    this.cdr.markForCheck();
+  }
+
+  onRenameKeydown(event: KeyboardEvent, session: ConversationSession): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.commitRename(session);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelRename();
+    }
+  }
+
+  commitRename(session: ConversationSession): void {
+    const trimmed = this.renameDraft.trim();
+    if (trimmed.length > 0 && trimmed !== session.title) {
+      this.sessionRenamed.emit({ id: session.id, title: trimmed });
+    }
+    this.cancelRename();
+  }
+
+  cancelRename(): void {
+    this.renamingId = null;
+    this.renameDraft = '';
+    this.cdr.markForCheck();
+  }
+
+  onTitleDblClick(event: Event, session: ConversationSession): void {
+    this.startRename(event, session);
+  }
+
+  requestDelete(event: Event, id: string): void {
+    event.stopPropagation();
+    this.confirmingDeleteId = id;
+    this.cdr.markForCheck();
+  }
+
+  confirmDelete(event: Event, id: string): void {
+    event.stopPropagation();
+    this.confirmingDeleteId = null;
     this.sessionDeleted.emit(id);
+  }
+
+  cancelDelete(event: Event): void {
+    event.stopPropagation();
+    this.confirmingDeleteId = null;
+    this.cdr.markForCheck();
+  }
+
+  onPinClick(event: Event, id: string): void {
+    event.stopPropagation();
+    this.sessionPinned.emit(id);
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.focusRenameId && this.renameInputs) {
+      const input = this.renameInputs.find(
+        (ref) => ref.nativeElement.dataset['sessionId'] === this.focusRenameId,
+      );
+      if (input) {
+        input.nativeElement.focus();
+        input.nativeElement.select();
+        this.focusRenameId = null;
+      }
+    }
   }
 }

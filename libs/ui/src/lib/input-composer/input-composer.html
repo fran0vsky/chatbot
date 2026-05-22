@@ -14,17 +14,31 @@
         [class.overflow-hidden]="!atMaxHeight"
         [(ngModel)]="draft"
         name="draft"
-        [disabled]="disabled"
+        [disabled]="disabled && !loading"
         (keydown)="onKeydown($event)"
         (input)="autoResize(textareaRef)"
       ></textarea>
-      <button type="submit" [disabled]="disabled || draft.trim().length === 0"
-        class="flex items-center justify-center w-10 h-10 rounded-full bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-desert-sand-light dark:focus-visible:ring-offset-desert-night-surface">
-        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
-        </svg>
-        <span class="sr-only">Send</span>
-      </button>
+      @if (loading) {
+        <button type="button" (click)="submit()"
+          [attr.aria-label]="'Stop response'"
+          [attr.title]="'Stop response'"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-desert-sand-light dark:focus-visible:ring-offset-desert-night-surface">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <rect x="4" y="4" width="12" height="12" rx="1.5" />
+          </svg>
+          <span class="sr-only">Stop</span>
+        </button>
+      } @else {
+        <button type="submit" [disabled]="disabled || draft.trim().length === 0"
+          aria-label="Send message"
+          title="Send"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-desert-sand-light dark:focus-visible:ring-offset-desert-night-surface">
+          <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
+          </svg>
+          <span class="sr-only">Send</span>
+        </button>
+      }
     </div>
   </div>
 </form>

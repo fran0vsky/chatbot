@@ -3,9 +3,12 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
+  Output,
   inject,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MarkdownComponent } from 'ngx-markdown';
 import { ChatMessage } from '@org/shared-types';
 import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
@@ -16,14 +19,22 @@ import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './message-bubble.html',
   styleUrl: './message-bubble.scss',
-  imports: [MarkdownComponent, TypingIndicator],
+  imports: [MarkdownComponent, TypingIndicator, FormsModule],
 })
 export class MessageBubble {
   @Input({ required: true }) message!: ChatMessage;
   @Input() typing = false;
   @Input() animate = false;
+  @Input() canRegenerate = false;
+  @Input() canEdit = false;
+
+  @Output() regenerate = new EventEmitter<void>();
+  @Output() editSubmit = new EventEmitter<string>();
 
   copied = false;
+  editing = false;
+  editDraft = '';
+
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -50,6 +61,43 @@ export class MessageBubble {
       },
       () => {},
     );
+  }
+
+  startEdit(): void {
+    this.editDraft = this.message.text;
+    this.editing = true;
+    this.cdr.markForCheck();
+  }
+
+  cancelEdit(): void {
+    this.editing = false;
+    this.editDraft = '';
+    this.cdr.markForCheck();
+  }
+
+  submitEdit(): void {
+    const trimmed = this.editDraft.trim();
+    if (trimmed.length === 0 || trimmed === this.message.text) {
+      this.cancelEdit();
+      return;
+    }
+    this.editing = false;
+    this.editSubmit.emit(trimmed);
+    this.cdr.markForCheck();
+  }
+
+  onEditKeydown(ev: KeyboardEvent): void {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+      ev.preventDefault();
+      this.submitEdit();
+    } else if (ev.key === 'Escape') {
+      ev.preventDefault();
+      this.cancelEdit();
+    }
+  }
+
+  onRegenerate(): void {
+    this.regenerate.emit();
   }
 
   onMarkdownReady(): void {

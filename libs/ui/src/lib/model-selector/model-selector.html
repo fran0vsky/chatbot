@@ -1,10 +1,29 @@
-<select
-  [value]="selectedModel"
-  (change)="modelChange.emit($any($event.target).value)"
-  [disabled]="disabled"
-  class="appearance-none bg-desert-sand-light dark:bg-desert-night-surface border border-desert-border dark:border-desert-night-border rounded px-2 py-1 text-sm text-desert-brown dark:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
->
-  @for (m of models; track m.id) {
-    <option [value]="m.id">{{ m.label }}</option>
-  }
-</select>
+<div class="relative inline-flex items-center">
+  <svg
+    class="absolute left-2.5 w-3.5 h-3.5 text-desert-terracotta dark:text-desert-night-amber pointer-events-none"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path d="M11 3a1 1 0 10-2 0v1.07A6.002 6.002 0 004.07 9H3a1 1 0 100 2h1.07A6.002 6.002 0 009 15.93V17a1 1 0 102 0v-1.07A6.002 6.002 0 0015.93 11H17a1 1 0 100-2h-1.07A6.002 6.002 0 0011 4.07V3zm-1 10a3 3 0 100-6 3 3 0 000 6z" />
+  </svg>
+  <select
+    [value]="selectedModel"
+    (change)="modelChange.emit($any($event.target).value)"
+    [disabled]="disabled"
+    aria-label="Choose model"
+    class="appearance-none cursor-pointer pl-8 pr-7 py-1.5 text-xs font-medium rounded-full bg-desert-sand-light dark:bg-desert-night-parchment text-desert-brown dark:text-desert-night-text border border-desert-gold/50 dark:border-desert-night-border shadow-sm hover:border-desert-gold dark:hover:border-desert-night-amber hover:bg-desert-parchment dark:hover:bg-desert-night-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-amber focus-visible:ring-offset-1 focus-visible:ring-offset-desert-sand dark:focus-visible:ring-offset-desert-night disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+  >
+    @for (m of models; track m.id) {
+      <option [value]="m.id">{{ m.label }}</option>
+    }
+  </select>
+  <svg
+    class="absolute right-2.5 w-3 h-3 text-desert-brown-muted dark:text-desert-night-muted pointer-events-none"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+  </svg>
+</div>

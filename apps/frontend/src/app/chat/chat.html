@@ -5,6 +5,8 @@
     [activeSessionId]="activeSessionId"
     (sessionSelected)="switchToSession($event)"
     (sessionDeleted)="deleteSession($event)"
+    (sessionRenamed)="renameSession($event.id, $event.title)"
+    (sessionPinned)="togglePinSession($event)"
     (closed)="closeHistory()"
     (newChat)="newChat()"
   />
@@ -142,7 +144,9 @@
           <app-input-composer
             [placeholder]="placeholder"
             [disabled]="isLoading"
+            [loading]="isLoading"
             (send)="onSend($event)"
+            (stop)="onStop()"
           />
           <div class="flex items-center px-1 pt-1.5">
             <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
@@ -153,8 +157,15 @@
       <!-- Chat state: scrollable messages + sticky input -->
       <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
         <div class="max-w-2xl mx-auto w-full space-y-5">
-          @for (m of messages; track $index) {
-            <app-message-bubble [message]="m" [animate]="$index >= 1" />
+          @for (m of messages; track $index; let i = $index) {
+            <app-message-bubble
+              [message]="m"
+              [animate]="i >= 1"
+              [canEdit]="m.role === 'user' && !isLoading"
+              [canRegenerate]="m.role === 'assistant' && i === messages.length - 1 && i > 0 && !isLoading"
+              (regenerate)="onRegenerate(i)"
+              (editSubmit)="onEditAndResend(i, $event)"
+            />
           }
           @if (isLoading) {
             <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />
@@ -167,7 +178,9 @@
           <app-input-composer
             [placeholder]="placeholder"
             [disabled]="isLoading"
+            [loading]="isLoading"
             (send)="onSend($event)"
+            (stop)="onStop()"
           />
           <div class="flex items-center px-1 pt-1.5">
             <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
