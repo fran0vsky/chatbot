@@ -1,4 +1,4 @@
-<div class="flex flex-col h-screen bg-desert-sand dark:bg-desert-night">
+<div class="flex flex-row h-screen bg-desert-sand dark:bg-desert-night">
   <app-history-panel
     [open]="historyOpen"
     [sessions]="sessions"
@@ -9,6 +9,7 @@
     (newChat)="newChat()"
   />
 
+  <div class="flex flex-col flex-1 min-w-0">
   <app-header-bar
     [isDayMode]="isDayMode"
     [disabled]="isLoading"
@@ -175,4 +176,5 @@
       </div>
     }
   </main>
+  </div>
 </div>

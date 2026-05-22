@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 5: Further UI/UX Work** - Further work on looks and UI
 - [ ] **Phase 6: Desert UI Elevation** - Pixel snake avatar, background cacti, floating pill input, typography polish
 - [x] **Phase 7: Visual Overhaul** - Modernize every UI component to ChatGPT/Claude/Gemini polish while keeping the desert theme (completed 2026-05-22)
+- [x] **Phase 8: Chat History Sidebar** - Add left sidebar containing history of chats which are clickable to jump back into old conversations
 
 ## Phase Details
 
@@ -78,6 +79,7 @@ Phases execute in numeric order: 1 → 2 → 3
 | 5. Further UI/UX Work | 0/3 | Planned | - |
 | 6. Desert UI Elevation | 2/2 | Code complete | 2026-05-22 |
 | 7. Visual Overhaul | 5/5 | Complete   | 2026-05-22 |
+| 8. Chat History Sidebar | 0/2 | Planned | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -138,3 +140,14 @@ Plans:
 **Scope note:** In — every visible UI component, typography scale, spacing system, micro-animations. Out — backend changes, new features, routing changes.
 **Plans:** 5/5 plans complete
 **UI hint**: yes
+
+### Phase 8: Chat History Sidebar
+**Goal:** Add a left sidebar containing history of chats which are clickable to jump back into old conversations
+**Mode:** mvp
+**Depends on:** Phase 7
+**Requirements**: D-01 through D-10 (see 08-CONTEXT.md)
+**Plans**: 2 plans
+
+Plans:
+- [x] 08-01-PLAN.md — Date-grouped session list in HistoryPanel (Wave 1)
+- [x] 08-02-PLAN.md — Persistent desktop sidebar layout + responsive toggle (Wave 2)

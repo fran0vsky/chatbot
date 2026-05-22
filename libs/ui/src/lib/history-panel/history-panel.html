@@ -1,13 +1,94 @@
 @if (open) {
   <div
-    class="fixed inset-0 bg-black/40 z-30 transition-opacity"
+    class="fixed inset-0 bg-black/40 z-30 transition-opacity lg:hidden"
     (click)="closed.emit()"
     aria-hidden="true"
   ></div>
 }
 
+<!-- Desktop hover-reveal sidebar -->
 <aside
-  class="fixed inset-y-0 left-0 z-40 w-72 flex flex-col bg-desert-header dark:bg-desert-night-surface border-r border-desert-border dark:border-desert-night-border transition-transform duration-300 ease-in-out"
+  class="group hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 flex-col bg-desert-header dark:bg-desert-night-surface border-r-2 border-desert-gold/60 dark:border-desert-night-border shadow-lg -translate-x-[calc(100%-1rem)] hover:translate-x-0 focus-within:translate-x-0 transition-transform duration-300 ease-in-out"
+  aria-label="Conversation history"
+>
+  <!-- Hover-hint chevron, visible only while sidebar is collapsed -->
+  <div
+    class="pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 text-desert-gold dark:text-desert-night-muted opacity-90 group-hover:opacity-0 transition-opacity duration-200"
+    aria-hidden="true"
+  >
+    <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
+  </div>
+  <!-- Header -->
+  <div class="flex items-center justify-between px-4 py-3 border-b border-desert-border dark:border-desert-night-border flex-shrink-0">
+    <h2 class="font-title text-sm font-semibold uppercase text-desert-brown dark:text-desert-night-text tracking-wide">
+      History
+    </h2>
+  </div>
+
+  <!-- New Chat button -->
+  <div class="px-3 py-2 flex-shrink-0 border-b border-desert-border dark:border-desert-night-border">
+    <button
+      type="button"
+      (click)="newChat.emit()"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold text-desert-brown dark:text-desert-night-text hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
+    >
+      <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+      New chat
+    </button>
+  </div>
+
+  <!-- Session list -->
+  <div class="flex-1 overflow-y-auto py-1 chat-scroll-area">
+    @for (group of groupedSessions; track group.label) {
+      <p class="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-desert-brown-muted dark:text-desert-night-muted font-semibold select-none">{{ group.label }}</p>
+      @for (session of group.sessions; track session.id) {
+        <div
+          class="group relative flex items-start gap-2 px-3 py-2 mx-1 my-0.5 rounded cursor-pointer transition-colors"
+          [ngClass]="session.id === activeSessionId
+            ? 'bg-desert-parchment dark:bg-desert-night-parchment'
+            : 'hover:bg-desert-border dark:hover:bg-desert-night-border'"
+          (click)="sessionSelected.emit(session)"
+          role="button"
+          [attr.aria-pressed]="session.id === activeSessionId"
+        >
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm text-desert-brown dark:text-desert-night-text truncate leading-snug"
+              [class.font-semibold]="session.id === activeSessionId"
+            >
+              {{ session.title }}
+            </p>
+            <p class="text-xs text-desert-brown-muted dark:text-desert-night-muted mt-0.5">
+              {{ formatDate(session.createdAt) }}
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="onDeleteClick($event, session.id)"
+            class="flex-shrink-0 mt-0.5 p-0.5 rounded opacity-0 group-hover:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
+            [attr.aria-label]="'Delete conversation: ' + session.title"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      }
+    } @empty {
+      <p class="text-sm text-desert-brown-muted dark:text-desert-night-muted text-center py-8 px-4">
+        No conversations yet
+      </p>
+    }
+  </div>
+</aside>
+
+<!-- Mobile overlay drawer -->
+<aside
+  class="lg:hidden fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-desert-header dark:bg-desert-night-surface border-r border-desert-border dark:border-desert-night-border transition-transform duration-300 ease-in-out"
   [class.translate-x-0]="open"
   [class.-translate-x-full]="!open"
   aria-label="Conversation history"
@@ -44,39 +125,42 @@
   </div>
 
   <!-- Session list -->
-  <div class="flex-1 overflow-y-auto py-1">
-    @for (session of sessions; track session.id) {
-      <div
-        class="group relative flex items-start gap-2 px-3 py-2 mx-1 my-0.5 rounded cursor-pointer transition-colors"
-        [ngClass]="session.id === activeSessionId
-          ? 'bg-desert-parchment dark:bg-desert-night-parchment'
-          : 'hover:bg-desert-border dark:hover:bg-desert-night-border'"
-        (click)="sessionSelected.emit(session)"
-        role="button"
-        [attr.aria-pressed]="session.id === activeSessionId"
-      >
-        <div class="flex-1 min-w-0">
-          <p
-            class="text-sm text-desert-brown dark:text-desert-night-text truncate leading-snug"
-            [class.font-semibold]="session.id === activeSessionId"
-          >
-            {{ session.title }}
-          </p>
-          <p class="text-xs text-desert-brown-muted dark:text-desert-night-muted mt-0.5">
-            {{ formatDate(session.createdAt) }}
-          </p>
-        </div>
-        <button
-          type="button"
-          (click)="onDeleteClick($event, session.id)"
-          class="flex-shrink-0 mt-0.5 p-0.5 rounded opacity-0 group-hover:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
-          [attr.aria-label]="'Delete conversation: ' + session.title"
+  <div class="flex-1 overflow-y-auto py-1 chat-scroll-area">
+    @for (group of groupedSessions; track group.label) {
+      <p class="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-desert-brown-muted dark:text-desert-night-muted font-semibold select-none">{{ group.label }}</p>
+      @for (session of group.sessions; track session.id) {
+        <div
+          class="group relative flex items-start gap-2 px-3 py-2 mx-1 my-0.5 rounded cursor-pointer transition-colors"
+          [ngClass]="session.id === activeSessionId
+            ? 'bg-desert-parchment dark:bg-desert-night-parchment'
+            : 'hover:bg-desert-border dark:hover:bg-desert-night-border'"
+          (click)="sessionSelected.emit(session)"
+          role="button"
+          [attr.aria-pressed]="session.id === activeSessionId"
         >
-          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-          </svg>
-        </button>
-      </div>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm text-desert-brown dark:text-desert-night-text truncate leading-snug"
+              [class.font-semibold]="session.id === activeSessionId"
+            >
+              {{ session.title }}
+            </p>
+            <p class="text-xs text-desert-brown-muted dark:text-desert-night-muted mt-0.5">
+              {{ formatDate(session.createdAt) }}
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="onDeleteClick($event, session.id)"
+            class="flex-shrink-0 mt-0.5 p-0.5 rounded opacity-0 group-hover:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
+            [attr.aria-label]="'Delete conversation: ' + session.title"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      }
     } @empty {
       <p class="text-sm text-desert-brown-muted dark:text-desert-night-muted text-center py-8 px-4">
         No conversations yet

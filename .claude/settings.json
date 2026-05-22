@@ -44,7 +44,8 @@
       "Skill(gsd-code-review)",
       "Skill(gsd-code-review:*)",
       "Read(//c/Users/Franek/.claude/agents/**)",
-      "Read(//c/Users/Franek/.claude/get-shit-done/templates/**)"
+      "Read(//c/Users/Franek/.claude/get-shit-done/templates/**)",
+      "Read(//c/Users/Franek/.claude/get-shit-done/references/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Franek\\Downloads"
