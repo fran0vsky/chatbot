@@ -39,7 +39,11 @@
       "Bash(powershell.exe -Command \"Test-Path 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\\\\node_modules\\\\.bin\\\\nx'; Test-Path 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\\\\node_modules\\\\.bin\\\\nx.cmd'\")",
       "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\nx.cmd' run-many -t build 2>&1 | Select-Object -First 80\")",
       "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\tsc.cmd' -p apps/frontend/tsconfig.app.json --noEmit 2>&1 | Select-Object -First 50\")",
-      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\tsc.cmd' -p apps/frontend/tsconfig.app.json --noEmit 2>&1 | Select-Object -First 30\")"
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\tsc.cmd' -p apps/frontend/tsconfig.app.json --noEmit 2>&1 | Select-Object -First 30\")",
+      "Skill(gsd-code-review)",
+      "Skill(gsd-code-review:*)",
+      "Read(//c/Users/Franek/.claude/agents/**)",
+      "Read(//c/Users/Franek/.claude/get-shit-done/templates/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Franek\\Downloads"
