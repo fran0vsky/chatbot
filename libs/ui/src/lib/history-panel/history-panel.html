@@ -1,6 +1,6 @@
 @if (open) {
   <div
-    class="fixed inset-0 bg-black/40 z-30"
+    class="fixed inset-0 bg-black/40 z-30 transition-opacity"
     (click)="closed.emit()"
     aria-hidden="true"
   ></div>
@@ -20,7 +20,7 @@
     <button
       type="button"
       (click)="closed.emit()"
-      class="p-1 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border hover:text-desert-brown dark:hover:text-desert-night-text transition-colors"
+      class="p-1 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border hover:text-desert-brown dark:hover:text-desert-night-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
       aria-label="Close history panel"
     >
       <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -34,7 +34,7 @@
     <button
       type="button"
       (click)="newChat.emit()"
-      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-medium text-desert-brown dark:text-desert-night-text hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold text-desert-brown dark:text-desert-night-text hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
     >
       <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -57,7 +57,10 @@
         [attr.aria-current]="session.id === activeSessionId ? 'true' : null"
       >
         <div class="flex-1 min-w-0">
-          <p class="text-sm text-desert-brown dark:text-desert-night-text truncate leading-snug">
+          <p
+            class="text-sm text-desert-brown dark:text-desert-night-text truncate leading-snug"
+            [class.font-semibold]="session.id === activeSessionId"
+          >
             {{ session.title }}
           </p>
           <p class="text-xs text-desert-brown-muted dark:text-desert-night-muted mt-0.5">
@@ -67,7 +70,7 @@
         <button
           type="button"
           (click)="onDeleteClick($event, session.id)"
-          class="flex-shrink-0 mt-0.5 p-0.5 rounded opacity-0 group-hover:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text transition-opacity"
+          class="flex-shrink-0 mt-0.5 p-0.5 rounded opacity-0 group-hover:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
           aria-label="Delete conversation"
         >
           <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
