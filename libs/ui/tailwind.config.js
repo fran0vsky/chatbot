@@ -9,6 +9,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'desert-gold': '#D4AF37',
         'desert-sand': '#F5E6C8',
         'desert-sand-light': '#FBF3E0',
         'desert-parchment': '#EDD9A3',
@@ -18,9 +19,9 @@ module.exports = {
         'desert-brown-muted': '#7A5C42',
         'desert-border': '#D4B896',
         'desert-header': '#EDD9A3',
-        'desert-night': '#1A1209',
-        'desert-night-surface': '#251C10',
-        'desert-night-parchment': '#2E2318',
+        'desert-night': '#111318',
+        'desert-night-surface': '#1c2028',
+        'desert-night-parchment': '#242933',
         'desert-night-amber': '#D4872A',
         'desert-night-amber-dark': '#B5711E',
         'desert-night-sage': '#6B9E7A',
@@ -32,6 +33,7 @@ module.exports = {
       },
       fontFamily: {
         title: ["'Playfair Display'", 'Georgia', 'serif'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
       },
     },
   },

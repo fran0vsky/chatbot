@@ -5,11 +5,13 @@ import {
   Input,
   Output,
 } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { ConversationSession } from '@org/shared-types';
 
 @Component({
   standalone: true,
   selector: 'app-history-panel',
+  imports: [NgClass],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './history-panel.html',
 })

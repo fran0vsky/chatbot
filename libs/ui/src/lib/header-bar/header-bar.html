@@ -1,4 +1,4 @@
-<header class="flex items-center px-4 py-3 border-b border-desert-border dark:border-desert-night-border bg-desert-header dark:bg-desert-night-surface">
+<header class="flex items-center px-4 py-3 border-b border-desert-border dark:border-desert-night-border bg-desert-sand dark:bg-desert-night-surface shadow-sm">
   <div class="flex items-center gap-2">
     <button
       type="button"
@@ -22,12 +22,6 @@
     <app-new-button
       [disabled]="disabled"
       (clicked)="newChat.emit()"
-    />
-    <app-model-selector
-      [models]="models"
-      [selectedModel]="selectedModel"
-      [disabled]="disabled"
-      (modelChange)="modelChange.emit($event)"
     />
   </div>
 </header>

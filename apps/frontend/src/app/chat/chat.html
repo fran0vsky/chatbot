@@ -11,12 +11,9 @@
 
   <app-header-bar
     [isDayMode]="isDayMode"
-    [selectedModel]="selectedModel"
-    [models]="models"
     [disabled]="isLoading"
     (themeToggled)="toggleTheme()"
     (newChat)="newChat()"
-    (modelChange)="selectedModel = $event"
     (historyToggled)="toggleHistory()"
   />
 
@@ -146,6 +143,9 @@
             [disabled]="isLoading"
             (send)="onSend($event)"
           />
+          <div class="flex items-center px-1 pt-1.5">
+            <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
+          </div>
         </div>
       </div>
     } @else {
@@ -161,13 +161,16 @@
           <div #messageEnd></div>
         </div>
       </div>
-      <div class="px-4 flex-shrink-0 sticky bottom-4 bg-gradient-to-t from-desert-sand dark:from-desert-night to-transparent pt-4 pb-4">
+      <div class="px-4 pt-3 pb-4 flex-shrink-0 border-t border-desert-border/60 dark:border-desert-night-border bg-desert-sand dark:bg-desert-night shadow-[0_-1px_6px_rgba(0,0,0,0.06)]">
         <div class="max-w-2xl mx-auto w-full">
           <app-input-composer
             [placeholder]="placeholder"
             [disabled]="isLoading"
             (send)="onSend($event)"
           />
+          <div class="flex items-center px-1 pt-1.5">
+            <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
+          </div>
         </div>
       </div>
     }
