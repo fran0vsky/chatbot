@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: UI/UX Refinement** - Polish and improve the chat UI for a better user experience
 - [ ] **Phase 5: Further UI/UX Work** - Further work on looks and UI
 - [ ] **Phase 6: Desert UI Elevation** - Pixel snake avatar, background cacti, floating pill input, typography polish
+- [ ] **Phase 7: Visual Overhaul** - Modernize every UI component to ChatGPT/Claude/Gemini polish while keeping the desert theme
 
 ## Phase Details
 
@@ -75,7 +76,8 @@ Phases execute in numeric order: 1 → 2 → 3
 | 3. UI/UX Refinement | 3/3 | Code complete | 2026-05-20 |
 | 4. Dark Theme and Visual Polish | 3/3 | Code complete | 2026-05-20 |
 | 5. Further UI/UX Work | 0/3 | Planned | - |
-| 6. Desert UI Elevation | 0/2 | Planned | - |
+| 6. Desert UI Elevation | 2/2 | Code complete | 2026-05-22 |
+| 7. Visual Overhaul | 0/0 | Planned | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -119,3 +121,20 @@ Plans:
 Plans:
 - [ ] 06-01-PLAN.md — Snake avatar + cactus silhouettes: 24×24 profile snake SVG in message-bubble, 5 decorative cactus SVGs in chat main area (Wave 1)
 - [ ] 06-02-PLAN.md — Pill input + Cinzel typography: floating rounded-2xl pill with shadow, Playfair Display → Cinzel font swap, all-caps CHATBOT header (Wave 1)
+
+### Phase 7: Visual Overhaul
+**Goal:** Complete visual overhaul of the chatbot UI — keep the existing western/desert theme (sand colors, cactus silhouettes, the soul of it) but modernize every visible component to match the polish level of ChatGPT, Claude, and Gemini. Large surface-area change across sidebar, message bubbles, input area, typography, spacing, scrolling, transitions, empty states, and loading states.
+**Mode:** mvp
+**Depends on:** Phase 6
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. Every visible UI component (layout, sidebar, message list, bubbles, input, buttons, scrollbar, empty state, loading spinner) is restyled to a modern polish level while retaining the sand/amber/brown desert palette
+  2. The sidebar shows conversation history with subtle hover states, comparable to ChatGPT's sidebar
+  3. Message bubbles have clear human/AI distinction and spacious layout, comparable to Claude
+  4. The input area has a polished send button and visible focus rings, comparable to Gemini
+  5. A consistent typography scale and spacing system is applied across all components
+  6. Micro-animations are present on key interactions (message entry, hover, focus) without harming performance
+  7. App runs with no regressions in chat functionality
+**Scope note:** In — every visible UI component, typography scale, spacing system, micro-animations. Out — backend changes, new features, routing changes.
+**Plans:** TBD
+**UI hint**: yes
