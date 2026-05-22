@@ -7,10 +7,18 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private readonly http = inject(HttpClient);
-  private threadId = crypto.randomUUID();
+  private threadId: string = crypto.randomUUID();
+
+  get currentThreadId(): string {
+    return this.threadId;
+  }
 
   resetThread(): void {
     this.threadId = crypto.randomUUID();
+  }
+
+  setThread(id: string): void {
+    this.threadId = id;
   }
 
   sendMessage(message: string, model?: string): Observable<ChatResponse> {

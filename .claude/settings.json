@@ -20,7 +20,26 @@
       "Bash(node -e \"require\\('sharp'\\);console.log\\('sharp ok'\\)\")",
       "Bash(python -c \"import PIL; print\\('PIL ok'\\)\")",
       "Bash(pip install *)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(mv c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button/new-chat-button.ts c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button/new-button.ts)",
+      "Bash(mv c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button/new-chat-button.html c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button/new-button.html)",
+      "Bash(mv c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button/new-chat-button.stories.ts c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button/new-button.stories.ts)",
+      "Bash(mv c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-chat-button c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/new-button)",
+      "Bash(mv c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/chat-input/chat-input.ts c:/Users/Franek/Desktop/coding_projects/Chatbot/libs/ui/src/lib/chat-input/input-composer.ts)",
+      "Bash(dir \"C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\\\\libs\\\\ui\\\\src\\\\lib\\\\chat-header\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; pnpm nx run-many -t build 2>&1\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; Get-Command pnpm -ErrorAction SilentlyContinue; node --version; npm --version; Get-Content package.json | Select-String 'packageManager'\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; Get-Content package.json | Select-String 'packageManager','scripts'\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; npx nx run-many -t build 2>&1 | Select-Object -First 60\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; node .\\\\node_modules\\\\nx\\\\bin\\\\nx.js run-many -t build 2>&1 | Select-Object -First 80\")",
+      "Bash(powershell.exe -Command \"Test-Path 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\\\\node_modules\\\\.bin\\\\nx'; Test-Path 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot\\\\node_modules\\\\.bin\\\\nx.cmd'\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\nx.cmd' run-many -t build 2>&1 | Select-Object -First 80\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\tsc.cmd' -p apps/frontend/tsconfig.app.json --noEmit 2>&1 | Select-Object -First 50\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Franek\\\\Desktop\\\\coding_projects\\\\Chatbot'; & '.\\\\node_modules\\\\.bin\\\\tsc.cmd' -p apps/frontend/tsconfig.app.json --noEmit 2>&1 | Select-Object -First 30\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Franek\\Downloads"

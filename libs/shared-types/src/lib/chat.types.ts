@@ -14,3 +14,10 @@ export interface ChatMessage {
   text: string;
   role: MessageRole;
 }
+
+export interface ConversationSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: number;
+}

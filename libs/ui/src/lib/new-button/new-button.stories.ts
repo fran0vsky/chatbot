@@ -1,16 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/angular';
-import { NewChatButton } from './new-chat-button';
+import { NewButton } from './new-button';
 
-const meta: Meta<NewChatButton> = {
-  title: 'UI/NewChatButton',
-  component: NewChatButton,
+const meta: Meta<NewButton> = {
+  title: 'UI/NewButton',
+  component: NewButton,
   tags: ['autodocs'],
   argTypes: {
     clicked: { action: 'clicked' },
   },
 };
 export default meta;
-type Story = StoryObj<NewChatButton>;
+type Story = StoryObj<NewButton>;
 
 export const Default: Story = {
   args: { disabled: false },

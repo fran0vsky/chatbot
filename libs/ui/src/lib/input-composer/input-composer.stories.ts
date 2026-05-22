@@ -1,16 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/angular';
-import { ChatInput } from './chat-input';
+import { InputComposer } from './input-composer';
 
-const meta: Meta<ChatInput> = {
-  title: 'UI/ChatInput',
-  component: ChatInput,
+const meta: Meta<InputComposer> = {
+  title: 'UI/InputComposer',
+  component: InputComposer,
   tags: ['autodocs'],
   argTypes: {
     send: { action: 'send' },
   },
 };
 export default meta;
-type Story = StoryObj<ChatInput>;
+type Story = StoryObj<InputComposer>;
 
 export const Default: Story = {
   args: {

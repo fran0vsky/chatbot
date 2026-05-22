@@ -1,0 +1,33 @@
+<header class="flex items-center px-4 py-3 border-b border-desert-border dark:border-desert-night-border bg-desert-header dark:bg-desert-night-surface">
+  <div class="flex items-center gap-2">
+    <button
+      type="button"
+      (click)="historyToggled.emit()"
+      [disabled]="disabled"
+      class="p-1.5 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border hover:text-desert-brown dark:hover:text-desert-night-text disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      aria-label="Toggle conversation history"
+    >
+      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+      </svg>
+    </button>
+    <h1 class="font-title text-lg font-semibold uppercase text-desert-brown dark:text-desert-night-text">Chatbot</h1>
+  </div>
+  <div class="flex items-center gap-2 ml-auto">
+    <app-theme-toggle
+      [isDayMode]="isDayMode"
+      [disabled]="disabled"
+      (toggled)="themeToggled.emit()"
+    />
+    <app-new-button
+      [disabled]="disabled"
+      (clicked)="newChat.emit()"
+    />
+    <app-model-selector
+      [models]="models"
+      [selectedModel]="selectedModel"
+      [disabled]="disabled"
+      (modelChange)="modelChange.emit($event)"
+    />
+  </div>
+</header>

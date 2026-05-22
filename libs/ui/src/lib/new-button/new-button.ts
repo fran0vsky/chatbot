@@ -8,11 +8,11 @@ import {
 
 @Component({
   standalone: true,
-  selector: 'app-new-chat-button',
+  selector: 'app-new-button',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './new-chat-button.html',
+  templateUrl: './new-button.html',
 })
-export class NewChatButton {
+export class NewButton {
   @Input() disabled = false;
   @Output() clicked = new EventEmitter<void>();
 }

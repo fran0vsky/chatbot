@@ -11,12 +11,12 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
-  selector: 'app-chat-input',
+  selector: 'app-input-composer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './chat-input.html',
+  templateUrl: './input-composer.html',
   imports: [FormsModule],
 })
-export class ChatInput {
+export class InputComposer {
   @Input() placeholder = 'Message';
   @Input() disabled = false;
   @Output() send = new EventEmitter<string>();

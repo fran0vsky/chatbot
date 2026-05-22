@@ -1,5 +1,15 @@
 <div class="flex flex-col h-screen bg-desert-sand dark:bg-desert-night">
-  <app-chat-header
+  <app-history-panel
+    [open]="historyOpen"
+    [sessions]="sessions"
+    [activeSessionId]="activeSessionId"
+    (sessionSelected)="switchToSession($event)"
+    (sessionDeleted)="deleteSession($event)"
+    (closed)="closeHistory()"
+    (newChat)="newChat()"
+  />
+
+  <app-header-bar
     [isDayMode]="isDayMode"
     [selectedModel]="selectedModel"
     [models]="models"
@@ -7,6 +17,7 @@
     (themeToggled)="toggleTheme()"
     (newChat)="newChat()"
     (modelChange)="selectedModel = $event"
+    (historyToggled)="toggleHistory()"
   />
 
   <main class="flex-1 overflow-hidden relative flex flex-col">
@@ -130,7 +141,7 @@
           }
         </div>
         <div class="mx-auto w-full max-w-2xl">
-          <app-chat-input
+          <app-input-composer
             [placeholder]="placeholder"
             [disabled]="isLoading"
             (send)="onSend($event)"
@@ -152,7 +163,7 @@
       </div>
       <div class="px-4 flex-shrink-0 sticky bottom-4 bg-gradient-to-t from-desert-sand dark:from-desert-night to-transparent pt-4 pb-4">
         <div class="max-w-2xl mx-auto w-full">
-          <app-chat-input
+          <app-input-composer
             [placeholder]="placeholder"
             [disabled]="isLoading"
             (send)="onSend($event)"

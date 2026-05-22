@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/angular';
-import { ChatHeader } from './chat-header';
+import { HeaderBar } from './header-bar';
 
-const meta: Meta<ChatHeader> = {
-  title: 'UI/ChatHeader',
-  component: ChatHeader,
+const meta: Meta<HeaderBar> = {
+  title: 'UI/HeaderBar',
+  component: HeaderBar,
   tags: ['autodocs'],
   argTypes: {
     themeToggled: { action: 'themeToggled' },
@@ -12,7 +12,7 @@ const meta: Meta<ChatHeader> = {
   },
 };
 export default meta;
-type Story = StoryObj<ChatHeader>;
+type Story = StoryObj<HeaderBar>;
 
 const models = [
   { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },

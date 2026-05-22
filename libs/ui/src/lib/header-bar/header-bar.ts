@@ -6,17 +6,17 @@ import {
   Output,
 } from '@angular/core';
 import { ThemeToggle } from '../theme-toggle/theme-toggle.js';
-import { NewChatButton } from '../new-chat-button/new-chat-button.js';
+import { NewButton } from '../new-button/new-button.js';
 import { ModelSelector, ChatModel } from '../model-selector/model-selector.js';
 
 @Component({
   standalone: true,
-  selector: 'app-chat-header',
+  selector: 'app-header-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './chat-header.html',
-  imports: [ThemeToggle, NewChatButton, ModelSelector],
+  templateUrl: './header-bar.html',
+  imports: [ThemeToggle, NewButton, ModelSelector],
 })
-export class ChatHeader {
+export class HeaderBar {
   @Input() isDayMode = false;
   @Input() selectedModel = '';
   @Input() models: readonly ChatModel[] = [];
@@ -24,4 +24,5 @@ export class ChatHeader {
   @Output() themeToggled = new EventEmitter<void>();
   @Output() newChat = new EventEmitter<void>();
   @Output() modelChange = new EventEmitter<string>();
+  @Output() historyToggled = new EventEmitter<void>();
 }
