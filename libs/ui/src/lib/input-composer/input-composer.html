@@ -2,14 +2,14 @@
   class="w-full bg-transparent"
   (submit)="$event.preventDefault(); submit()"
 >
-  <div class="w-full rounded-2xl shadow-xl bg-desert-sand-light dark:bg-desert-night-surface border border-desert-gold/50 dark:border-desert-night-border px-4 py-3">
+  <div class="w-full rounded-2xl shadow-xl bg-desert-sand-light dark:bg-desert-night-surface border border-desert-gold/50 dark:border-desert-night-border px-4 py-3 focus-within:ring-2 focus-within:ring-desert-gold dark:focus-within:ring-desert-night-border">
     <div class="flex items-end gap-2">
       <textarea
         #textareaRef
         data-testid="message-input"
         rows="1"
         [placeholder]="placeholder"
-        class="flex-1 resize-none rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-desert-gold dark:focus:ring-desert-night-border disabled:opacity-60 disabled:cursor-not-allowed"
+        class="flex-1 resize-none rounded-lg border border-desert-border dark:border-desert-night-border bg-desert-sand-light dark:bg-desert-night-surface text-desert-brown dark:text-desert-night-text px-3 py-2 text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
         [class.overflow-y-auto]="atMaxHeight"
         [class.overflow-hidden]="!atMaxHeight"
         [(ngModel)]="draft"
@@ -19,7 +19,7 @@
         (input)="autoResize(textareaRef)"
       ></textarea>
       <button type="submit" [disabled]="disabled || draft.trim().length === 0"
-        class="flex items-center justify-center w-9 h-9 rounded-full bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+        class="flex items-center justify-center w-9 h-9 rounded-full bg-desert-terracotta dark:bg-desert-night-amber text-white hover:bg-desert-terracotta-dark dark:hover:bg-desert-night-amber-dark active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-desert-sand-light dark:focus-visible:ring-offset-desert-night-surface">
         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
         </svg>

@@ -1,12 +1,12 @@
 @if (message.role === 'user') {
-  <div class="flex w-full justify-end mb-4" [class.msg-enter-right]="animate">
-    <div class="max-w-[75%] rounded-2xl rounded-br-sm px-5 py-3 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words shadow-md font-body leading-relaxed">
+  <div class="flex w-full justify-end" [class.msg-enter-right]="animate">
+    <div class="max-w-[75%] rounded-2xl rounded-br-sm px-5 py-3 bg-desert-terracotta dark:bg-desert-night-amber text-white whitespace-pre-wrap break-words shadow-md font-body text-sm leading-relaxed">
       {{ message.text }}
     </div>
   </div>
 } @else if (message.role === 'error') {
-  <div class="flex w-full justify-start mb-4" [class.msg-enter-left]="animate">
-    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-red-50 border border-red-200 text-red-700 whitespace-pre-wrap break-words flex items-start gap-2">
+  <div class="flex w-full justify-start" [class.msg-enter-left]="animate">
+    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm whitespace-pre-wrap break-words flex items-start gap-2">
       <svg class="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.515 2.625H3.72c-1.345 0-2.188-1.458-1.515-2.625L8.485 2.495zM10 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1zm0 7a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
       </svg>
@@ -14,11 +14,11 @@
     </div>
   </div>
 } @else if (typing) {
-  <div class="mb-4" [class.msg-enter-left]="animate">
+  <div [class.msg-enter-left]="animate">
     <app-typing-indicator />
   </div>
 } @else {
-  <div class="flex w-full justify-start items-end gap-2 mb-4" [class.msg-enter-left]="animate">
+  <div class="flex w-full justify-start items-end gap-2" [class.msg-enter-left]="animate">
     <div class="flex-shrink-0 self-center">
       <img src="/assets/creatures/creature.png" alt="Chatbot" class="w-16 h-auto" style="image-rendering: pixelated;" />
     </div>
@@ -27,7 +27,7 @@
       <button
         type="button"
         (click)="copyMessage()"
-        class="absolute top-1 right-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-desert-border dark:hover:bg-desert-night-border text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text"
+        class="absolute top-1 right-1 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-desert-border dark:hover:bg-desert-night-border text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
         [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
       >
         @if (copied) {

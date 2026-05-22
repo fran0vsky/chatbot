@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(*)",
       "Bash(curl -s http://localhost:4200/styles.css)",
       "Bash(curl -s http://localhost:4200/main.js)",
       "Bash(chromium-cli --headless --screenshot=/tmp/chat-spacing.png http://localhost:4200)",

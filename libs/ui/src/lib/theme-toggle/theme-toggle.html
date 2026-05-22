@@ -2,7 +2,7 @@
   type="button"
   (click)="toggled.emit()"
   [disabled]="disabled"
-  class="flex items-center justify-center w-8 h-8 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-surface transition disabled:opacity-50 disabled:cursor-not-allowed"
+  class="flex items-center justify-center w-8 h-8 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border hover:text-desert-brown dark:hover:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
   [attr.aria-label]="isDayMode ? 'Switch to night mode' : 'Switch to day mode'"
 >
   @if (isDayMode) {
