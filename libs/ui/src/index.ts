@@ -8,3 +8,4 @@ export { InputComposer } from './lib/input-composer/input-composer.js';
 export { HeaderBar } from './lib/header-bar/header-bar.js';
 export { HistoryPanel } from './lib/history-panel/history-panel.js';
 export { ToolCallBubble } from './lib/tool-call-bubble/tool-call-bubble.js';
+export { ReasoningBlock } from './lib/reasoning-block/reasoning-block.js';
