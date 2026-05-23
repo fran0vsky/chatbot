@@ -1,0 +1,15 @@
+@if (hasReasoning()) {
+  <div class="border-l-2 border-desert-border dark:border-desert-night-border pl-3 py-1 mb-2 flex flex-col gap-1">
+    <button
+      type="button"
+      class="text-xs font-body font-medium leading-snug text-desert-brown-muted dark:text-desert-night-muted hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border rounded self-start"
+      (click)="toggle()"
+      [attr.aria-expanded]="!collapsed()"
+      [attr.aria-label]="ariaLabel()">
+      {{ toggleLabel() }}
+    </button>
+    @if (!collapsed()) {
+      <div class="text-sm font-body leading-relaxed text-desert-brown-muted dark:text-desert-night-muted whitespace-pre-wrap">{{ reasoning }}</div>
+    }
+  </div>
+}
