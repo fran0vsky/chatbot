@@ -23,6 +23,8 @@ export interface ChatMessage {
   toolName?: string;
   toolArgs?: Record<string, unknown>;
   toolResult?: string;
+  reasoning?: string;
+  reasoningDurationMs?: number;
 }
 
 export interface ConversationSession {
@@ -51,10 +53,17 @@ export interface StreamToolCallResultEvent {
   result: string;
 }
 
+export interface StreamReasoningTokenEvent {
+  type: 'reasoning_token';
+  text: string;
+}
+
 export interface StreamDoneEvent {
   type: 'done';
   response: string;
   toolCalls?: ToolCallRecord[];
+  reasoning?: string;
+  reasoningDurationMs?: number;
 }
 
 export interface StreamErrorEvent {
@@ -65,6 +74,7 @@ export interface StreamErrorEvent {
 
 export type StreamEvent =
   | StreamTokenEvent
+  | StreamReasoningTokenEvent
   | StreamToolCallStartEvent
   | StreamToolCallResultEvent
   | StreamDoneEvent
