@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  HttpException,
-  HttpStatus,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ChatOpenAI } from '@langchain/openai';
 import {
   AIMessage,
@@ -20,7 +14,7 @@ import {
   MemorySaver,
 } from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
-import { ToolCallRecord } from '@org/shared-types';
+import { StreamEvent, ToolCallRecord } from '@org/shared-types';
 import { tools } from './tools';
 
 const AgentState = Annotation.Root({
@@ -126,47 +120,102 @@ export class AgentsService {
     return records;
   }
 
-  async runAgent(
+  private extractChunkText(content: unknown): string {
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+      return content
+        .map((p) =>
+          typeof p === 'string'
+            ? p
+            : p && typeof p === 'object' && 'text' in p && typeof (p as { text: unknown }).text === 'string'
+              ? (p as { text: string }).text
+              : '',
+        )
+        .join('');
+    }
+    return '';
+  }
+
+  private stringifyToolOutput(output: unknown): string {
+    if (output instanceof ToolMessage) {
+      return typeof output.content === 'string'
+        ? output.content
+        : JSON.stringify(output.content);
+    }
+    if (typeof output === 'string') return output;
+    if (output === undefined || output === null) return '';
+    return JSON.stringify(output);
+  }
+
+  async *streamAgent(
     message: string,
     threadId = 'default',
     model = 'openai/gpt-4o-mini',
-  ): Promise<{ response: string; toolCalls: ToolCallRecord[] }> {
-    this.logger.log(`Running agent for thread ${threadId} with model ${model}`);
-
+    signal: AbortSignal,
+  ): AsyncGenerator<StreamEvent, void, void> {
+    this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
     const graph = this.getOrBuildGraph(model);
-
     try {
-      const result = await graph.invoke(
+      const stream = graph.streamEvents(
         { messages: [new HumanMessage(message)] },
-        { configurable: { thread_id: threadId } },
+        { configurable: { thread_id: threadId }, version: 'v2', signal },
       );
 
-      const lastMessage = result.messages[result.messages.length - 1];
-      const response =
-        typeof lastMessage.content === 'string'
-          ? lastMessage.content
-          : JSON.stringify(lastMessage.content);
-
-      const toolCalls = this.extractTurnToolCalls(result.messages);
-
-      return { response, toolCalls };
-    } catch (error: unknown) {
-      this.logger.error(
-        `Agent error for model ${model}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-
-      if (this.isCapabilityError(error)) {
-        const modelSlug = model.replace(':free', '');
-        throw new HttpException(
-          {
-            message: 'This model is currently unavailable or has reached its usage limit.',
-            link: `https://openrouter.ai/${modelSlug}`,
-          },
-          HttpStatus.SERVICE_UNAVAILABLE,
-        );
+      for await (const ev of stream) {
+        if (signal.aborted) return;
+        if (ev.event === 'on_chat_model_stream') {
+          const chunk = (ev.data as { chunk?: { content?: unknown } })?.chunk;
+          const text = this.extractChunkText(chunk?.content);
+          if (text.length > 0) yield { type: 'token', text };
+        } else if (ev.event === 'on_tool_start') {
+          const input = (ev.data as { input?: unknown })?.input;
+          const args =
+            input && typeof input === 'object' && !Array.isArray(input)
+              ? (input as Record<string, unknown>)
+              : { input };
+          yield {
+            type: 'tool_call_start',
+            id: ev.run_id,
+            name: ev.name,
+            args,
+          };
+        } else if (ev.event === 'on_tool_end') {
+          const output = (ev.data as { output?: unknown })?.output;
+          yield {
+            type: 'tool_call_result',
+            id: ev.run_id,
+            result: this.stringifyToolOutput(output),
+          };
+        }
       }
 
-      throw new InternalServerErrorException('Failed to get a response from the model.');
+      if (signal.aborted) return;
+
+      const state = await graph.getState({ configurable: { thread_id: threadId } });
+      const messages = (state.values as { messages: BaseMessage[] }).messages;
+      const last = messages[messages.length - 1];
+      const response =
+        typeof last.content === 'string' ? last.content : JSON.stringify(last.content);
+      const toolCalls = this.extractTurnToolCalls(messages);
+      yield { type: 'done', response, toolCalls };
+    } catch (error: unknown) {
+      if (signal.aborted) {
+        this.logger.log(`Agent stream aborted by client for thread ${threadId}`);
+        return;
+      }
+      this.logger.error(
+        `Agent stream error for model ${model}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      if (this.isCapabilityError(error)) {
+        const modelSlug = model.replace(':free', '');
+        yield {
+          type: 'error',
+          message: 'This model is currently unavailable or has reached its usage limit.',
+          link: `https://openrouter.ai/${modelSlug}`,
+        };
+        return;
+      }
+      yield { type: 'error', message: 'Failed to get a response from the model.' };
     }
   }
 }
