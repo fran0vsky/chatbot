@@ -55,6 +55,7 @@ Progress: [██████████] 100%
 - Phase 4 added: Dark Theme and Visual Polish
 - Phase 8 added: Chat History Sidebar
 - Phase 9 added: Tool Calling (Function Calling) — LangGraph tool node + UI for tool calls; starter tools `get_current_time` and `web_search`
+- Phase 10 added: Token Streaming (SSE, word-by-word render)
 
 ### Decisions
 
