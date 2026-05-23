@@ -158,14 +158,18 @@
       <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
         <div class="max-w-2xl mx-auto w-full space-y-5">
           @for (m of messages; track $index; let i = $index) {
-            <app-message-bubble
-              [message]="m"
-              [animate]="i >= 1"
-              [canEdit]="m.role === 'user' && !isLoading"
-              [canRegenerate]="m.role === 'assistant' && i === messages.length - 1 && i > 0 && !isLoading"
-              (regenerate)="onRegenerate(i)"
-              (editSubmit)="onEditAndResend(i, $event)"
-            />
+            @if (m.role === 'tool') {
+              <app-tool-call-bubble [message]="m" />
+            } @else {
+              <app-message-bubble
+                [message]="m"
+                [animate]="i >= 1"
+                [canEdit]="m.role === 'user' && !isLoading"
+                [canRegenerate]="m.role === 'assistant' && i === messages.length - 1 && i > 0 && !isLoading"
+                (regenerate)="onRegenerate(i)"
+                (editSubmit)="onEditAndResend(i, $event)"
+              />
+            }
           }
           @if (isLoading) {
             <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />

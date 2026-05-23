@@ -54,6 +54,7 @@ Progress: [██████████] 100%
 - Phase 3 added: UI/UX Refinement Phase
 - Phase 4 added: Dark Theme and Visual Polish
 - Phase 8 added: Chat History Sidebar
+- Phase 9 added: Tool Calling (Function Calling) — LangGraph tool node + UI for tool calls; starter tools `get_current_time` and `web_search`
 
 ### Decisions
 

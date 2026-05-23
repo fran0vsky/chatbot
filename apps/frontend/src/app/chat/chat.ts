@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChatMessage, ConversationSession } from '@org/shared-types';
-import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector } from '@chatbot/ui';
+import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { HistoryService } from './history.service';
 
@@ -26,7 +26,7 @@ const PLACEHOLDER_NEUTRAL = 'Message';
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector],
+  imports: [HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -235,6 +235,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.currentRequest?.unsubscribe();
     this.currentRequest = this.chatService.sendMessage(text, this.selectedModel).subscribe({
       next: (resp) => {
+        if (resp.toolCalls && resp.toolCalls.length > 0) {
+          for (const call of resp.toolCalls) {
+            this.messages.push({
+              text: '',
+              role: 'tool',
+              toolName: call.name,
+              toolArgs: call.args,
+              toolResult: call.result,
+            });
+          }
+        }
         this.messages.push({ text: resp.response, role: 'assistant' });
         this.currentRequest = null;
         this.finishRequest();

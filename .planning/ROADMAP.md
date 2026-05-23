@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 6: Desert UI Elevation** - Pixel snake avatar, background cacti, floating pill input, typography polish
 - [x] **Phase 7: Visual Overhaul** - Modernize every UI component to ChatGPT/Claude/Gemini polish while keeping the desert theme (completed 2026-05-22)
 - [x] **Phase 8: Chat History Sidebar** - Add left sidebar containing history of chats which are clickable to jump back into old conversations
+- [ ] **Phase 9: Tool Calling (Function Calling)** - Backend LangGraph tool node + UI for tool calls; ship `get_current_time` and `web_search` as starter tools
 
 ## Phase Details
 
@@ -151,3 +152,28 @@ Plans:
 Plans:
 - [x] 08-01-PLAN.md — Date-grouped session list in HistoryPanel (Wave 1)
 - [x] 08-02-PLAN.md — Persistent desktop sidebar layout + responsive toggle (Wave 2)
+
+### Phase 9: Tool Calling (Function Calling)
+
+**Goal:** Enable the chatbot to call external tools/functions during a conversation turn so the model can fetch real information instead of hallucinating; tool calls and their results are visible in the UI as distinct, muted message blocks.
+**Mode:** mvp
+**Depends on:** Phase 8
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. User asks "what time is it?" → assistant calls `get_current_time` and returns the actual current time
+  2. User asks something requiring fresh info (e.g. "what's the latest news on X") → assistant calls `web_search` and incorporates the result into its answer
+  3. Tool call + result are visible in the chat as a distinct, muted message block between the user message and the assistant reply (shows tool name, arguments, and result)
+  4. Conversation continues correctly after a tool call — follow-up questions can reference the tool result (multi-turn via MemorySaver)
+  5. App runs with no regressions in existing chat functionality
+
+**Scope note:**
+- **In scope:** LangGraph tool node(s) in backend agent graph; two starter tools — `get_current_time` (no external API) and `web_search` (free provider: DuckDuckGo, Tavily, or Brave Search — easiest free tier wins); tool definitions wired through OpenRouter's OpenAI-compatible `tools` parameter; new "tool call" UI message type styled muted/secondary.
+- **Out of scope:** Streaming tokens, reasoning/thinking traces, user-configurable tools, MCP, tool marketplaces, auth-gated tools, tools requiring user credentials, GCS deploy.
+
+**Constraints:** Tech stack locked (Angular + NestJS + LangGraph + OpenRouter); Tailwind-only styling; standalone Angular components with OnPush; no database — per-session MemorySaver stays.
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Backend LangGraph tool node + `get_current_time` + `web_search` (DuckDuckGo) + extended shared types (Wave 1)
+- [ ] 09-02-PLAN.md — Frontend `ToolCallBubble` component + ChatComponent splice logic + chat.html role-based rendering (Wave 2 — depends on 09-01)

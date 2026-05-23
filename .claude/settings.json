@@ -45,27 +45,14 @@
       "Skill(gsd-code-review:*)",
       "Read(//c/Users/Franek/.claude/agents/**)",
       "Read(//c/Users/Franek/.claude/get-shit-done/templates/**)",
-      "Read(//c/Users/Franek/.claude/get-shit-done/references/**)"
+      "Read(//c/Users/Franek/.claude/get-shit-done/references/**)",
+      "Read(//c/Users/Franek/.claude/get-shit-done/workflows/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Franek\\Downloads"
     ]
   },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Based on the conversation so far, estimate whether the context window is likely 65%+ full. Respond with ONLY 'yes' or 'no'. Answer 'yes' if many messages have been exchanged or files read.",
-            "model": "claude-haiku-4-5-20251001",
-            "continueOnBlock": true,
-            "statusMessage": "Checking context usage..."
-          }
-        ]
-      }
-    ]
-  },
+  "hooks": {},
   "enabledPlugins": {
     "nx@nx-claude-plugins": true
   },
