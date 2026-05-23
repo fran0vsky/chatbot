@@ -7,9 +7,9 @@ import {
   OnInit,
   ViewChild,
   inject,
+  signal,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { ChatMessage, ConversationSession } from '@org/shared-types';
+import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord } from '@org/shared-types';
 import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { HistoryService } from './history.service';
@@ -46,7 +46,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private sessionTitle = '';
   private sessionCreatedAt = 0;
-  private currentRequest: Subscription | null = null;
+  private currentAbort: AbortController | null = null;
+  private streamingToolCallIds: string[] = [];
+
+  readonly streamingText = signal('');
+  readonly streamingError = signal<string | null>(null);
+  readonly streamingToolCalls = signal<ToolCallRecord[]>([]);
+  readonly isStreaming = signal(false);
 
   readonly models = [
     { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
@@ -80,13 +86,27 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.placeholderTimer !== null) {
       clearInterval(this.placeholderTimer);
     }
-    this.currentRequest?.unsubscribe();
+    this.currentAbort?.abort();
   }
 
   onStop(): void {
-    if (!this.isLoading) return;
-    this.currentRequest?.unsubscribe();
-    this.currentRequest = null;
+    if (!this.isStreaming() && !this.isLoading) return;
+    this.currentAbort?.abort();
+    this.currentAbort = null;
+    const partial = this.streamingText();
+    for (const call of this.streamingToolCalls()) {
+      this.messages.push({
+        text: '',
+        role: 'tool',
+        toolName: call.name,
+        toolArgs: call.args,
+        toolResult: call.result,
+      });
+    }
+    if (partial.length > 0) {
+      this.messages.push({ text: partial, role: 'assistant' });
+    }
+    this.clearStreaming();
     this.isLoading = false;
     this.sessions = this.historyService.upsertSession({
       id: this.chatService.currentThreadId,
@@ -95,6 +115,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       createdAt: this.sessionCreatedAt || Date.now(),
     });
     this.cdr.detectChanges();
+    this.scrollToBottom();
   }
 
   private applyTheme(mode: 'day' | 'night'): void {
@@ -179,7 +200,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   onSend(text: string): void {
-    if (this.isLoading) return;
+    if (this.isLoading || this.isStreaming()) return;
 
     if (!this.sessionTitle) {
       this.sessionTitle = text.length > 50 ? text.slice(0, 50) + '…' : text;
@@ -192,7 +213,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   onRegenerate(index: number): void {
-    if (this.isLoading) return;
+    if (this.isLoading || this.isStreaming()) return;
     if (index <= 0 || index >= this.messages.length) return;
     const target = this.messages[index];
     if (target.role !== 'assistant') return;
@@ -205,7 +226,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   onEditAndResend(index: number, newText: string): void {
-    if (this.isLoading) return;
+    if (this.isLoading || this.isStreaming()) return;
     const target = this.messages[index];
     if (!target || target.role !== 'user') return;
 
@@ -231,34 +252,120 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
   }
 
-  private dispatchRequest(text: string): void {
-    this.currentRequest?.unsubscribe();
-    this.currentRequest = this.chatService.sendMessage(text, this.selectedModel).subscribe({
-      next: (resp) => {
-        if (resp.toolCalls && resp.toolCalls.length > 0) {
-          for (const call of resp.toolCalls) {
-            this.messages.push({
-              text: '',
-              role: 'tool',
-              toolName: call.name,
-              toolArgs: call.args,
-              toolResult: call.result,
-            });
-          }
+  private async dispatchRequest(text: string): Promise<void> {
+    this.currentAbort?.abort();
+    const controller = new AbortController();
+    this.currentAbort = controller;
+
+    this.streamingText.set('');
+    this.streamingError.set(null);
+    this.streamingToolCalls.set([]);
+    this.streamingToolCallIds = [];
+    this.isStreaming.set(true);
+
+    try {
+      for await (const event of this.chatService.streamMessage(
+        text,
+        this.selectedModel,
+        controller.signal,
+      )) {
+        this.handleStreamEvent(event);
+      }
+    } catch {
+      // service swallows AbortError; any other throw becomes a generic error event already
+    } finally {
+      if (this.currentAbort === controller) this.currentAbort = null;
+    }
+  }
+
+  private handleStreamEvent(event: StreamEvent): void {
+    switch (event.type) {
+      case 'token': {
+        if (this.isLoading) {
+          this.isLoading = false;
         }
-        this.messages.push({ text: resp.response, role: 'assistant' });
-        this.currentRequest = null;
-        this.finishRequest();
-      },
-      error: (err: unknown) => {
-        const body = (err as { error?: { message?: string; link?: string } })?.error;
-        const errorText = body?.message ?? 'Something went wrong. Please try again.';
-        const linkPart = body?.link ? `\n\n[View model on OpenRouter](${body.link})` : '';
-        this.messages.push({ text: errorText + linkPart, role: 'error' });
-        this.currentRequest = null;
-        this.finishRequest();
-      },
-    });
+        this.streamingText.update((s) => s + event.text);
+        this.cdr.markForCheck();
+        this.scrollToBottom();
+        return;
+      }
+      case 'tool_call_start': {
+        this.streamingToolCallIds.push(event.id);
+        this.streamingToolCalls.update((arr) => [
+          ...arr,
+          { name: event.name, args: event.args, result: '' },
+        ]);
+        this.cdr.markForCheck();
+        this.scrollToBottom();
+        return;
+      }
+      case 'tool_call_result': {
+        const idx = this.streamingToolCallIds.indexOf(event.id);
+        if (idx === -1) return;
+        this.streamingToolCalls.update((arr) => {
+          const next = arr.slice();
+          next[idx] = { ...next[idx], result: event.result };
+          return next;
+        });
+        this.cdr.markForCheck();
+        return;
+      }
+      case 'done': {
+        this.commitTurn(event.response, event.toolCalls ?? []);
+        return;
+      }
+      case 'error': {
+        this.commitErrorTurn(event.message, event.link);
+        return;
+      }
+    }
+  }
+
+  private commitTurn(response: string, toolCalls: ToolCallRecord[]): void {
+    for (const call of toolCalls) {
+      this.messages.push({
+        text: '',
+        role: 'tool',
+        toolName: call.name,
+        toolArgs: call.args,
+        toolResult: call.result,
+      });
+    }
+    this.messages.push({ text: response, role: 'assistant' });
+    this.clearStreaming();
+    this.finishRequest();
+  }
+
+  private commitErrorTurn(message: string, link?: string): void {
+    const partial = this.streamingText();
+    if (partial.length > 0) {
+      for (const call of this.streamingToolCalls()) {
+        this.messages.push({
+          text: '',
+          role: 'tool',
+          toolName: call.name,
+          toolArgs: call.args,
+          toolResult: call.result,
+        });
+      }
+      const footer = link
+        ? `\n\n_Response interrupted: ${message}_ ([details](${link}))`
+        : `\n\n_Response interrupted: ${message}_`;
+      this.messages.push({ text: partial + footer, role: 'assistant' });
+    } else {
+      const linkPart = link ? `\n\n[View model on OpenRouter](${link})` : '';
+      this.messages.push({ text: message + linkPart, role: 'error' });
+    }
+    this.clearStreaming();
+    this.finishRequest();
+  }
+
+  private clearStreaming(): void {
+    this.streamingText.set('');
+    this.streamingError.set(null);
+    this.streamingToolCalls.set([]);
+    this.streamingToolCallIds = [];
+    this.isStreaming.set(false);
   }
 
   private finishRequest(): void {

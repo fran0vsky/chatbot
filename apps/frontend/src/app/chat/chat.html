@@ -133,7 +133,7 @@
     </svg>
 
     <!-- Landing state: greeting + left-aligned input -->
-    @if (messages.length <= 1 && !isLoading) {
+    @if (messages.length <= 1 && !isLoading && !isStreaming()) {
       <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
         <div class="mx-auto w-full max-w-2xl">
           @if (messages.length === 1) {
@@ -173,6 +173,30 @@
           }
           @if (isLoading) {
             <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />
+          }
+          @if (isStreaming()) {
+            @for (call of streamingToolCalls(); track $index) {
+              <app-tool-call-bubble [message]="{
+                text: '',
+                role: 'tool',
+                toolName: call.name,
+                toolArgs: call.args,
+                toolResult: call.result
+              }" />
+            }
+            @if (streamingText().length > 0) {
+              <div>
+                <app-message-bubble
+                  [message]="{ text: streamingText(), role: 'assistant' }"
+                  [animate]="false"
+                />
+                @if (streamingError(); as err) {
+                  <p class="text-xs italic opacity-70 mt-1 text-desert-brown-muted dark:text-desert-night-muted">
+                    Response interrupted: {{ err }}
+                  </p>
+                }
+              </div>
+            }
           }
           <div #messageEnd></div>
         </div>
