@@ -44,3 +44,15 @@ export const Typing: Story = {
     typing: true,
   },
 };
+
+export const WithReasoning: Story = {
+  args: {
+    message: {
+      text: '## Summary\n\nThe answer is 42.',
+      role: 'assistant',
+      reasoning:
+        'Let me think through this carefully.\n\nFirst, I need to consider the question deeply.\nThen I will arrive at the correct conclusion.\nThe answer involves fundamental constants of the universe.',
+      reasoningDurationMs: 4200,
+    },
+  },
+};
