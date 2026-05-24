@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatOpenAI } from '@langchain/openai';
+import { ChatOpenRouter } from '@langchain/openrouter';
 import {
   AIMessage,
   BaseMessage,
@@ -15,6 +15,7 @@ import {
 } from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { StreamEvent, ToolCallRecord } from '@org/shared-types';
+import { getModelCapabilities } from './model-capabilities';
 import { tools } from './tools';
 
 const AgentState = Annotation.Root({
@@ -30,10 +31,15 @@ export class AgentsService {
   private readonly graphs = new Map<string, ReturnType<typeof this.buildGraph>>();
 
   private buildGraph(modelId: string) {
-    const model = new ChatOpenAI({
+    const caps = getModelCapabilities(modelId);
+    const modelKwargs: Record<string, unknown> = {};
+    if (caps.reasoning) {
+      modelKwargs['reasoning'] = { effort: 'medium' };
+    }
+    const model = new ChatOpenRouter({
+      model: modelId,
       apiKey: process.env['OPENROUTER_API_KEY'],
-      modelName: modelId,
-      configuration: { baseURL: 'https://openrouter.ai/api/v1' },
+      modelKwargs,
     });
 
     const boundModel = model.bindTools([...tools]);
@@ -120,6 +126,25 @@ export class AgentsService {
     return records;
   }
 
+  private extractChunkReasoning(chunk: unknown): string {
+    if (!chunk || typeof chunk !== 'object') return '';
+    const additional = (chunk as { additional_kwargs?: Record<string, unknown> }).additional_kwargs;
+    if (!additional) return '';
+    const flat = additional['reasoning_content'];
+    if (typeof flat === 'string') return flat;
+    const details = additional['reasoning_details'];
+    if (Array.isArray(details)) {
+      return details
+        .map((d) =>
+          d && typeof d === 'object' && 'text' in d && typeof (d as { text: unknown }).text === 'string'
+            ? (d as { text: string }).text
+            : '',
+        )
+        .join('');
+    }
+    return '';
+  }
+
   private extractChunkText(content: unknown): string {
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
@@ -156,6 +181,10 @@ export class AgentsService {
     this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
     const graph = this.getOrBuildGraph(model);
     try {
+      let firstReasoningAt: number | null = null;
+      let lastReasoningAt: number | null = null;
+      let accumulatedReasoning = '';
+
       const stream = graph.streamEvents(
         { messages: [new HumanMessage(message)] },
         { configurable: { thread_id: threadId }, version: 'v2', signal },
@@ -165,6 +194,13 @@ export class AgentsService {
         if (signal.aborted) return;
         if (ev.event === 'on_chat_model_stream') {
           const chunk = (ev.data as { chunk?: { content?: unknown } })?.chunk;
+          const reasoning = this.extractChunkReasoning(chunk);
+          if (reasoning.length > 0) {
+            if (firstReasoningAt === null) firstReasoningAt = Date.now();
+            lastReasoningAt = Date.now();
+            accumulatedReasoning += reasoning;
+            yield { type: 'reasoning_token', text: reasoning };
+          }
           const text = this.extractChunkText(chunk?.content);
           if (text.length > 0) yield { type: 'token', text };
         } else if (ev.event === 'on_tool_start') {
@@ -197,7 +233,17 @@ export class AgentsService {
       const response =
         typeof last.content === 'string' ? last.content : JSON.stringify(last.content);
       const toolCalls = this.extractTurnToolCalls(messages);
-      yield { type: 'done', response, toolCalls };
+      const reasoningDurationMs =
+        firstReasoningAt !== null && lastReasoningAt !== null
+          ? lastReasoningAt - firstReasoningAt
+          : undefined;
+      yield {
+        type: 'done',
+        response,
+        toolCalls,
+        reasoning: accumulatedReasoning.length > 0 ? accumulatedReasoning : undefined,
+        reasoningDurationMs,
+      };
     } catch (error: unknown) {
       if (signal.aborted) {
         this.logger.log(`Agent stream aborted by client for thread ${threadId}`);
