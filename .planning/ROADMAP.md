@@ -190,10 +190,15 @@ Plans:
 
 ### Phase 11: Reasoning / Thinking Display
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Stream and display reasoning/thinking tokens from models like DeepSeek R1; auto-collapse the reasoning block when the first content token arrives; persist reasoning in chat history.
+**Requirements**: REQ-1 through REQ-9
 **Depends on:** Phase 10
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans executed
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 11 to break down)
+- [x] 11-01: Shared types — reasoning fields on ChatMessage + StreamEvent union
+- [x] 11-02: Backend OpenRouter reasoning streaming
+- [x] 11-03: ReasoningBlock UI component
+- [x] 11-04: Frontend chat wiring — accumulate + auto-collapse signals
+- [x] 11-05: Compose ReasoningBlock + add DeepSeek R1 model
+- [x] 11-06: E2E tests + manual smoke checklist (Task 3 pending user execution)
