@@ -63,6 +63,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     { id: 'meta-llama/llama-3.1-8b-instruct:free', label: 'Llama 3.1 8B (free)' },
     { id: 'mistralai/mistral-7b-instruct:free', label: 'Mistral 7B (free)' },
     { id: 'google/gemma-3-4b-it:free', label: 'Gemma 3 4B (free)' },
+    { id: 'deepseek/deepseek-r1:free', label: 'DeepSeek R1 (free, reasoning)' },
   ] as const;
 
   @ViewChild('messageEnd') private messageEnd?: ElementRef<HTMLElement>;

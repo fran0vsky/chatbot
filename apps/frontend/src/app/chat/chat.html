@@ -184,12 +184,21 @@
                 toolResult: call.result
               }" />
             }
-            @if (streamingText().length > 0) {
+            @if (streamingText().length > 0 || streamingReasoning().length > 0) {
               <div>
-                <app-message-bubble
-                  [message]="{ text: streamingText(), role: 'assistant' }"
-                  [animate]="false"
-                />
+                @if (streamingReasoning().length > 0) {
+                  <app-reasoning-block
+                    [reasoning]="streamingReasoning()"
+                    [streaming]="true"
+                    [autoCollapsed]="reasoningCollapsed()">
+                  </app-reasoning-block>
+                }
+                @if (streamingText().length > 0) {
+                  <app-message-bubble
+                    [message]="{ text: streamingText(), role: 'assistant' }"
+                    [animate]="false"
+                  />
+                }
                 @if (streamingError(); as err) {
                   <p class="text-xs italic opacity-70 mt-1 text-desert-brown-muted dark:text-desert-night-muted">
                     Response interrupted: {{ err }}
