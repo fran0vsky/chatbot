@@ -4,6 +4,66 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { ChatService } from './chat.service';
 import { environment } from '../../environments/environment';
 
+function makeSseStream(frames: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  const chunks = frames.map((f) => encoder.encode(`data: ${f}\n\n`));
+  let idx = 0;
+  return new ReadableStream({
+    pull(controller) {
+      if (idx < chunks.length) {
+        controller.enqueue(chunks[idx++]);
+      } else {
+        controller.close();
+      }
+    },
+  });
+}
+
+describe('ChatService SSE streaming', () => {
+  let service: ChatService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(ChatService);
+  });
+
+  it('forwards reasoning_token events through the SSE parser', async () => {
+    const frame = JSON.stringify({ type: 'reasoning_token', text: 'foo' });
+    const mockResponse = new Response(makeSseStream([frame]));
+    jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(mockResponse);
+
+    const abort = new AbortController();
+    const events: { type: string; text?: string }[] = [];
+    for await (const ev of service.streamMessage('hi', undefined, abort.signal)) {
+      events.push(ev);
+    }
+    const rt = events.find((e) => e.type === 'reasoning_token');
+    expect(rt).toBeDefined();
+    expect(rt?.text).toBe('foo');
+  });
+
+  it('forwards done event with reasoning and reasoningDurationMs', async () => {
+    const frame = JSON.stringify({
+      type: 'done',
+      response: 'answer',
+      toolCalls: [],
+      reasoning: 'merged trace',
+      reasoningDurationMs: 1234,
+    });
+    const mockResponse = new Response(makeSseStream([frame]));
+    jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(mockResponse);
+
+    const abort = new AbortController();
+    const events: Record<string, unknown>[] = [];
+    for await (const ev of service.streamMessage('hi', undefined, abort.signal)) {
+      events.push(ev as Record<string, unknown>);
+    }
+    const done = events.find((e) => e['type'] === 'done');
+    expect(done?.['reasoning']).toBe('merged trace');
+    expect(done?.['reasoningDurationMs']).toBe(1234);
+  });
+});
+
 describe('ChatService', () => {
   let service: ChatService;
   let httpMock: HttpTestingController;

@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord } from '@org/shared-types';
-import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ToolCallBubble } from '@chatbot/ui';
+import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { HistoryService } from './history.service';
 
@@ -26,7 +26,7 @@ const PLACEHOLDER_NEUTRAL = 'Message';
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ToolCallBubble],
+  imports: [HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -50,6 +50,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   private streamingToolCallIds: string[] = [];
 
   readonly streamingText = signal('');
+  readonly streamingReasoning = signal('');
+  readonly reasoningCollapsed = signal(false);
+  readonly streamingReasoningDurationMs = signal<number | undefined>(undefined);
   readonly streamingError = signal<string | null>(null);
   readonly streamingToolCalls = signal<ToolCallRecord[]>([]);
   readonly isStreaming = signal(false);
@@ -104,7 +107,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
     }
     if (partial.length > 0) {
-      this.messages.push({ text: partial, role: 'assistant' });
+      const partialReasoning = this.streamingReasoning();
+      this.messages.push({
+        text: partial,
+        role: 'assistant',
+        ...(partialReasoning.length > 0 ? { reasoning: partialReasoning } : {}),
+      });
     }
     this.clearStreaming();
     this.isLoading = false;
@@ -280,9 +288,18 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private handleStreamEvent(event: StreamEvent): void {
     switch (event.type) {
+      case 'reasoning_token': {
+        if (this.isLoading) this.isLoading = false;
+        this.streamingReasoning.update((s) => s + event.text);
+        this.cdr.markForCheck();
+        return;
+      }
       case 'token': {
         if (this.isLoading) {
           this.isLoading = false;
+        }
+        if (this.streamingReasoning().length > 0 && !this.reasoningCollapsed()) {
+          this.reasoningCollapsed.set(true);
         }
         this.streamingText.update((s) => s + event.text);
         this.cdr.markForCheck();
@@ -311,7 +328,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         return;
       }
       case 'done': {
-        this.commitTurn(event.response, event.toolCalls ?? []);
+        this.commitTurn(event.response, event.toolCalls ?? [], event.reasoning, event.reasoningDurationMs);
         return;
       }
       case 'error': {
@@ -321,7 +338,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  private commitTurn(response: string, toolCalls: ToolCallRecord[]): void {
+  private commitTurn(
+    response: string,
+    toolCalls: ToolCallRecord[],
+    reasoning?: string,
+    reasoningDurationMs?: number,
+  ): void {
     for (const call of toolCalls) {
       this.messages.push({
         text: '',
@@ -331,7 +353,13 @@ export class ChatComponent implements OnInit, OnDestroy {
         toolResult: call.result,
       });
     }
-    this.messages.push({ text: response, role: 'assistant' });
+    const assistantMsg: ChatMessage = {
+      text: response,
+      role: 'assistant',
+      ...(reasoning ? { reasoning } : {}),
+      ...(reasoningDurationMs !== undefined ? { reasoningDurationMs } : {}),
+    };
+    this.messages.push(assistantMsg);
     this.clearStreaming();
     this.finishRequest();
   }
@@ -362,6 +390,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private clearStreaming(): void {
     this.streamingText.set('');
+    this.streamingReasoning.set('');
+    this.reasoningCollapsed.set(false);
+    this.streamingReasoningDurationMs.set(undefined);
     this.streamingError.set(null);
     this.streamingToolCalls.set([]);
     this.streamingToolCallIds = [];
