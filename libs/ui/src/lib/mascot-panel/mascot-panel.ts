@@ -7,6 +7,7 @@ export type MascotStatus = 'idle' | 'thinking';
   selector: 'app-mascot-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mascot-panel.html',
+  styles: [':host { display: contents; }'],
 })
 export class MascotPanel {
   @Input() status: MascotStatus = 'idle';

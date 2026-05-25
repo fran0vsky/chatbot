@@ -59,9 +59,11 @@
   </div>
 } @else {
   <div class="flex w-full justify-start items-end gap-3" [class.msg-enter-left]="animate">
-    <div class="flex-shrink-0 self-end mb-1 text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_4px_6px_rgba(26,29,33,0.18)] dark:drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
-      <app-mascot size="sm" />
-    </div>
+    <img
+      src="/spino/spino-avatar.png"
+      alt="Spino"
+      class="flex-shrink-0 self-end mb-1 w-9 h-9 rounded-full object-cover bg-jungle-surface/60 dark:bg-jungle-night-surface/60 ring-1 ring-jungle-accent/40 dark:ring-jungle-night-accent/40 drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
+    />
     <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-5 py-4 pr-9 bg-jungle-card dark:bg-jungle-night-card text-jungle-ink dark:text-jungle-night-text border border-jungle-accent/40 dark:border-jungle-night-border shadow-[0_4px_16px_-4px_rgba(74,46,26,0.18),0_2px_4px_-2px_rgba(74,46,26,0.12)] dark:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5),0_2px_6px_-2px_rgba(0,0,0,0.4)] break-words text-sm font-body leading-relaxed">
       @if (message.reasoning) {
         <app-reasoning-block

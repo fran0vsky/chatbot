@@ -16,16 +16,14 @@
     aria-hidden="true"
   ></div>
 
-  <!-- Left sidebar (session history + nav) -->
+  <!-- Left sidebar (SPINO nav + session history) -->
   <app-history-panel
-    [open]="historyOpen"
     [sessions]="sessions"
     [activeSessionId]="activeSessionId"
     (sessionSelected)="switchToSession($event)"
     (sessionDeleted)="deleteSession($event)"
     (sessionRenamed)="renameSession($event.id, $event.title)"
     (sessionPinned)="togglePinSession($event)"
-    (closed)="closeHistory()"
     (newChat)="newChat()"
   />
 
@@ -42,8 +40,9 @@
     <main class="flex-1 overflow-hidden relative flex flex-col">
       @if (messages.length <= 1 && !isLoading && !isStreaming()) {
         <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
-          <div class="mx-auto text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_6px_12px_rgba(0,0,0,0.35)] dark:drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]">
-            <app-mascot size="hero" />
+          <div class="mx-auto text-center">
+            <h1 class="font-title text-4xl text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">SpinoChat</h1>
+            <p class="mt-2 text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">The AI that survived.</p>
           </div>
           <div class="mx-auto w-full max-w-2xl">
             @if (messages.length === 1) {
