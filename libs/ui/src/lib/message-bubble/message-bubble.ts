@@ -35,6 +35,19 @@ export class MessageBubble {
   copied = false;
   editing = false;
   editDraft = '';
+  feedback: 'up' | 'down' | null = null;
+
+  get timestamp(): string {
+    const d = new Date();
+    const h = d.getHours().toString().padStart(2, '0');
+    const m = d.getMinutes().toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  onFeedback(kind: 'up' | 'down'): void {
+    this.feedback = this.feedback === kind ? null : kind;
+    this.cdr.markForCheck();
+  }
 
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

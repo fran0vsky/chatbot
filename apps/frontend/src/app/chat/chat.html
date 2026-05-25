@@ -29,14 +29,6 @@
 
   <!-- Center chat column -->
   <div class="relative z-10 flex flex-col flex-1 min-w-0">
-    <app-header-bar
-      [isDayMode]="isDayMode"
-      [disabled]="isLoading"
-      (themeToggled)="toggleTheme()"
-      (newChat)="newChat()"
-      (historyToggled)="toggleHistory()"
-    />
-
     <main class="flex-1 overflow-hidden relative flex flex-col">
       @if (messages.length <= 1 && !isLoading && !isStreaming()) {
         <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
@@ -140,5 +132,9 @@
   </div>
 
   <!-- Right mascot panel (desktop only) -->
-  <app-mascot-panel [status]="(isLoading || isStreaming()) ? 'thinking' : 'idle'" />
+  <app-mascot-panel
+    [status]="(isLoading || isStreaming()) ? 'thinking' : 'idle'"
+    [isDayMode]="isDayMode"
+    (themeToggled)="toggleTheme()"
+  />
 </div>

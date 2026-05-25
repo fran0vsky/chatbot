@@ -1,9 +1,8 @@
 @if (message.role === 'user') {
   <div class="flex w-full justify-end" [class.msg-enter-right]="animate">
     <div class="flex flex-col items-end gap-1 max-w-[75%] group">
-      <span class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted px-1">You</span>
       @if (editing) {
-        <div class="w-full rounded-2xl px-3 py-2 bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-accent/60 dark:border-jungle-night-border shadow-md">
+        <div class="w-full rounded-2xl px-3 py-2 bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-accent/60 dark:border-jungle-night-accent/60 shadow-md">
           <textarea
             rows="2"
             class="w-full resize-y min-h-[3rem] bg-transparent text-jungle-ink dark:text-jungle-night-text text-sm leading-relaxed focus:outline-none"
@@ -13,25 +12,32 @@
           ></textarea>
           <div class="flex items-center justify-end gap-2 mt-2">
             <button type="button" (click)="cancelEdit()"
-              class="px-3 py-1 text-xs rounded text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-border dark:hover:bg-jungle-night-border transition-colors">
+              class="px-3 py-1 text-xs rounded text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors">
               Cancel
             </button>
             <button type="button" (click)="submitEdit()" [disabled]="editDraft.trim().length === 0"
-              class="px-3 py-1 text-xs rounded bg-jungle-accent dark:bg-jungle-night-accent text-white hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark disabled:opacity-50 disabled:cursor-not-allowed transition">
+              class="px-3 py-1 text-xs rounded bg-jungle-accent dark:bg-jungle-night-accent text-jungle-user-ink hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark disabled:opacity-50 disabled:cursor-not-allowed transition">
               Send
             </button>
           </div>
         </div>
       } @else {
         <div class="relative w-full">
-          <div class="w-full rounded-2xl rounded-br-sm px-5 py-3 bg-jungle-accent dark:bg-jungle-night-accent text-white whitespace-pre-wrap break-words shadow-[0_4px_16px_-4px_rgba(193,100,74,0.45),0_2px_4px_-2px_rgba(193,100,74,0.3)] dark:shadow-[0_6px_20px_-4px_rgba(212,135,42,0.4),0_2px_6px_-2px_rgba(0,0,0,0.4)] font-body text-sm leading-relaxed">
+          <div class="w-full rounded-2xl rounded-br-md px-4 py-2.5 bg-jungle-user-bubble dark:bg-jungle-night-user-bubble text-jungle-user-ink dark:text-jungle-night-text whitespace-pre-wrap break-words shadow-[0_4px_14px_-4px_rgba(0,0,0,0.35)] dark:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.5)] font-body text-sm leading-relaxed">
             {{ message.text }}
+            <div class="flex items-center justify-end gap-1 mt-1 -mb-0.5 text-[10px] text-jungle-user-ink/60 dark:text-jungle-night-muted/80">
+              <span>{{ timestamp }}</span>
+              <svg class="w-3 h-3" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022Z"/>
+                <path d="M6.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022Z"/>
+              </svg>
+            </div>
           </div>
           @if (canEdit) {
             <button
               type="button"
               (click)="startEdit()"
-              class="absolute -left-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-jungle-surface dark:bg-jungle-night-surface text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border focus-visible:opacity-100"
+              class="absolute -left-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-jungle-surface dark:bg-jungle-night-surface text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
               aria-label="Edit and resend"
               title="Edit and resend (forks a new chat)"
             >
@@ -46,7 +52,7 @@
   </div>
 } @else if (message.role === 'error') {
   <div class="flex w-full justify-start" [class.msg-enter-left]="animate">
-    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm whitespace-pre-wrap break-words flex items-start gap-2">
+    <div class="max-w-[75%] rounded-2xl rounded-bl-sm px-4 py-2 bg-red-900/30 border border-red-500/40 text-red-200 text-sm whitespace-pre-wrap break-words flex items-start gap-2">
       <svg class="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.515 2.625H3.72c-1.345 0-2.188-1.458-1.515-2.625L8.485 2.495zM10 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1zm0 7a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
       </svg>
@@ -58,55 +64,96 @@
     <app-typing-indicator />
   </div>
 } @else {
-  <div class="flex w-full justify-start items-end gap-3" [class.msg-enter-left]="animate">
+  <div class="flex w-full justify-start items-start gap-3 group" [class.msg-enter-left]="animate">
     <img
       src="/spino/spino-avatar.png"
       alt="Spino"
-      class="flex-shrink-0 self-end mb-1 w-9 h-9 rounded-full object-cover bg-jungle-surface/60 dark:bg-jungle-night-surface/60 ring-1 ring-jungle-accent/40 dark:ring-jungle-night-accent/40 drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
+      class="flex-shrink-0 mt-1 w-10 h-10 rounded-full object-contain bg-jungle-surface/70 dark:bg-jungle-night-surface/70 ring-1 ring-jungle-accent/40 dark:ring-jungle-night-accent/40 p-0.5"
     />
-    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-5 py-4 pr-9 bg-jungle-card dark:bg-jungle-night-card text-jungle-ink dark:text-jungle-night-text border border-jungle-accent/40 dark:border-jungle-night-border shadow-[0_4px_16px_-4px_rgba(74,46,26,0.18),0_2px_4px_-2px_rgba(74,46,26,0.12)] dark:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5),0_2px_6px_-2px_rgba(0,0,0,0.4)] break-words text-sm font-body leading-relaxed">
-      @if (message.reasoning) {
-        <app-reasoning-block
-          [reasoning]="message.reasoning ?? ''"
-          [streaming]="false"
-          [durationMs]="message.reasoningDurationMs"
-          [autoCollapsed]="true">
-        </app-reasoning-block>
-      }
-      <markdown [data]="message.text" (ready)="onMarkdownReady()"></markdown>
-      <div class="absolute top-1 right-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-        @if (canRegenerate) {
-          <button
-            type="button"
-            (click)="onRegenerate()"
-            class="p-1 rounded hover:bg-jungle-border dark:hover:bg-jungle-night-border text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border"
-            aria-label="Regenerate response"
-            title="Regenerate response"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-            </svg>
-            <span class="sr-only">Regenerate</span>
-          </button>
+    <div class="flex flex-col items-start max-w-[75%] min-w-0">
+      <div class="relative markdown-bubble w-full rounded-2xl rounded-bl-md px-4 py-3 bg-jungle-surface/85 dark:bg-jungle-night-surface/85 backdrop-blur-sm text-jungle-ink dark:text-jungle-night-text border border-jungle-border/30 dark:border-jungle-night-border/40 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] dark:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.55)] break-words text-sm font-body leading-relaxed">
+        @if (message.reasoning) {
+          <app-reasoning-block
+            [reasoning]="message.reasoning ?? ''"
+            [streaming]="false"
+            [durationMs]="message.reasoningDurationMs"
+            [autoCollapsed]="true">
+          </app-reasoning-block>
         }
+        <markdown [data]="message.text" (ready)="onMarkdownReady()"></markdown>
+        <div class="flex items-center justify-end gap-1 mt-1.5 -mb-0.5 text-[10px] text-jungle-ink-muted/70 dark:text-jungle-night-muted/70">
+          <span>{{ timestamp }}</span>
+        </div>
+      </div>
+      <!-- Action row -->
+      <div class="flex items-center gap-0.5 mt-1 -ml-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        <button
+          type="button"
+          (click)="onFeedback('up')"
+          class="p-1.5 rounded-md text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
+          [class.text-jungle-accent]="feedback === 'up'"
+          [class.dark:text-jungle-night-accent]="feedback === 'up'"
+          aria-label="Good response"
+          title="Good response"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 8.933a4 4 0 00-.8 2.4z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          (click)="onFeedback('down')"
+          class="p-1.5 rounded-md text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
+          [class.text-jungle-accent]="feedback === 'down'"
+          [class.dark:text-jungle-night-accent]="feedback === 'down'"
+          aria-label="Bad response"
+          title="Bad response"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
+          </svg>
+        </button>
         <button
           type="button"
           (click)="copyMessage()"
-          class="p-1 rounded hover:bg-jungle-border dark:hover:bg-jungle-night-border text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border"
+          class="p-1.5 rounded-md text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
           [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
+          [title]="copied ? 'Copied' : 'Copy'"
         >
           @if (copied) {
-            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />
             </svg>
           } @else {
-            <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
               <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
             </svg>
           }
-          <span class="sr-only">{{ copied ? 'Copied' : 'Copy message' }}</span>
         </button>
+        <button
+          type="button"
+          class="p-1.5 rounded-md text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
+          aria-label="Share"
+          title="Share"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+          </svg>
+        </button>
+        @if (canRegenerate) {
+          <button
+            type="button"
+            (click)="onRegenerate()"
+            class="p-1.5 rounded-md text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
+            aria-label="Regenerate response"
+            title="Regenerate"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        }
       </div>
     </div>
   </div>

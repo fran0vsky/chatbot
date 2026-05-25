@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 
 export type MascotStatus = 'idle' | 'thinking';
 
@@ -11,4 +11,6 @@ export type MascotStatus = 'idle' | 'thinking';
 })
 export class MascotPanel {
   @Input() status: MascotStatus = 'idle';
+  @Input() isDayMode = false;
+  @Output() themeToggled = new EventEmitter<void>();
 }
