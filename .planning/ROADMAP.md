@@ -20,6 +20,17 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Visual Overhaul** - Modernize every UI component to ChatGPT/Claude/Gemini polish while keeping the desert theme (completed 2026-05-22)
 - [x] **Phase 8: Chat History Sidebar** - Add left sidebar containing history of chats which are clickable to jump back into old conversations
 - [x] **Phase 9: Tool Calling (Function Calling)** - Backend LangGraph tool node + UI for tool calls; ship `get_current_time` and `web_search` as starter tools (code complete 2026-05-23)
+- [x] **Phase 10: Token Streaming (SSE)** - Word-by-word streamed responses
+- [x] **Phase 11: Reasoning / Thinking Display** - Stream and display reasoning tokens; auto-collapse on first content (code complete 2026-05-24)
+
+## v1.1 — SpinoChat Brand Identity (begins 2026-05-25)
+
+- [ ] **Phase 12: SpinoChat Foundation** - Jungle palette (hex-only swap on existing `studio-*` tokens), Spinosaurus mascot integration, "Chatbot" → "SpinoChat / Spino" rename, tagline placement
+- [ ] **Phase 13: Jungle Atmosphere** - Background gradient system (day/night), edge silhouettes (palms/ferns), shared theme-aware BG component
+- [ ] **Phase 14: Mascot Motion** - Rive integration; idle breathing + blink; reactive "thinking" state (eye glow) bound to streaming/reasoning signals
+- [ ] **Phase 15: Themed States** - Re-skin TypingIndicator, ReasoningBlock, and request-loading state with jungle-themed visuals (replace generic dots/spinners)
+- [ ] **Phase 16: Ambient Polish [stretch]** - Optional ambient motion layer (drifting leaves / dust / fog), toggleable, respects `prefers-reduced-motion`
+- [ ] **Phase 17: Sound [stretch]** - Optional ambient jungle audio layer, toggleable, OFF by default, no autoplay
 
 ## Phase Details
 
@@ -69,7 +80,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) → 12 → 13 → 14 → 15 → 16 (stretch) → 17 (stretch)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -81,6 +92,15 @@ Phases execute in numeric order: 1 → 2 → 3
 | 6. Desert UI Elevation | 2/2 | Code complete | 2026-05-22 |
 | 7. Visual Overhaul | 5/5 | Complete   | 2026-05-22 |
 | 8. Chat History Sidebar | 0/2 | Planned | - |
+| 9. Tool Calling | 2/2 | Code complete | 2026-05-23 |
+| 10. Token Streaming | 3/3 | Complete | 2026-05-24 |
+| 11. Reasoning Display | 6/6 | Complete | 2026-05-24 |
+| 12. SpinoChat Foundation | 0/TBD | Planned (v1.1) | - |
+| 13. Jungle Atmosphere | 0/TBD | Planned (v1.1) | - |
+| 14. Mascot Motion | 0/TBD | Planned (v1.1) | - |
+| 15. Themed States | 0/TBD | Planned (v1.1) | - |
+| 16. Ambient Polish | 0/TBD | Planned (v1.1, stretch) | - |
+| 17. Sound | 0/TBD | Planned (v1.1, stretch) | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -202,3 +222,99 @@ Plans:
 - [x] 11-04: Frontend chat wiring — accumulate + auto-collapse signals
 - [x] 11-05: Compose ReasoningBlock + add DeepSeek R1 model
 - [x] 11-06: E2E tests + manual smoke checklist (Task 3 pending user execution)
+
+---
+
+## v1.1 Milestone: SpinoChat Brand Identity
+
+**Milestone goal:** Transform the current generic "Chatbot" into "SpinoChat" — a portfolio-grade chatbot with a distinctive prehistoric jungle aesthetic, Spinosaurus mascot, and atmospheric theming. Backend behavior unchanged; this is a visual + identity milestone.
+
+### Phase 12: SpinoChat Foundation
+**Goal:** Rebrand the visible product to "SpinoChat / Spino", swap the Soft Studio palette for a jungle palette (day + night), and integrate the Spinosaurus mascot replacing the capybara placeholder.
+**Mode:** mvp
+**Depends on:** v1.0 complete (Phase 11)
+**Requirements:** BRAND-01, BRAND-02, BRAND-03, PAL-01, PAL-02, PAL-03, PAL-04, MASC-01, MASC-02, MASC-05
+**Success Criteria** (what must be TRUE):
+  1. Header title, browser tab title, and meta description read "SpinoChat" / "Spino"
+  2. Landing-state copy includes the tagline "The AI that survived"
+  3. README.md and CLAUDE.md describe the project as "SpinoChat"
+  4. Day-mode background and surface colors are jungle-themed greens/beiges (not cream/tan)
+  5. Night-mode background and surface colors are jungle-themed deep teals/blues with warm accents (not cool slate)
+  6. A Spinosaurus mascot replaces the capybara SVG in `MessageBubble` (assistant role)
+  7. The mascot also appears at hero size in the landing/empty state
+  8. The mascot renders crisply at all sizes (no scaling artifacts)
+**Scope note:** In — token hex re-mapping, mascot asset integration, branding text swap. Out — animations (Phase 14), background gradients/silhouettes (Phase 13), themed loading states (Phase 15).
+**Plans:** TBD (run `/gsd-plan-phase 12`)
+**UI hint:** yes
+
+### Phase 13: Jungle Atmosphere
+**Goal:** Add a subtle, theme-aware jungle background system — vertical gradients + edge silhouettes — that gives the app a sense of place without competing with chat content.
+**Mode:** mvp
+**Depends on:** Phase 12
+**Requirements:** BG-01, BG-02, BG-03
+**Success Criteria** (what must be TRUE):
+  1. Day mode shows a subtle warm gradient + low-opacity fern/foliage silhouette band along the bottom edge
+  2. Night mode shows a sunset gradient (deep top → warm bottom) + palm silhouettes at the bottom horizon
+  3. Background renders in a single reusable component that reads the active theme; no duplicated markup
+  4. Background never overlaps message content or interactive elements
+  5. Performance: no measurable frame-rate impact compared to v1.0 baseline
+**Scope note:** In — gradient layers, edge silhouettes only. Out — animated/moving background elements (Phase 16 stretch), full illustrated scenes.
+**Plans:** TBD (run `/gsd-plan-phase 13`)
+**UI hint:** yes
+
+### Phase 14: Mascot Motion
+**Goal:** Bring the mascot to life with subtle, state-driven animation — idle breathing/blink, plus a reactive "thinking" state during streaming/reasoning.
+**Mode:** mvp
+**Depends on:** Phase 12 (mascot integration); ideally after Phase 13 so visual identity is final before motion is added
+**Requirements:** MASC-03, MASC-04
+**Success Criteria** (what must be TRUE):
+  1. Rive (or equivalent state-driven runtime) is wired into the Angular frontend
+  2. Mascot has a continuous idle breathing animation (slow, subtle)
+  3. Mascot blinks occasionally during idle
+  4. While a streaming response or reasoning state is active, the mascot's eyes glow (or equivalent visible "thinking" state)
+  5. The "thinking" animation transitions cleanly on / off when the response completes
+  6. No CLS / layout shift introduced by the animation layer
+**Scope note:** In — Rive integration, idle + thinking states. Out — eye-tracking-cursor (deferred), reaction to user input keystrokes (deferred).
+**Plans:** TBD (run `/gsd-plan-phase 14`)
+**UI hint:** yes
+
+### Phase 15: Themed States
+**Goal:** Replace all generic "loading / typing / thinking" UI patterns (dots, spinners, generic icons) with jungle-themed equivalents that reinforce the brand.
+**Mode:** mvp
+**Depends on:** Phase 14
+**Requirements:** STATE-01, STATE-02, STATE-03
+**Success Criteria** (what must be TRUE):
+  1. `TypingIndicator` shows a jungle-themed motion (pulsing ripple, footstep pattern, or equivalent) instead of three dots
+  2. `ReasoningBlock` header uses themed iconography and matches the jungle palette
+  3. Send-loading state uses the mascot's "thinking" animation (from MASC-04) instead of a generic spinner
+  4. No regression: all existing state transitions still trigger correctly
+**Plans:** TBD (run `/gsd-plan-phase 15`)
+**UI hint:** yes
+
+### Phase 16: Ambient Polish [stretch]
+**Goal:** Add a subtle ambient motion layer (drifting leaves, dust, or fog) that makes the app feel alive — optional, performance-budgeted, and respects user motion preferences.
+**Mode:** mvp
+**Depends on:** Phase 15
+**Requirements:** AMB-01, AMB-02
+**Success Criteria** (what must be TRUE):
+  1. An ambient motion layer (one of: drifting leaves / dust particles / fog) is implemented behind the chat content
+  2. Layer is toggleable from a UI control; OFF by default
+  3. Layer respects `prefers-reduced-motion: reduce` (auto-disabled)
+  4. No measurable frame-rate impact when enabled on a mid-range device
+**Scope note:** Stretch — only execute if Phases 12–15 ship cleanly within budget.
+**Plans:** TBD (run `/gsd-plan-phase 16`)
+**UI hint:** yes
+
+### Phase 17: Sound [stretch]
+**Goal:** Optional ambient audio layer (jungle / rain) for users who want immersive atmosphere — OFF by default, no autoplay, simple toggle.
+**Mode:** mvp
+**Depends on:** Phase 16
+**Requirements:** SND-01
+**Success Criteria** (what must be TRUE):
+  1. A toggle in the UI enables ambient jungle/rain audio
+  2. Audio never autoplays — requires explicit user action
+  3. Toggle state persists across page reloads (localStorage)
+  4. Audio is short loopable file(s), no streaming dependency
+**Scope note:** Stretch — last and most optional phase.
+**Plans:** TBD (run `/gsd-plan-phase 17`)
+**UI hint:** no (UI is just a toggle button)

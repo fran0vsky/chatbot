@@ -36,6 +36,62 @@
 
 - [ ] **MODEL-01**: User can select from a list of available models in the UI and the selection is used for subsequent messages
 
+## v1.1 Requirements — SpinoChat Brand Identity
+
+**Defined:** 2026-05-25
+**Scope:** Visual + identity overhaul of the existing working chatbot — rebrand to "SpinoChat", introduce jungle aesthetic + Spinosaurus mascot ("Spino"), themed motion and states. Backend behavior unchanged.
+**Context:** Portfolio project. No production-grade requirements (legal, GDPR, accessibility certification, etc.) imposed by this milestone.
+
+### Brand
+
+- [ ] **BRAND-01**: All visible product naming in the UI reads "SpinoChat" or short-form "Spino" — header title, browser tab title, meta description, landing-state copy
+- [ ] **BRAND-02**: The tagline "The AI that survived" is placed at least once on the landing/empty state
+- [ ] **BRAND-03**: README.md and CLAUDE.md project description updated to "SpinoChat"
+
+### Visual identity (palette)
+
+- [ ] **PAL-01**: Day-mode palette is a daytime-jungle theme — warm sunlit greens, beige/sand neutrals, soft amber highlights. Replaces current Soft Studio cream/tan day palette
+- [ ] **PAL-02**: Night-mode palette is a night-jungle / sunset theme — deep teals/blues, warm sunset orange/coral accents, optional bioluminescent-style accent for highlights. Replaces current Soft Studio slate dark palette
+- [ ] **PAL-03**: Both palettes pass minimum readable contrast for body text against background (WCAG AA — pragmatic enforcement, not formal audit)
+- [ ] **PAL-04**: All existing `studio-*` Tailwind tokens get re-mapped hex values; no new token names introduced (palette swap is hex-only; no rename pass needed)
+
+### Mascot (Spino)
+
+- [ ] **MASC-01**: A Spinosaurus-inspired mascot replaces the current capybara SVG in `MessageBubble` (assistant role)
+- [ ] **MASC-02**: Mascot renders crisply at all sizes — vector (SVG / Rive) or PNG rendered at integer-multiple of native size
+- [ ] **MASC-03**: Mascot has an idle breathing/blink animation (subtle, slow loop)
+- [ ] **MASC-04**: Mascot has a distinct visual state during a "thinking" (streaming/reasoning) response — eyes glow or equivalent
+- [ ] **MASC-05**: Mascot is also shown at larger size in the landing/empty state (hero placement) before any messages are sent
+
+### Atmosphere (background)
+
+- [ ] **BG-01**: Day-mode chat background uses a subtle vertical gradient + low-opacity silhouette band (e.g. fern fronds) along the bottom edge — must never overlap or compete with message content
+- [ ] **BG-02**: Night-mode chat background uses a sunset gradient (deep top → warm bottom) + palm silhouettes at the bottom horizon
+- [ ] **BG-03**: Background is implemented in a single shared component so day/night variants stay in lockstep with the theme toggle
+
+### Themed states
+
+- [ ] **STATE-01**: The typing indicator (`TypingIndicator` component) is re-skinned to feel jungle-themed — pulsing ripple, footstep pattern, or equivalent — not generic dots
+- [ ] **STATE-02**: The reasoning block (`ReasoningBlock` component) header is restyled to match the jungle palette and uses themed iconography instead of the generic "thinking" icon
+- [ ] **STATE-03**: The send-loading state (during a request) uses a themed mascot animation instead of a generic spinner — at minimum the mascot's "thinking" state from MASC-04
+
+### Stretch (optional — only if earlier phases ship cleanly)
+
+- [ ] **AMB-01**: An ambient motion layer (slow drifting leaves OR dust particles OR fog) overlays the chat background. Performance budget: must not drop frame rate measurably; toggleable via a UI control; OFF by default
+- [ ] **AMB-02**: Ambient motion respects `prefers-reduced-motion` (auto-off when set)
+- [ ] **SND-01**: An ambient jungle/rain audio layer can be toggled on from the UI. OFF by default. Volume control or simple on/off. No autoplay
+
+### Out of v1.1 scope
+
+| Item | Reason |
+|------|--------|
+| Backend changes | Visual/identity milestone only — backend (`agents.service.ts`, LangGraph, OpenRouter) unchanged |
+| Mobile native apps | Web-first portfolio piece |
+| Trademark filing, domain purchase | Deferred — pending decision on public release |
+| Full WCAG audit | Pragmatic contrast check only; formal accessibility audit deferred |
+| Per-user theme customization | Day/night toggle is sufficient |
+| Internationalization of brand copy | English only |
+
 ## v2 Requirements
 
 ### Enhancement
@@ -78,12 +134,20 @@
 | DEPLOY-03 | Phase 1 | Pending |
 | E2E-01 | Phase 1 | Pending |
 | MODEL-01 | Phase 2 | Pending |
+| BRAND-01..03 | Phase 12 | Pending |
+| PAL-01..04 | Phase 12 | Pending |
+| MASC-01..02 | Phase 12 | Pending |
+| MASC-05 | Phase 12 | Pending |
+| BG-01..03 | Phase 13 | Pending |
+| MASC-03..04 | Phase 14 | Pending |
+| STATE-01..03 | Phase 15 | Pending |
+| AMB-01..02 | Phase 16 (stretch) | Pending |
+| SND-01 | Phase 17 (stretch) | Pending |
 
 **Coverage:**
-- v1 requirements: 16 total
-- Mapped to phases: 16
-- Unmapped: 0 ✓
+- v1 requirements: 16 total — mapped (Phases 1-11)
+- v1.1 requirements: 19 total — mapped to Phases 12-17 ✓
 
 ---
 *Requirements defined: 2026-05-17*
-*Last updated: 2026-05-17 after roadmap creation — traceability confirmed*
+*Last updated: 2026-05-25 — v1.1 SpinoChat brand-identity requirements added*
