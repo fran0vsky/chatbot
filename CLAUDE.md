@@ -25,9 +25,9 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Chatbot**
+**SpinoChat**
 
-A general-purpose text chatbot built as an Nx monorepo with an Angular frontend and NestJS backend. Users can ask the model anything and continue the conversation across multiple turns in the same session. The backend uses LangGraph to orchestrate LLM calls via OpenRouter.
+SpinoChat is a general-purpose AI chat app built as an Nx monorepo with an Angular frontend and NestJS backend. Users can ask the model anything and continue the conversation across multiple turns in the same session. The backend uses LangGraph to orchestrate LLM calls via OpenRouter. Tagline: "The AI that survived" — the Spinosaurus mascot anchors the brand identity.
 
 **Core Value:** A user can open the app, type a message, get a real answer, and keep the conversation going — everything else is secondary.
 

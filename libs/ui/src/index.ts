@@ -4,6 +4,7 @@ export { NewButton } from './lib/new-button/new-button.js';
 export { ModelSelector } from './lib/model-selector/model-selector.js';
 export type { ChatModel } from './lib/model-selector/model-selector.js';
 export { MessageBubble } from './lib/message-bubble/message-bubble.js';
+export { Mascot } from './lib/mascot/mascot.js';
 export { InputComposer } from './lib/input-composer/input-composer.js';
 export { HeaderBar } from './lib/header-bar/header-bar.js';
 export { HistoryPanel } from './lib/history-panel/history-panel.js';

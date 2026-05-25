@@ -2,21 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Soft Studio palette CSS custom properties */
+/* Jungle palette CSS custom properties */
 .day-mode {
-  --color-bg: #FAFAF7;
-  --color-surface: #FFFFFF;
-  --color-text: #1A1D21;
-  --color-border: #E8E6DF;
-  --color-accent: #B8845F;
+  --color-bg: #F1ECDA;
+  --color-surface: #FAF6E8;
+  --color-text: #1F2A1A;
+  --color-border: #CFC8A8;
+  --color-accent: #5C8A3A;
 }
 
 .night-mode {
-  --color-bg: #0F1419;
-  --color-surface: #181D24;
-  --color-text: #E8E6DF;
-  --color-border: #2A3038;
-  --color-accent: #D4A574;
+  --color-bg: #0A1A28;
+  --color-surface: #102638;
+  --color-text: #EDE6D6;
+  --color-border: #1F3B55;
+  --color-accent: #E87850;
 }
 
 /* Default story background to night mode */

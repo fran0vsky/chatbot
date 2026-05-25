@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ## v1.1 — SpinoChat Brand Identity (begins 2026-05-25)
 
-- [ ] **Phase 12: SpinoChat Foundation** - Jungle palette (hex-only swap on existing `studio-*` tokens), Spinosaurus mascot integration, "Chatbot" → "SpinoChat / Spino" rename, tagline placement
+- [x] **Phase 12: SpinoChat Foundation** - Jungle palette (hex-only swap on existing `studio-*` tokens), Spinosaurus mascot integration, "Chatbot" → "SpinoChat / Spino" rename, tagline placement (completed 2026-05-25)
 - [ ] **Phase 13: Jungle Atmosphere** - Background gradient system (day/night), edge silhouettes (palms/ferns), shared theme-aware BG component
 - [ ] **Phase 14: Mascot Motion** - Rive integration; idle breathing + blink; reactive "thinking" state (eye glow) bound to streaming/reasoning signals
 - [ ] **Phase 15: Themed States** - Re-skin TypingIndicator, ReasoningBlock, and request-loading state with jungle-themed visuals (replace generic dots/spinners)
@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 9. Tool Calling | 2/2 | Code complete | 2026-05-23 |
 | 10. Token Streaming | 3/3 | Complete | 2026-05-24 |
 | 11. Reasoning Display | 6/6 | Complete | 2026-05-24 |
-| 12. SpinoChat Foundation | 0/TBD | Planned (v1.1) | - |
+| 12. SpinoChat Foundation | 3/3 | Complete   | 2026-05-25 |
 | 13. Jungle Atmosphere | 0/TBD | Planned (v1.1) | - |
 | 14. Mascot Motion | 0/TBD | Planned (v1.1) | - |
 | 15. Themed States | 0/TBD | Planned (v1.1) | - |
@@ -244,7 +244,7 @@ Plans:
   7. The mascot also appears at hero size in the landing/empty state
   8. The mascot renders crisply at all sizes (no scaling artifacts)
 **Scope note:** In — token hex re-mapping, mascot asset integration, branding text swap. Out — animations (Phase 14), background gradients/silhouettes (Phase 13), themed loading states (Phase 15).
-**Plans:** TBD (run `/gsd-plan-phase 12`)
+**Plans:** 3/3 plans complete
 **UI hint:** yes
 
 ### Phase 13: Jungle Atmosphere

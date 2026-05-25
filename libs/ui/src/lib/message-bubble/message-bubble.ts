@@ -13,6 +13,7 @@ import { MarkdownComponent } from 'ngx-markdown';
 import { ChatMessage } from '@org/shared-types';
 import { ReasoningBlock } from '../reasoning-block/reasoning-block.js';
 import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
+import { Mascot } from '../mascot/mascot.js';
 
 @Component({
   standalone: true,
@@ -20,7 +21,7 @@ import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './message-bubble.html',
   styleUrl: './message-bubble.scss',
-  imports: [MarkdownComponent, ReasoningBlock, TypingIndicator, FormsModule],
+  imports: [MarkdownComponent, ReasoningBlock, TypingIndicator, Mascot, FormsModule],
 })
 export class MessageBubble {
   @Input({ required: true }) message!: ChatMessage;

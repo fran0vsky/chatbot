@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord } from '@org/shared-types';
-import { HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
+import { HeaderBar, HistoryPanel, InputComposer, Mascot, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { HistoryService } from './history.service';
 
@@ -26,7 +26,7 @@ const PLACEHOLDER_NEUTRAL = 'Message';
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [HeaderBar, HistoryPanel, InputComposer, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble],
+  imports: [HeaderBar, HistoryPanel, InputComposer, Mascot, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -36,7 +36,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly historyService = inject(HistoryService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  messages: ChatMessage[] = [{ text: 'Hello! How can I assist you today?', role: 'assistant' }];
+  messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant' }];
   isLoading = false;
   selectedModel = 'openai/gpt-4o-mini';
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
@@ -190,7 +190,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private startNewChat(): void {
-    this.messages = [{ text: 'Hello! How can I assist you today?', role: 'assistant' }];
+    this.messages = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant' }];
     this.sessionTitle = '';
     this.sessionCreatedAt = 0;
     this.chatService.resetThread();
