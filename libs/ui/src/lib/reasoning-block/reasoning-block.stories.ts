@@ -78,7 +78,7 @@ export const NightMode: Story = {
       const story = storyFn();
       return {
         ...story,
-        template: `<div class="night-mode bg-desert-night-parchment p-4">${story.template ?? '<app-reasoning-block [reasoning]="reasoning" [streaming]="streaming" [durationMs]="durationMs" [autoCollapsed]="autoCollapsed"></app-reasoning-block>'}</div>`,
+        template: `<div class="night-mode bg-studio-night-card p-4">${story.template ?? '<app-reasoning-block [reasoning]="reasoning" [streaming]="streaming" [durationMs]="durationMs" [autoCollapsed]="autoCollapsed"></app-reasoning-block>'}</div>`,
       };
     },
   ],

@@ -1,23 +1,23 @@
-<div class="my-3 mx-auto w-full max-w-3xl px-3 py-2 rounded-md border border-desert-border dark:border-desert-night-border bg-desert-parchment/60 dark:bg-desert-night-parchment/60 text-sm text-desert-brown-muted dark:text-desert-night-muted">
+<div class="my-3 mx-auto w-full max-w-3xl px-3 py-2 rounded-md border border-studio-border dark:border-studio-night-border bg-studio-card/60 dark:bg-studio-night-card/60 text-sm text-studio-ink-muted dark:text-studio-night-muted">
   <button
     type="button"
     class="flex items-center justify-between w-full font-mono text-xs uppercase tracking-wide focus:outline-none"
     (click)="toggle()"
     [attr.aria-expanded]="expanded"
   >
-    <span>Tool call · {{ message.toolName }}</span>
-    <span aria-hidden="true">{{ expanded ? '▾' : '▸' }}</span>
+    <span>Tool call Â· {{ message.toolName }}</span>
+    <span aria-hidden="true">{{ expanded ? 'â–ľ' : 'â–¸' }}</span>
   </button>
 
   @if (expanded) {
     <div class="mt-2">
       <p class="text-[10px] uppercase tracking-wide mb-1 opacity-70">Arguments</p>
-      <pre class="text-xs whitespace-pre-wrap font-mono bg-desert-parchment dark:bg-desert-night-parchment p-2 rounded">{{ prettyArgs }}</pre>
+      <pre class="text-xs whitespace-pre-wrap font-mono bg-studio-card dark:bg-studio-night-card p-2 rounded">{{ prettyArgs }}</pre>
     </div>
   }
 
   <div class="mt-2">
     <p class="text-[10px] uppercase tracking-wide mb-1 opacity-70">Result</p>
-    <pre class="text-xs whitespace-pre-wrap font-mono text-desert-brown dark:text-desert-night-text">{{ resultText }}</pre>
+    <pre class="text-xs whitespace-pre-wrap font-mono text-studio-ink dark:text-studio-night-text">{{ resultText }}</pre>
   </div>
 </div>

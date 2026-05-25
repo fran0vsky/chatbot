@@ -50,7 +50,7 @@
     }
 
     a {
-      @apply text-desert-terracotta dark:text-desert-night-sage underline break-all;
+      @apply text-studio-accent dark:text-studio-night-accent underline break-all;
     }
 
     strong {
@@ -62,11 +62,11 @@
     }
 
     blockquote {
-      @apply border-l-2 border-desert-border dark:border-desert-night-border pl-3 my-2 text-desert-brown-muted dark:text-desert-night-muted italic;
+      @apply border-l-2 border-studio-border dark:border-studio-night-border pl-3 my-2 text-studio-ink-muted dark:text-studio-night-muted italic;
     }
 
     code {
-      @apply rounded bg-desert-border dark:bg-desert-night-border px-1 py-0.5 text-xs font-mono text-desert-brown dark:text-desert-night-text;
+      @apply rounded bg-studio-border dark:bg-studio-night-border px-1 py-0.5 text-xs font-mono text-studio-ink dark:text-studio-night-text;
     }
 
     pre {
@@ -83,11 +83,11 @@
 
     th,
     td {
-      @apply border border-desert-border dark:border-desert-night-border px-2 py-1;
+      @apply border border-studio-border dark:border-studio-night-border px-2 py-1;
     }
 
     hr {
-      @apply my-3 border-desert-border dark:border-desert-night-border;
+      @apply my-3 border-studio-border dark:border-studio-night-border;
     }
   }
 }

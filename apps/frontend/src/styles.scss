@@ -17,25 +17,25 @@ html, body {
   height: 100%;
 }
 
-/* Desert palette CSS custom properties */
+/* Soft Studio palette CSS custom properties */
 .day-mode {
-  --color-bg: #F5E6C8;
-  --color-surface: #EDD9A3;
-  --color-text: #4A2E1A;
-  --color-border: #D4B896;
-  --color-accent: #C1644A;
-  --scrollbar-thumb: #4A7C59;
-  --scrollbar-track: #EDD9A3;
+  --color-bg: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-text: #1A1D21;
+  --color-border: #E8E6DF;
+  --color-accent: #B8845F;
+  --scrollbar-thumb: #B8845F;
+  --scrollbar-track: #F4F2EC;
 }
 
 .night-mode {
-  --color-bg: #1A1209;
-  --color-surface: #251C10;
-  --color-text: #E8D5B0;
-  --color-border: #3D2E1C;
-  --color-accent: #D4872A;
-  --scrollbar-thumb: #6BAF82;
-  --scrollbar-track: #2E2318;
+  --color-bg: #0F1419;
+  --color-surface: #181D24;
+  --color-text: #E8E6DF;
+  --color-border: #2A3038;
+  --color-accent: #D4A574;
+  --scrollbar-thumb: #D4A574;
+  --scrollbar-track: #1F252E;
 }
 
 /* Cactus scrollbar */

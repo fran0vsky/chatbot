@@ -1,10 +1,10 @@
-<header class="flex items-center px-4 py-3 border-b border-desert-border dark:border-desert-night-border bg-desert-sand dark:bg-desert-night-surface shadow-sm">
+<header class="flex items-center pl-6 pr-4 py-3 border-b border-studio-border/70 dark:border-studio-night-border bg-studio-bg/95 dark:bg-studio-night-surface/95 backdrop-blur-sm shadow-[0_2px_8px_-2px_rgba(74,46,26,0.08)] dark:shadow-[0_2px_12px_-2px_rgba(0,0,0,0.4)] relative z-20">
   <div class="flex items-center gap-2">
     <button
       type="button"
       (click)="historyToggled.emit()"
       [disabled]="disabled"
-      class="lg:hidden flex items-center justify-center w-8 h-8 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border hover:text-desert-brown dark:hover:text-desert-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="lg:hidden flex items-center justify-center w-8 h-8 rounded text-studio-ink-muted dark:text-studio-night-muted hover:bg-studio-border dark:hover:bg-studio-night-border hover:text-studio-ink dark:hover:text-studio-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       aria-label="Toggle conversation history"
     >
       <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -15,12 +15,12 @@
       type="button"
       (click)="newChat.emit()"
       [disabled]="disabled"
-      class="group flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-desert-border/60 dark:hover:bg-desert-night-border/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border disabled:opacity-50 disabled:cursor-not-allowed"
+      class="group flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-studio-border/60 dark:hover:bg-studio-night-border/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border disabled:opacity-50 disabled:cursor-not-allowed"
       aria-label="Start new chat"
       title="New chat"
     >
-      <h1 class="font-title text-lg font-semibold uppercase text-desert-brown dark:text-desert-night-text">Chatbot</h1>
-      <svg class="w-3.5 h-3.5 text-desert-brown-muted dark:text-desert-night-muted opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <h1 class="font-title text-lg font-semibold uppercase text-studio-ink dark:text-studio-night-text">Chatbot</h1>
+      <svg class="w-3.5 h-3.5 text-studio-ink-muted dark:text-studio-night-muted opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
       </svg>
     </button>

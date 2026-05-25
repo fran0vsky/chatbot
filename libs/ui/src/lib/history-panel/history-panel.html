@@ -8,28 +8,28 @@
 
 <!-- Desktop hover-reveal sidebar -->
 <aside
-  class="group hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 flex-col bg-desert-header dark:bg-desert-night-surface border-r-2 border-desert-gold/60 dark:border-desert-night-border shadow-lg -translate-x-[calc(100%-1rem)] hover:translate-x-0 focus-within:translate-x-0 transition-transform duration-300 ease-in-out"
+  class="group hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 flex-col bg-studio-card dark:bg-studio-night-surface border-r-2 border-studio-accent/60 dark:border-studio-night-border shadow-lg -translate-x-[calc(100%-1rem)] hover:translate-x-0 focus-within:translate-x-0 transition-transform duration-300 ease-in-out"
   aria-label="Conversation history"
 >
   <div
-    class="pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 text-desert-gold dark:text-desert-night-muted opacity-90 group-hover:opacity-0 transition-opacity duration-200"
+    class="pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 text-studio-accent dark:text-studio-night-muted opacity-90 group-hover:opacity-0 transition-opacity duration-200"
     aria-hidden="true"
   >
     <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
       <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
     </svg>
   </div>
-  <div class="flex items-center justify-between px-4 py-3 border-b border-desert-border dark:border-desert-night-border flex-shrink-0">
-    <h2 class="font-title text-sm font-semibold uppercase text-desert-brown dark:text-desert-night-text tracking-wide">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-studio-border dark:border-studio-night-border flex-shrink-0">
+    <h2 class="font-title text-sm font-semibold uppercase text-studio-ink dark:text-studio-night-text tracking-wide">
       History
     </h2>
   </div>
 
-  <div class="px-3 py-2 flex-shrink-0 border-b border-desert-border dark:border-desert-night-border">
+  <div class="px-3 py-2 flex-shrink-0 border-b border-studio-border dark:border-studio-night-border">
     <button
       type="button"
       (click)="newChat.emit()"
-      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold text-desert-brown dark:text-desert-night-text hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold text-studio-ink dark:text-studio-night-text hover:bg-studio-border dark:hover:bg-studio-night-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border"
     >
       <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -40,14 +40,14 @@
 
   <div class="flex-1 overflow-y-auto py-1 chat-scroll-area">
     @for (group of groupedSessions; track group.label) {
-      <p class="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-desert-brown-muted dark:text-desert-night-muted font-semibold select-none">{{ group.label }}</p>
+      <p class="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-studio-ink-muted dark:text-studio-night-muted font-semibold select-none">{{ group.label }}</p>
       @for (session of group.sessions; track session.id) {
         <ng-container
           *ngTemplateOutlet="sessionRow; context: { $implicit: session }"
         ></ng-container>
       }
     } @empty {
-      <p class="text-sm text-desert-brown-muted dark:text-desert-night-muted text-center py-8 px-4">
+      <p class="text-sm text-studio-ink-muted dark:text-studio-night-muted text-center py-8 px-4">
         No conversations yet
       </p>
     }
@@ -56,19 +56,19 @@
 
 <!-- Mobile overlay drawer -->
 <aside
-  class="lg:hidden fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-desert-header dark:bg-desert-night-surface border-r border-desert-border dark:border-desert-night-border transition-transform duration-300 ease-in-out"
+  class="lg:hidden fixed inset-y-0 left-0 z-40 w-64 flex flex-col bg-studio-card dark:bg-studio-night-surface border-r border-studio-border dark:border-studio-night-border transition-transform duration-300 ease-in-out"
   [class.translate-x-0]="open"
   [class.-translate-x-full]="!open"
   aria-label="Conversation history"
 >
-  <div class="flex items-center justify-between px-4 py-3 border-b border-desert-border dark:border-desert-night-border flex-shrink-0">
-    <h2 class="font-title text-sm font-semibold uppercase text-desert-brown dark:text-desert-night-text tracking-wide">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-studio-border dark:border-studio-night-border flex-shrink-0">
+    <h2 class="font-title text-sm font-semibold uppercase text-studio-ink dark:text-studio-night-text tracking-wide">
       History
     </h2>
     <button
       type="button"
       (click)="closed.emit()"
-      class="p-1 rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border hover:text-desert-brown dark:hover:text-desert-night-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
+      class="p-1 rounded text-studio-ink-muted dark:text-studio-night-muted hover:bg-studio-border dark:hover:bg-studio-night-border hover:text-studio-ink dark:hover:text-studio-night-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border"
       aria-label="Close history panel"
     >
       <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -77,11 +77,11 @@
     </button>
   </div>
 
-  <div class="px-3 py-2 flex-shrink-0 border-b border-desert-border dark:border-desert-night-border">
+  <div class="px-3 py-2 flex-shrink-0 border-b border-studio-border dark:border-studio-night-border">
     <button
       type="button"
       (click)="newChat.emit()"
-      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold text-desert-brown dark:text-desert-night-text hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border"
+      class="w-full flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold text-studio-ink dark:text-studio-night-text hover:bg-studio-border dark:hover:bg-studio-night-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border"
     >
       <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -92,14 +92,14 @@
 
   <div class="flex-1 overflow-y-auto py-1 chat-scroll-area">
     @for (group of groupedSessions; track group.label) {
-      <p class="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-desert-brown-muted dark:text-desert-night-muted font-semibold select-none">{{ group.label }}</p>
+      <p class="px-3 pt-3 pb-1 text-xs uppercase tracking-wide text-studio-ink-muted dark:text-studio-night-muted font-semibold select-none">{{ group.label }}</p>
       @for (session of group.sessions; track session.id) {
         <ng-container
           *ngTemplateOutlet="sessionRow; context: { $implicit: session }"
         ></ng-container>
       }
     } @empty {
-      <p class="text-sm text-desert-brown-muted dark:text-desert-night-muted text-center py-8 px-4">
+      <p class="text-sm text-studio-ink-muted dark:text-studio-night-muted text-center py-8 px-4">
         No conversations yet
       </p>
     }
@@ -110,8 +110,8 @@
   <div
     class="group/row relative flex items-start gap-2 px-3 py-2 mx-1 my-0.5 rounded cursor-pointer transition-colors"
     [ngClass]="session.id === activeSessionId
-      ? 'bg-desert-parchment dark:bg-desert-night-parchment'
-      : 'hover:bg-desert-border dark:hover:bg-desert-night-border'"
+      ? 'bg-studio-card dark:bg-studio-night-card'
+      : 'hover:bg-studio-border dark:hover:bg-studio-night-border'"
     (click)="renamingId === session.id ? null : sessionSelected.emit(session)"
     role="button"
     [attr.aria-pressed]="session.id === activeSessionId"
@@ -126,24 +126,24 @@
           (keydown)="onRenameKeydown($event, session)"
           (blur)="commitRename(session)"
           [attr.data-session-id]="session.id"
-          class="w-full bg-desert-sand-light dark:bg-desert-night-surface border border-desert-gold/60 dark:border-desert-night-border rounded px-1.5 py-0.5 text-sm text-desert-brown dark:text-desert-night-text focus:outline-none focus:ring-2 focus:ring-desert-gold dark:focus:ring-desert-night-border"
+          class="w-full bg-studio-surface dark:bg-studio-night-surface border border-studio-accent/60 dark:border-studio-night-border rounded px-1.5 py-0.5 text-sm text-studio-ink dark:text-studio-night-text focus:outline-none focus:ring-2 focus:ring-studio-accent dark:focus:ring-studio-night-border"
         />
       } @else {
         <p
-          class="text-sm text-desert-brown dark:text-desert-night-text truncate leading-snug flex items-center gap-1"
+          class="text-sm text-studio-ink dark:text-studio-night-text truncate leading-snug flex items-center gap-1"
           [class.font-semibold]="session.id === activeSessionId"
           (dblclick)="onTitleDblClick($event, session)"
           title="Double-click to rename"
         >
           @if (session.pinned) {
-            <svg class="w-3 h-3 flex-shrink-0 text-desert-terracotta dark:text-desert-night-amber" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg class="w-3 h-3 flex-shrink-0 text-studio-accent dark:text-studio-night-accent" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path d="M9.5 1.5a1.5 1.5 0 013 0V8l2 2v2H4v-2l2-2V4.5a3 3 0 013-3z" />
               <path d="M9 14h2v5l-1 1-1-1z" />
             </svg>
           }
           <span class="truncate">{{ session.title }}</span>
         </p>
-        <p class="text-xs text-desert-brown-muted dark:text-desert-night-muted mt-0.5">
+        <p class="text-xs text-studio-ink-muted dark:text-studio-night-muted mt-0.5">
           {{ formatDate(session.createdAt) }}
         </p>
       }
@@ -162,7 +162,7 @@
           <button
             type="button"
             (click)="cancelDelete($event)"
-            class="px-2 py-0.5 text-xs rounded text-desert-brown-muted dark:text-desert-night-muted hover:bg-desert-border dark:hover:bg-desert-night-border transition-colors"
+            class="px-2 py-0.5 text-xs rounded text-studio-ink-muted dark:text-studio-night-muted hover:bg-studio-border dark:hover:bg-studio-night-border transition-colors"
             aria-label="Cancel delete"
           >
             Cancel
@@ -171,12 +171,12 @@
           <button
             type="button"
             (click)="onPinClick($event, session.id)"
-            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
+            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border focus-visible:opacity-100"
             [class.opacity-100]="session.pinned"
-            [class.text-desert-terracotta]="session.pinned"
-            [class.dark:text-desert-night-amber]="session.pinned"
-            [class.text-desert-brown-muted]="!session.pinned"
-            [class.dark:text-desert-night-muted]="!session.pinned"
+            [class.text-studio-accent]="session.pinned"
+            [class.dark:text-studio-night-accent]="session.pinned"
+            [class.text-studio-ink-muted]="!session.pinned"
+            [class.dark:text-studio-night-muted]="!session.pinned"
             [attr.aria-label]="session.pinned ? 'Unpin conversation' : 'Pin conversation'"
             [title]="session.pinned ? 'Unpin' : 'Pin to top'"
           >
@@ -188,7 +188,7 @@
           <button
             type="button"
             (click)="startRename($event, session)"
-            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-desert-brown dark:hover:text-desert-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
+            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-studio-ink-muted dark:text-studio-night-muted hover:text-studio-ink dark:hover:text-studio-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border focus-visible:opacity-100"
             aria-label="Rename conversation"
             title="Rename"
           >
@@ -199,7 +199,7 @@
           <button
             type="button"
             (click)="requestDelete($event, session.id)"
-            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-desert-brown-muted dark:text-desert-night-muted hover:text-red-500 dark:hover:text-red-400 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-desert-gold dark:focus-visible:ring-desert-night-border focus-visible:opacity-100"
+            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-studio-ink-muted dark:text-studio-night-muted hover:text-red-500 dark:hover:text-red-400 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border focus-visible:opacity-100"
             aria-label="Delete conversation"
             title="Delete"
           >

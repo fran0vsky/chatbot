@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-05-24T00:00:00.000Z"
-last_activity: 2026-05-24 -- Phase 11 all 6 plans executed (Task 3 manual smoke pending)
+last_updated: "2026-05-25T00:00:00.000Z"
+last_activity: 2026-05-25 -- Completed quick task 260525-l8i: Soft Studio + Capybara redesign
 progress:
   total_phases: 11
   completed_phases: 9
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-17)
 Phase: 11 (reasoning-thinking-display) — ALL PLANS COMPLETE
 Plan: 6 of 6
 Status: Phase 11 code complete; Task 3 manual smoke pending user execution
-Last activity: 2026-05-24 -- Phase 11 all 6 plans executed
+Last activity: 2026-05-25 -- Completed quick task 260525-l8i: Soft Studio + Capybara redesign
 
 Progress: [██████████] 100%
 
@@ -83,6 +83,12 @@ Recent decisions affecting current work:
 - `@langchain/openai ^1.10.0` was not on npm; pinned to `^1.4.0` (latest published 1.x is 1.4.5).
 - Docker not installed on the dev machine — Dockerfile changes are CI-only.
 - `apps/frontend/src/main.ts` has a pre-existing `console.error(err)` lint warning (1 warning, 0 errors).
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260525-l8i | Soft Studio + Capybara redesign (palette + mascot + token rename) | 2026-05-25 | pending | [260525-l8i-redesign-soft-studio-capybara](./quick/260525-l8i-redesign-soft-studio-capybara/) |
 
 ## Deferred Items
 
