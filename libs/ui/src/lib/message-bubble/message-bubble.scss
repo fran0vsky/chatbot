@@ -50,7 +50,7 @@
     }
 
     a {
-      @apply text-studio-accent dark:text-studio-night-accent underline break-all;
+      @apply text-jungle-accent dark:text-jungle-night-accent underline break-all;
     }
 
     strong {
@@ -62,11 +62,11 @@
     }
 
     blockquote {
-      @apply border-l-2 border-studio-border dark:border-studio-night-border pl-3 my-2 text-studio-ink-muted dark:text-studio-night-muted italic;
+      @apply border-l-2 border-jungle-border dark:border-jungle-night-border pl-3 my-2 text-jungle-ink-muted dark:text-jungle-night-muted italic;
     }
 
     code {
-      @apply rounded bg-studio-border dark:bg-studio-night-border px-1 py-0.5 text-xs font-mono text-studio-ink dark:text-studio-night-text;
+      @apply rounded bg-jungle-border dark:bg-jungle-night-border px-1 py-0.5 text-xs font-mono text-jungle-ink dark:text-jungle-night-text;
     }
 
     pre {
@@ -83,11 +83,11 @@
 
     th,
     td {
-      @apply border border-studio-border dark:border-studio-night-border px-2 py-1;
+      @apply border border-jungle-border dark:border-jungle-night-border px-2 py-1;
     }
 
     hr {
-      @apply my-3 border-studio-border dark:border-studio-night-border;
+      @apply my-3 border-jungle-border dark:border-jungle-night-border;
     }
   }
 }

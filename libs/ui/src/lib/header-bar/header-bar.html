@@ -1,10 +1,10 @@
-<header class="flex items-center pl-6 pr-4 py-3 border-b border-studio-border/70 dark:border-studio-night-border bg-studio-bg/95 dark:bg-studio-night-surface/95 backdrop-blur-sm shadow-[0_2px_8px_-2px_rgba(74,46,26,0.08)] dark:shadow-[0_2px_12px_-2px_rgba(0,0,0,0.4)] relative z-20">
+<header class="flex items-center pl-6 pr-4 py-3 border-b border-jungle-border/70 dark:border-jungle-night-border bg-jungle-bg/95 dark:bg-jungle-night-surface/95 backdrop-blur-sm shadow-[0_2px_8px_-2px_rgba(74,46,26,0.08)] dark:shadow-[0_2px_12px_-2px_rgba(0,0,0,0.4)] relative z-20">
   <div class="flex items-center gap-2">
     <button
       type="button"
       (click)="historyToggled.emit()"
       [disabled]="disabled"
-      class="lg:hidden flex items-center justify-center w-8 h-8 rounded text-studio-ink-muted dark:text-studio-night-muted hover:bg-studio-border dark:hover:bg-studio-night-border hover:text-studio-ink dark:hover:text-studio-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="lg:hidden flex items-center justify-center w-8 h-8 rounded text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-border dark:hover:bg-jungle-night-border hover:text-jungle-ink dark:hover:text-jungle-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       aria-label="Toggle conversation history"
     >
       <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -15,12 +15,12 @@
       type="button"
       (click)="newChat.emit()"
       [disabled]="disabled"
-      class="group flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-studio-border/60 dark:hover:bg-studio-night-border/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border disabled:opacity-50 disabled:cursor-not-allowed"
+      class="group flex items-center gap-1.5 px-2 py-1 -mx-2 rounded-md hover:bg-jungle-border/60 dark:hover:bg-jungle-night-border/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border disabled:opacity-50 disabled:cursor-not-allowed"
       aria-label="Start new chat"
       title="New chat"
     >
-      <h1 class="font-title text-lg font-semibold uppercase text-studio-ink dark:text-studio-night-text">SpinoChat</h1>
-      <svg class="w-3.5 h-3.5 text-studio-ink-muted dark:text-studio-night-muted opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <h1 class="font-title text-lg font-semibold uppercase text-jungle-ink dark:text-jungle-night-text">SpinoChat</h1>
+      <svg class="w-3.5 h-3.5 text-jungle-ink-muted dark:text-jungle-night-muted opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
       </svg>
     </button>

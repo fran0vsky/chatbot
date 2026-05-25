@@ -124,20 +124,20 @@ export class MessageBubble {
       const header: HTMLDivElement = document.createElement('div');
       header.className =
         'flex items-center justify-between px-3 py-2 ' +
-        'bg-studio-card dark:bg-studio-night-card ' +
-        'border-b border-studio-border dark:border-studio-night-border';
+        'bg-jungle-card dark:bg-jungle-night-card ' +
+        'border-b border-jungle-border dark:border-jungle-night-border';
 
       const label: HTMLSpanElement = document.createElement('span');
       label.className =
-        'text-xs font-mono text-studio-ink-muted dark:text-studio-night-muted';
+        'text-xs font-mono text-jungle-ink-muted dark:text-jungle-night-muted';
       label.textContent = language;
 
       const button: HTMLButtonElement = document.createElement('button');
       button.type = 'button';
       button.className =
-        'p-1 rounded text-studio-ink-muted dark:text-studio-night-muted ' +
-        'hover:bg-studio-border dark:hover:bg-studio-night-border ' +
-        'hover:text-studio-ink dark:hover:text-studio-night-text transition-colors';
+        'p-1 rounded text-jungle-ink-muted dark:text-jungle-night-muted ' +
+        'hover:bg-jungle-border dark:hover:bg-jungle-night-border ' +
+        'hover:text-jungle-ink dark:hover:text-jungle-night-text transition-colors';
       button.setAttribute('aria-label', 'Copy code');
       button.innerHTML = this.COPY_ICON_SVG;
       button.addEventListener('click', () => this.copyCodeBlock(button, code));

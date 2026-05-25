@@ -1,4 +1,22 @@
-<div class="flex flex-row h-screen bg-studio-bg dark:bg-studio-night">
+<div class="relative flex flex-row h-screen overflow-hidden bg-jungle-bg dark:bg-jungle-night">
+  <!-- Jungle background layer (day/night swap via dark: variant) -->
+  <div
+    class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat dark:hidden"
+    style="background-image: url('/spino/bg-day.png');"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat hidden dark:block"
+    style="background-image: url('/spino/bg-night.png');"
+    aria-hidden="true"
+  ></div>
+  <!-- Atmospheric vignette over background for content legibility -->
+  <div
+    class="absolute inset-0 z-0 bg-gradient-to-b from-jungle-bg/20 via-jungle-bg/10 to-jungle-bg/40 dark:from-jungle-night/20 dark:to-jungle-night/50 pointer-events-none"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Left sidebar (session history + nav) -->
   <app-history-panel
     [open]="historyOpen"
     [sessions]="sessions"
@@ -11,112 +29,117 @@
     (newChat)="newChat()"
   />
 
-  <div class="flex flex-col flex-1 min-w-0">
-  <app-header-bar
-    [isDayMode]="isDayMode"
-    [disabled]="isLoading"
-    (themeToggled)="toggleTheme()"
-    (newChat)="newChat()"
-    (historyToggled)="toggleHistory()"
-  />
+  <!-- Center chat column -->
+  <div class="relative z-10 flex flex-col flex-1 min-w-0">
+    <app-header-bar
+      [isDayMode]="isDayMode"
+      [disabled]="isLoading"
+      (themeToggled)="toggleTheme()"
+      (newChat)="newChat()"
+      (historyToggled)="toggleHistory()"
+    />
 
-  <main class="flex-1 overflow-hidden relative flex flex-col">
-    <!-- Landing state: greeting + left-aligned input -->
-    @if (messages.length <= 1 && !isLoading && !isStreaming()) {
-      <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
-        <div class="mx-auto text-studio-accent dark:text-studio-night-accent drop-shadow-[0_6px_12px_rgba(26,29,33,0.18)] dark:drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]">
-          <app-mascot size="hero" />
-        </div>
-        <div class="mx-auto w-full max-w-2xl">
-          @if (messages.length === 1) {
-            <app-message-bubble [message]="messages[0]" [animate]="false" />
-          }
-        </div>
-        <div class="mx-auto w-full max-w-2xl">
-          <app-input-composer
-            [placeholder]="placeholder"
-            [disabled]="isLoading"
-            [loading]="isLoading"
-            (send)="onSend($event)"
-            (stop)="onStop()"
-          />
-          <div class="flex items-center px-1 pt-1.5">
-            <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
+    <main class="flex-1 overflow-hidden relative flex flex-col">
+      @if (messages.length <= 1 && !isLoading && !isStreaming()) {
+        <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
+          <div class="mx-auto text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_6px_12px_rgba(0,0,0,0.35)] dark:drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]">
+            <app-mascot size="hero" />
+          </div>
+          <div class="mx-auto w-full max-w-2xl">
+            @if (messages.length === 1) {
+              <app-message-bubble [message]="messages[0]" [animate]="false" />
+            }
+          </div>
+          <div class="mx-auto w-full max-w-2xl">
+            <app-input-composer
+              [placeholder]="placeholder"
+              [disabled]="isLoading"
+              [loading]="isLoading"
+              (send)="onSend($event)"
+              (stop)="onStop()"
+            />
+            <div class="flex items-center px-1 pt-1.5">
+              <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
+            </div>
           </div>
         </div>
-      </div>
-    } @else {
-      <!-- Chat state: scrollable messages + sticky input -->
-      <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
-        <div class="max-w-2xl mx-auto w-full space-y-5">
-          @for (m of messages; track $index; let i = $index) {
-            @if (m.role === 'tool') {
-              <app-tool-call-bubble [message]="m" />
-            } @else {
-              <app-message-bubble
-                [message]="m"
-                [animate]="i >= 1"
-                [canEdit]="m.role === 'user' && !isLoading"
-                [canRegenerate]="m.role === 'assistant' && i === messages.length - 1 && i > 0 && !isLoading"
-                (regenerate)="onRegenerate(i)"
-                (editSubmit)="onEditAndResend(i, $event)"
-              />
+      } @else {
+        <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
+          <div class="max-w-2xl mx-auto w-full space-y-5">
+            @for (m of messages; track $index; let i = $index) {
+              @if (m.role === 'tool') {
+                <app-tool-call-bubble [message]="m" />
+              } @else {
+                <app-message-bubble
+                  [message]="m"
+                  [animate]="i >= 1"
+                  [canEdit]="m.role === 'user' && !isLoading"
+                  [canRegenerate]="m.role === 'assistant' && i === messages.length - 1 && i > 0 && !isLoading"
+                  (regenerate)="onRegenerate(i)"
+                  (editSubmit)="onEditAndResend(i, $event)"
+                />
+              }
             }
-          }
-          @if (isLoading) {
-            <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />
-          }
-          @if (isStreaming()) {
-            @for (call of streamingToolCalls(); track $index) {
-              <app-tool-call-bubble [message]="{
-                text: '',
-                role: 'tool',
-                toolName: call.name,
-                toolArgs: call.args,
-                toolResult: call.result
-              }" />
+            @if (isLoading) {
+              <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />
             }
-            @if (streamingText().length > 0 || streamingReasoning().length > 0) {
-              <div>
-                @if (streamingReasoning().length > 0) {
-                  <app-reasoning-block
-                    [reasoning]="streamingReasoning()"
-                    [streaming]="true"
-                    [autoCollapsed]="reasoningCollapsed()">
-                  </app-reasoning-block>
-                }
-                @if (streamingText().length > 0) {
-                  <app-message-bubble
-                    [message]="{ text: streamingText(), role: 'assistant' }"
-                    [animate]="false"
-                  />
-                }
-                @if (streamingError(); as err) {
-                  <p class="text-xs italic opacity-70 mt-1 text-studio-ink-muted dark:text-studio-night-muted">
-                    Response interrupted: {{ err }}
-                  </p>
-                }
-              </div>
+            @if (isStreaming()) {
+              @for (call of streamingToolCalls(); track $index) {
+                <app-tool-call-bubble [message]="{
+                  text: '',
+                  role: 'tool',
+                  toolName: call.name,
+                  toolArgs: call.args,
+                  toolResult: call.result
+                }" />
+              }
+              @if (streamingText().length > 0 || streamingReasoning().length > 0) {
+                <div>
+                  @if (streamingReasoning().length > 0) {
+                    <app-reasoning-block
+                      [reasoning]="streamingReasoning()"
+                      [streaming]="true"
+                      [autoCollapsed]="reasoningCollapsed()">
+                    </app-reasoning-block>
+                  }
+                  @if (streamingText().length > 0) {
+                    <app-message-bubble
+                      [message]="{ text: streamingText(), role: 'assistant' }"
+                      [animate]="false"
+                    />
+                  }
+                  @if (streamingError(); as err) {
+                    <p class="text-xs italic opacity-70 mt-1 text-jungle-ink-muted dark:text-jungle-night-muted">
+                      Response interrupted: {{ err }}
+                    </p>
+                  }
+                </div>
+              }
             }
-          }
-          <div #messageEnd></div>
-        </div>
-      </div>
-      <div class="px-4 pt-3 pb-4 flex-shrink-0 border-t border-studio-border/50 dark:border-studio-night-border/70 bg-studio-bg/95 dark:bg-studio-night/95 backdrop-blur-sm shadow-[0_-8px_24px_-8px_rgba(74,46,26,0.12)] dark:shadow-[0_-8px_28px_-8px_rgba(0,0,0,0.5)] relative z-10">
-        <div class="max-w-2xl mx-auto w-full">
-          <app-input-composer
-            [placeholder]="placeholder"
-            [disabled]="isLoading"
-            [loading]="isLoading"
-            (send)="onSend($event)"
-            (stop)="onStop()"
-          />
-          <div class="flex items-center px-1 pt-1.5">
-            <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
+            <div #messageEnd></div>
           </div>
         </div>
-      </div>
-    }
-  </main>
+        <div class="px-4 pt-3 pb-4 flex-shrink-0 border-t border-jungle-border/40 dark:border-jungle-night-border/60 bg-jungle-bg/80 dark:bg-jungle-night/80 backdrop-blur-md shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.4)] dark:shadow-[0_-8px_28px_-8px_rgba(0,0,0,0.6)] relative z-10">
+          <div class="max-w-2xl mx-auto w-full">
+            <app-input-composer
+              [placeholder]="placeholder"
+              [disabled]="isLoading"
+              [loading]="isLoading"
+              (send)="onSend($event)"
+              (stop)="onStop()"
+            />
+            <div class="flex items-center px-1 pt-1.5">
+              <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
+            </div>
+          </div>
+        </div>
+      }
+      <p class="relative z-10 text-center text-[11px] text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 pb-2">
+        Spino can make mistakes. Consider checking important information.
+      </p>
+    </main>
   </div>
+
+  <!-- Right mascot panel (desktop only) -->
+  <app-mascot-panel [status]="(isLoading || isStreaming()) ? 'thinking' : 'idle'" />
 </div>

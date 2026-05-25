@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord } from '@org/shared-types';
-import { HeaderBar, HistoryPanel, InputComposer, Mascot, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
+import { HeaderBar, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { HistoryService } from './history.service';
 
@@ -26,7 +26,7 @@ const PLACEHOLDER_NEUTRAL = 'Message';
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [HeaderBar, HistoryPanel, InputComposer, Mascot, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble],
+  imports: [HeaderBar, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',

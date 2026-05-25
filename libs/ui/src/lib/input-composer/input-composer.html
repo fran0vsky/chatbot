@@ -2,14 +2,14 @@
   class="w-full bg-transparent"
   (submit)="$event.preventDefault(); submit()"
 >
-  <div class="w-full rounded-2xl bg-studio-surface dark:bg-studio-night-surface border border-studio-accent/40 dark:border-studio-night-border px-4 py-3 shadow-[0_10px_40px_-10px_rgba(74,46,26,0.25),0_4px_12px_-4px_rgba(74,46,26,0.15),inset_0_1px_0_0_rgba(255,255,255,0.4)] dark:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.6),0_4px_16px_-4px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-shadow focus-within:shadow-[0_14px_44px_-10px_rgba(193,100,74,0.3),0_6px_16px_-4px_rgba(74,46,26,0.18),inset_0_1px_0_0_rgba(255,255,255,0.4)] dark:focus-within:shadow-[0_16px_48px_-8px_rgba(212,135,42,0.25),0_6px_20px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.05)] focus-within:border-studio-accent dark:focus-within:border-studio-night-accent/60">
+  <div class="w-full rounded-2xl bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-accent/40 dark:border-jungle-night-border px-4 py-3 shadow-[0_10px_40px_-10px_rgba(74,46,26,0.25),0_4px_12px_-4px_rgba(74,46,26,0.15),inset_0_1px_0_0_rgba(255,255,255,0.4)] dark:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.6),0_4px_16px_-4px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-shadow focus-within:shadow-[0_14px_44px_-10px_rgba(193,100,74,0.3),0_6px_16px_-4px_rgba(74,46,26,0.18),inset_0_1px_0_0_rgba(255,255,255,0.4)] dark:focus-within:shadow-[0_16px_48px_-8px_rgba(212,135,42,0.25),0_6px_20px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.05)] focus-within:border-jungle-accent dark:focus-within:border-jungle-night-accent/60">
     <div class="flex items-center gap-2">
       <textarea
         #textareaRef
         data-testid="message-input"
         rows="1"
         [placeholder]="placeholder"
-        class="flex-1 resize-none rounded-lg bg-studio-surface dark:bg-studio-night-surface text-studio-ink dark:text-studio-night-text px-3 py-2 text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+        class="flex-1 resize-none rounded-lg bg-jungle-surface dark:bg-jungle-night-surface text-jungle-ink dark:text-jungle-night-text px-3 py-2 text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
         [class.overflow-y-auto]="atMaxHeight"
         [class.overflow-hidden]="!atMaxHeight"
         [(ngModel)]="draft"
@@ -22,7 +22,7 @@
         <button type="button" (click)="submit()"
           [attr.aria-label]="'Stop response'"
           [attr.title]="'Stop response'"
-          class="flex items-center justify-center w-10 h-10 rounded-full bg-studio-accent dark:bg-studio-night-accent text-white hover:bg-studio-accent-dark dark:hover:bg-studio-night-accent-dark active:scale-95 transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface dark:focus-visible:ring-offset-studio-night-surface">
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-jungle-accent dark:bg-jungle-night-accent text-white hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark active:scale-95 transition shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-jungle-surface dark:focus-visible:ring-offset-jungle-night-surface">
           <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <rect x="4" y="4" width="12" height="12" rx="1.5" />
           </svg>
@@ -32,7 +32,7 @@
         <button type="submit" [disabled]="disabled || draft.trim().length === 0"
           aria-label="Send message"
           title="Send"
-          class="flex items-center justify-center w-10 h-10 rounded-full bg-studio-accent dark:bg-studio-night-accent text-white hover:bg-studio-accent-dark dark:hover:bg-studio-night-accent-dark active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface dark:focus-visible:ring-offset-studio-night-surface">
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-jungle-accent dark:bg-jungle-night-accent text-white hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark active:scale-95 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border focus-visible:ring-offset-2 focus-visible:ring-offset-jungle-surface dark:focus-visible:ring-offset-jungle-night-surface">
           <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M3.105 3.105a.75.75 0 01.815-.163l13.5 5.625a.75.75 0 010 1.376l-13.5 5.625a.75.75 0 01-1.04-.819l1.43-5.722L9.5 10 4.31 9.073l-1.43-5.722a.75.75 0 01.225-.246z" />
           </svg>

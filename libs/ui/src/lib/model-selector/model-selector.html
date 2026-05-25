@@ -1,6 +1,6 @@
 <div class="relative inline-flex items-center">
   <svg
-    class="absolute left-2.5 w-3.5 h-3.5 text-studio-accent dark:text-studio-night-accent pointer-events-none"
+    class="absolute left-2.5 w-3.5 h-3.5 text-jungle-accent dark:text-jungle-night-accent pointer-events-none"
     viewBox="0 0 20 20"
     fill="currentColor"
     aria-hidden="true"
@@ -12,14 +12,14 @@
     (change)="modelChange.emit($any($event.target).value)"
     [disabled]="disabled"
     aria-label="Choose model"
-    class="appearance-none cursor-pointer pl-8 pr-7 py-1.5 text-xs font-medium rounded-full bg-studio-surface dark:bg-studio-night-card text-studio-ink dark:text-studio-night-text border border-studio-accent/50 dark:border-studio-night-border shadow-sm hover:border-studio-accent dark:hover:border-studio-night-accent hover:bg-studio-card dark:hover:bg-studio-night-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-accent focus-visible:ring-offset-1 focus-visible:ring-offset-studio-bg dark:focus-visible:ring-offset-studio-night disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    class="appearance-none cursor-pointer pl-8 pr-7 py-1.5 text-xs font-medium rounded-full bg-jungle-surface dark:bg-jungle-night-card text-jungle-ink dark:text-jungle-night-text border border-jungle-accent/50 dark:border-jungle-night-border shadow-sm hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:bg-jungle-card dark:hover:bg-jungle-night-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:ring-offset-1 focus-visible:ring-offset-jungle-bg dark:focus-visible:ring-offset-jungle-night disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
   >
     @for (m of models; track m.id) {
       <option [value]="m.id">{{ m.label }}</option>
     }
   </select>
   <svg
-    class="absolute right-2.5 w-3 h-3 text-studio-ink-muted dark:text-studio-night-muted pointer-events-none"
+    class="absolute right-2.5 w-3 h-3 text-jungle-ink-muted dark:text-jungle-night-muted pointer-events-none"
     viewBox="0 0 20 20"
     fill="currentColor"
     aria-hidden="true"

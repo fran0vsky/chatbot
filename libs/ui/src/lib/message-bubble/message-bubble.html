@@ -1,37 +1,37 @@
 @if (message.role === 'user') {
   <div class="flex w-full justify-end" [class.msg-enter-right]="animate">
     <div class="flex flex-col items-end gap-1 max-w-[75%] group">
-      <span class="text-xs text-studio-ink-muted dark:text-studio-night-muted px-1">You</span>
+      <span class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted px-1">You</span>
       @if (editing) {
-        <div class="w-full rounded-2xl px-3 py-2 bg-studio-surface dark:bg-studio-night-surface border border-studio-accent/60 dark:border-studio-night-border shadow-md">
+        <div class="w-full rounded-2xl px-3 py-2 bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-accent/60 dark:border-jungle-night-border shadow-md">
           <textarea
             rows="2"
-            class="w-full resize-y min-h-[3rem] bg-transparent text-studio-ink dark:text-studio-night-text text-sm leading-relaxed focus:outline-none"
+            class="w-full resize-y min-h-[3rem] bg-transparent text-jungle-ink dark:text-jungle-night-text text-sm leading-relaxed focus:outline-none"
             [(ngModel)]="editDraft"
             (keydown)="onEditKeydown($event)"
             autofocus
           ></textarea>
           <div class="flex items-center justify-end gap-2 mt-2">
             <button type="button" (click)="cancelEdit()"
-              class="px-3 py-1 text-xs rounded text-studio-ink-muted dark:text-studio-night-muted hover:bg-studio-border dark:hover:bg-studio-night-border transition-colors">
+              class="px-3 py-1 text-xs rounded text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-border dark:hover:bg-jungle-night-border transition-colors">
               Cancel
             </button>
             <button type="button" (click)="submitEdit()" [disabled]="editDraft.trim().length === 0"
-              class="px-3 py-1 text-xs rounded bg-studio-accent dark:bg-studio-night-accent text-white hover:bg-studio-accent-dark dark:hover:bg-studio-night-accent-dark disabled:opacity-50 disabled:cursor-not-allowed transition">
+              class="px-3 py-1 text-xs rounded bg-jungle-accent dark:bg-jungle-night-accent text-white hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark disabled:opacity-50 disabled:cursor-not-allowed transition">
               Send
             </button>
           </div>
         </div>
       } @else {
         <div class="relative w-full">
-          <div class="w-full rounded-2xl rounded-br-sm px-5 py-3 bg-studio-accent dark:bg-studio-night-accent text-white whitespace-pre-wrap break-words shadow-[0_4px_16px_-4px_rgba(193,100,74,0.45),0_2px_4px_-2px_rgba(193,100,74,0.3)] dark:shadow-[0_6px_20px_-4px_rgba(212,135,42,0.4),0_2px_6px_-2px_rgba(0,0,0,0.4)] font-body text-sm leading-relaxed">
+          <div class="w-full rounded-2xl rounded-br-sm px-5 py-3 bg-jungle-accent dark:bg-jungle-night-accent text-white whitespace-pre-wrap break-words shadow-[0_4px_16px_-4px_rgba(193,100,74,0.45),0_2px_4px_-2px_rgba(193,100,74,0.3)] dark:shadow-[0_6px_20px_-4px_rgba(212,135,42,0.4),0_2px_6px_-2px_rgba(0,0,0,0.4)] font-body text-sm leading-relaxed">
             {{ message.text }}
           </div>
           @if (canEdit) {
             <button
               type="button"
               (click)="startEdit()"
-              class="absolute -left-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-studio-surface dark:bg-studio-night-surface text-studio-ink-muted dark:text-studio-night-muted hover:text-studio-ink dark:hover:text-studio-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border focus-visible:opacity-100"
+              class="absolute -left-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-jungle-surface dark:bg-jungle-night-surface text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border focus-visible:opacity-100"
               aria-label="Edit and resend"
               title="Edit and resend (forks a new chat)"
             >
@@ -59,10 +59,10 @@
   </div>
 } @else {
   <div class="flex w-full justify-start items-end gap-3" [class.msg-enter-left]="animate">
-    <div class="flex-shrink-0 self-end mb-1 text-studio-accent dark:text-studio-night-accent drop-shadow-[0_4px_6px_rgba(26,29,33,0.18)] dark:drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
+    <div class="flex-shrink-0 self-end mb-1 text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_4px_6px_rgba(26,29,33,0.18)] dark:drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
       <app-mascot size="sm" />
     </div>
-    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-5 py-4 pr-9 bg-studio-card dark:bg-studio-night-card text-studio-ink dark:text-studio-night-text border border-studio-accent/40 dark:border-studio-night-border shadow-[0_4px_16px_-4px_rgba(74,46,26,0.18),0_2px_4px_-2px_rgba(74,46,26,0.12)] dark:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5),0_2px_6px_-2px_rgba(0,0,0,0.4)] break-words text-sm font-body leading-relaxed">
+    <div class="group relative markdown-bubble max-w-[75%] rounded-2xl rounded-bl-sm px-5 py-4 pr-9 bg-jungle-card dark:bg-jungle-night-card text-jungle-ink dark:text-jungle-night-text border border-jungle-accent/40 dark:border-jungle-night-border shadow-[0_4px_16px_-4px_rgba(74,46,26,0.18),0_2px_4px_-2px_rgba(74,46,26,0.12)] dark:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5),0_2px_6px_-2px_rgba(0,0,0,0.4)] break-words text-sm font-body leading-relaxed">
       @if (message.reasoning) {
         <app-reasoning-block
           [reasoning]="message.reasoning ?? ''"
@@ -77,7 +77,7 @@
           <button
             type="button"
             (click)="onRegenerate()"
-            class="p-1 rounded hover:bg-studio-border dark:hover:bg-studio-night-border text-studio-ink-muted dark:text-studio-night-muted hover:text-studio-ink dark:hover:text-studio-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border"
+            class="p-1 rounded hover:bg-jungle-border dark:hover:bg-jungle-night-border text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border"
             aria-label="Regenerate response"
             title="Regenerate response"
           >
@@ -90,7 +90,7 @@
         <button
           type="button"
           (click)="copyMessage()"
-          class="p-1 rounded hover:bg-studio-border dark:hover:bg-studio-night-border text-studio-ink-muted dark:text-studio-night-muted hover:text-studio-ink dark:hover:text-studio-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studio-accent dark:focus-visible:ring-studio-night-border"
+          class="p-1 rounded hover:bg-jungle-border dark:hover:bg-jungle-night-border text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border"
           [attr.aria-label]="copied ? 'Copied' : 'Copy message'"
         >
           @if (copied) {
