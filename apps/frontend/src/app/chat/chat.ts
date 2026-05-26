@@ -38,7 +38,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant' }];
   isLoading = false;
-  selectedModel = 'openai/gpt-4o-mini';
+  selectedModel = 'deepseek/deepseek-r1:free';
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
   isDayMode = false;
   historyOpen = false;
@@ -58,8 +58,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly isStreaming = signal(false);
 
   readonly models = [
-    { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini' },
-    { id: 'anthropic/claude-3-haiku', label: 'Claude 3 Haiku' },
     { id: 'meta-llama/llama-3.1-8b-instruct:free', label: 'Llama 3.1 8B (free)' },
     { id: 'mistralai/mistral-7b-instruct:free', label: 'Mistral 7B (free)' },
     { id: 'google/gemma-3-4b-it:free', label: 'Gemma 3 4B (free)' },
