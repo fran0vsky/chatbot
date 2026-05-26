@@ -44,24 +44,24 @@
 
 ### Brand
 
-- [ ] **BRAND-01**: All visible product naming in the UI reads "SpinoChat" or short-form "Spino" — header title, browser tab title, meta description, landing-state copy
-- [ ] **BRAND-02**: The tagline "The AI that survived" is placed at least once on the landing/empty state
-- [ ] **BRAND-03**: README.md and CLAUDE.md project description updated to "SpinoChat"
+- [x] **BRAND-01**: All visible product naming in the UI reads "SpinoChat" or short-form "Spino" — header title, browser tab title, meta description, landing-state copy
+- [x] **BRAND-02**: The tagline "The AI that survived" is placed at least once on the landing/empty state
+- [x] **BRAND-03**: README.md and CLAUDE.md project description updated to "SpinoChat"
 
 ### Visual identity (palette)
 
-- [ ] **PAL-01**: Day-mode palette is a daytime-jungle theme — warm sunlit greens, beige/sand neutrals, soft amber highlights. Replaces current Soft Studio cream/tan day palette
-- [ ] **PAL-02**: Night-mode palette is a night-jungle / sunset theme — deep teals/blues, warm sunset orange/coral accents, optional bioluminescent-style accent for highlights. Replaces current Soft Studio slate dark palette
-- [ ] **PAL-03**: Both palettes pass minimum readable contrast for body text against background (WCAG AA — pragmatic enforcement, not formal audit)
-- [ ] **PAL-04**: All existing `studio-*` Tailwind tokens get re-mapped hex values; no new token names introduced (palette swap is hex-only; no rename pass needed)
+- [x] **PAL-01**: Day-mode palette is a daytime-jungle theme — warm sunlit greens, beige/sand neutrals, soft amber highlights. Replaces current Soft Studio cream/tan day palette
+- [x] **PAL-02**: Night-mode palette is a night-jungle / sunset theme — deep teals/blues, warm sunset orange/coral accents, optional bioluminescent-style accent for highlights. Replaces current Soft Studio slate dark palette
+- [x] **PAL-03**: Both palettes pass minimum readable contrast for body text against background (WCAG AA — pragmatic enforcement, not formal audit)
+- [x] **PAL-04**: All existing `studio-*` Tailwind tokens get re-mapped hex values; no new token names introduced (palette swap is hex-only; no rename pass needed)
 
 ### Mascot (Spino)
 
-- [ ] **MASC-01**: A Spinosaurus-inspired mascot replaces the current capybara SVG in `MessageBubble` (assistant role)
-- [ ] **MASC-02**: Mascot renders crisply at all sizes — vector (SVG / Rive) or PNG rendered at integer-multiple of native size
+- [x] **MASC-01**: A Spinosaurus-inspired mascot replaces the current capybara SVG in `MessageBubble` (assistant role)
+- [x] **MASC-02**: Mascot renders crisply at all sizes — vector (SVG / Rive) or PNG rendered at integer-multiple of native size
 - [ ] **MASC-03**: Mascot has an idle breathing/blink animation (subtle, slow loop)
 - [ ] **MASC-04**: Mascot has a distinct visual state during a "thinking" (streaming/reasoning) response — eyes glow or equivalent
-- [ ] **MASC-05**: Mascot is also shown at larger size in the landing/empty state (hero placement) before any messages are sent
+- [x] **MASC-05**: Mascot is also shown at larger size in the landing/empty state (hero placement) before any messages are sent
 
 ### Atmosphere (background)
 
@@ -137,7 +137,7 @@
 | BRAND-01..03 | Phase 12 | Pending |
 | PAL-01..04 | Phase 12 | Pending |
 | MASC-01..02 | Phase 12 | Pending |
-| MASC-05 | Phase 12 | Pending |
+| MASC-05 | Phase 12 | Complete |
 | BG-01..03 | Phase 13 | Pending |
 | MASC-03..04 | Phase 14 | Pending |
 | STATE-01..03 | Phase 15 | Pending |

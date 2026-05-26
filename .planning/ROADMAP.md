@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 9. Tool Calling | 2/2 | Code complete | 2026-05-23 |
 | 10. Token Streaming | 3/3 | Complete | 2026-05-24 |
 | 11. Reasoning Display | 6/6 | Complete | 2026-05-24 |
-| 12. SpinoChat Foundation | 3/3 | Complete   | 2026-05-25 |
+| 12. SpinoChat Foundation | 3/3 | Complete    | 2026-05-25 |
 | 13. Jungle Atmosphere | 0/TBD | Planned (v1.1) | - |
 | 14. Mascot Motion | 0/TBD | Planned (v1.1) | - |
 | 15. Themed States | 0/TBD | Planned (v1.1) | - |
