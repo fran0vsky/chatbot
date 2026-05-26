@@ -36,7 +36,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly historyService = inject(HistoryService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant' }];
+  messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
   isLoading = false;
   selectedModel = 'deepseek/deepseek-r1:free';
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
@@ -74,6 +74,27 @@ export class ChatComponent implements OnInit, OnDestroy {
   usePrompt(text: string): void {
     if (this.isLoading || this.isStreaming()) return;
     this.onSend(text);
+  }
+
+  showDateDivider(index: number): boolean {
+    const msg = this.messages[index];
+    if (!msg?.createdAt) return false;
+    if (index === 0) return true;
+    const prev = this.messages[index - 1];
+    if (!prev?.createdAt) return true;
+    return new Date(msg.createdAt).toDateString() !== new Date(prev.createdAt).toDateString();
+  }
+
+  dateDividerLabel(index: number): string {
+    const ts = this.messages[index]?.createdAt;
+    if (!ts) return '';
+    const date = new Date(ts);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
   @ViewChild('messageEnd') private messageEnd?: ElementRef<HTMLElement>;
@@ -115,6 +136,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         toolName: call.name,
         toolArgs: call.args,
         toolResult: call.result,
+        createdAt: Date.now(),
       });
     }
     if (partial.length > 0) {
@@ -122,6 +144,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messages.push({
         text: partial,
         role: 'assistant',
+        createdAt: Date.now(),
         ...(partialReasoning.length > 0 ? { reasoning: partialReasoning } : {}),
       });
     }
@@ -200,7 +223,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private startNewChat(): void {
-    this.messages = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant' }];
+    this.messages = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
     this.sessionTitle = '';
     this.sessionCreatedAt = 0;
     this.chatService.resetThread();
@@ -226,7 +249,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.sessionCreatedAt = Date.now();
     }
 
-    this.messages.push({ text, role: 'user' });
+    this.messages.push({ text, role: 'user', createdAt: Date.now() });
     this.beginRequest();
     this.dispatchRequest(text);
   }
@@ -255,7 +278,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.chatService.resetThread();
     this.sessionTitle = newText.length > 50 ? newText.slice(0, 50) + '…' : newText;
     this.sessionCreatedAt = Date.now();
-    this.messages = [...truncated, { text: newText, role: 'user' }];
+    this.messages = [...truncated, { text: newText, role: 'user', createdAt: Date.now() }];
     this.beginRequest();
     this.dispatchRequest(newText);
   }
@@ -362,11 +385,13 @@ export class ChatComponent implements OnInit, OnDestroy {
         toolName: call.name,
         toolArgs: call.args,
         toolResult: call.result,
+        createdAt: Date.now(),
       });
     }
     const assistantMsg: ChatMessage = {
       text: response,
       role: 'assistant',
+      createdAt: Date.now(),
       ...(reasoning ? { reasoning } : {}),
       ...(reasoningDurationMs !== undefined ? { reasoningDurationMs } : {}),
     };
@@ -385,15 +410,16 @@ export class ChatComponent implements OnInit, OnDestroy {
           toolName: call.name,
           toolArgs: call.args,
           toolResult: call.result,
+          createdAt: Date.now(),
         });
       }
       const footer = link
         ? `\n\n_Response interrupted: ${message}_ ([details](${link}))`
         : `\n\n_Response interrupted: ${message}_`;
-      this.messages.push({ text: partial + footer, role: 'assistant' });
+      this.messages.push({ text: partial + footer, role: 'assistant', createdAt: Date.now() });
     } else {
       const linkPart = link ? `\n\n[View model on OpenRouter](${link})` : '';
-      this.messages.push({ text: message + linkPart, role: 'error' });
+      this.messages.push({ text: message + linkPart, role: 'error', createdAt: Date.now() });
     }
     this.clearStreaming();
     this.finishRequest();

@@ -90,6 +90,13 @@
         <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
           <div class="max-w-2xl mx-auto w-full space-y-5">
             @for (m of messages; track $index; let i = $index) {
+              @if (showDateDivider(i)) {
+                <div class="flex items-center justify-center my-2">
+                  <span class="text-[11px] uppercase tracking-wider px-3 py-1 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 text-jungle-ink-muted dark:text-jungle-night-muted backdrop-blur-sm border border-jungle-border/30 dark:border-jungle-night-border/40">
+                    {{ dateDividerLabel(i) }}
+                  </span>
+                </div>
+              }
               @if (m.role === 'tool') {
                 <app-tool-call-bubble [message]="m" />
               } @else {

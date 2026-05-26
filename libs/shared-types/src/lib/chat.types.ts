@@ -25,6 +25,7 @@ export interface ChatMessage {
   toolResult?: string;
   reasoning?: string;
   reasoningDurationMs?: number;
+  createdAt?: number;
 }
 
 export interface ConversationSession {
