@@ -58,13 +58,19 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly streamingToolCalls = signal<ToolCallRecord[]>([]);
   readonly isStreaming = signal(false);
 
+  // Curated free OpenRouter models verified responsive at last check.
+  // DEFERRED (retry when OpenRouter load drops or BYOK is added):
+  //   - meta-llama/llama-3.3-70b-instruct:free      (heavy load)
+  //   - meta-llama/llama-3.2-3b-instruct:free       (heavy load)
+  //   - nousresearch/hermes-3-llama-3.1-405b:free   (heavy load)
+  //   - deepseek/deepseek-v4-flash:free             (heavy load, has reasoning)
+  //   - google/gemma-4-31b-it:free                  (heavy load)
+  //   - qwen/qwen3-next-80b-a3b-instruct:free       (heavy load)
   readonly models = [
     { id: 'openai/gpt-oss-120b:free', label: 'GPT-OSS 120B (free, reasoning)' },
     { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', label: 'Nemotron 3 Nano (free, reasoning)' },
     { id: 'openai/gpt-oss-20b:free', label: 'GPT-OSS 20B (free, lighter)' },
     { id: 'z-ai/glm-4.5-air:free', label: 'GLM 4.5 Air (free)' },
-    { id: 'nousresearch/hermes-3-llama-3.1-405b:free', label: 'Hermes 3 Llama 405B (free)' },
-    { id: 'meta-llama/llama-3.2-3b-instruct:free', label: 'Llama 3.2 3B (free, fast)' },
   ] as const;
 
   readonly suggestionPrompts = [
