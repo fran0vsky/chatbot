@@ -59,12 +59,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly isStreaming = signal(false);
 
   readonly models = [
-    { id: 'openai/gpt-oss-120b:free', label: 'GPT-OSS 120B (free)' },
+    { id: 'openai/gpt-oss-120b:free', label: 'GPT-OSS 120B (free, reasoning)' },
     { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', label: 'Nemotron 3 Nano (free, reasoning)' },
-    { id: 'deepseek/deepseek-v4-flash:free', label: 'DeepSeek V4 Flash (free, reasoning)' },
-    { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B (free)' },
-    { id: 'google/gemma-4-31b-it:free', label: 'Gemma 4 31B (free)' },
-    { id: 'qwen/qwen3-next-80b-a3b-instruct:free', label: 'Qwen 3 Next 80B (free)' },
+    { id: 'openai/gpt-oss-20b:free', label: 'GPT-OSS 20B (free, lighter)' },
+    { id: 'z-ai/glm-4.5-air:free', label: 'GLM 4.5 Air (free)' },
+    { id: 'nousresearch/hermes-3-llama-3.1-405b:free', label: 'Hermes 3 Llama 405B (free)' },
+    { id: 'meta-llama/llama-3.2-3b-instruct:free', label: 'Llama 3.2 3B (free, fast)' },
   ] as const;
 
   readonly suggestionPrompts = [
