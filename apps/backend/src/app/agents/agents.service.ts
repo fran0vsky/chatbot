@@ -175,7 +175,7 @@ export class AgentsService {
   async *streamAgent(
     message: string,
     threadId = 'default',
-    model = 'deepseek/deepseek-r1:free',
+    model = 'deepseek/deepseek-v4-flash:free',
     signal: AbortSignal,
   ): AsyncGenerator<StreamEvent, void, void> {
     this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
