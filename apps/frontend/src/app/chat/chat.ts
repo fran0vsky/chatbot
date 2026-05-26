@@ -64,6 +64,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     { id: 'deepseek/deepseek-r1:free', label: 'DeepSeek R1 (free, reasoning)' },
   ] as const;
 
+  readonly suggestionPrompts = [
+    { icon: '💡', text: 'Explain quantum computing in simple terms' },
+    { icon: '✍️', text: 'Write a short poem about the ocean' },
+    { icon: '🐛', text: 'Help me debug a TypeScript error' },
+    { icon: '📚', text: 'Summarize the history of jazz' },
+  ];
+
+  usePrompt(text: string): void {
+    if (this.isLoading || this.isStreaming()) return;
+    this.onSend(text);
+  }
+
   @ViewChild('messageEnd') private messageEnd?: ElementRef<HTMLElement>;
 
   private placeholderIndex = 0;

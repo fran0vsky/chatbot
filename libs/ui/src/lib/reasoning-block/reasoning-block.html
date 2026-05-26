@@ -1,16 +1,40 @@
 @if (hasReasoning()) {
-  <div data-testid="reasoning-block" class="border-l-2 border-jungle-border dark:border-jungle-night-border pl-3 py-1 mb-2 flex flex-col gap-1">
+  <div
+    data-testid="reasoning-block"
+    class="-ml-2 my-1 pl-3 pr-3 py-2 border-l-4 border-jungle-accent/40 dark:border-jungle-night-accent/40 bg-jungle-surface/30 dark:bg-jungle-night-surface/30 rounded-r-lg flex flex-col gap-1.5 transition-all duration-200">
     <button
       data-testid="reasoning-toggle"
       type="button"
-      class="text-xs font-body font-medium leading-snug text-jungle-ink-muted dark:text-jungle-night-muted hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-border rounded self-start"
       (click)="toggle()"
       [attr.aria-expanded]="!collapsed()"
-      [attr.aria-label]="ariaLabel()">
-      {{ toggleLabel() }}
+      [attr.aria-label]="ariaLabel()"
+      class="self-start inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium tracking-wide text-jungle-accent dark:text-jungle-night-accent hover:bg-jungle-accent/10 dark:hover:bg-jungle-night-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors">
+      <svg
+        class="w-3.5 h-3.5 flex-shrink-0 text-jungle-accent dark:text-jungle-night-accent"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true">
+        <path d="M8.5 2a3.5 3.5 0 0 0-3.39 4.385A3.001 3.001 0 0 0 5.5 12a2.99 2.99 0 0 0 1.5-.402V16a2 2 0 1 0 4 0V4a2 2 0 0 0-2-2h-.5Zm3 0a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0v-4.402A2.99 2.99 0 0 0 14.5 12a3.001 3.001 0 0 0 .39-5.615A3.5 3.5 0 0 0 11.5 2h-.001Z" />
+      </svg>
+      <span>{{ headerLabel() }}</span>
+      @if (streaming) {
+        <span
+          aria-hidden="true"
+          class="inline-block w-1.5 h-1.5 rounded-full bg-jungle-accent dark:bg-jungle-night-accent animate-pulse"></span>
+      }
+      <svg
+        class="w-3 h-3 ml-0.5 flex-shrink-0 transition-transform duration-200"
+        [class.rotate-90]="!collapsed()"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true">
+        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
+      </svg>
     </button>
     @if (!collapsed()) {
-      <div data-testid="reasoning-body" class="text-sm font-body leading-relaxed text-jungle-ink-muted dark:text-jungle-night-muted whitespace-pre-wrap">{{ reasoning }}</div>
+      <div
+        data-testid="reasoning-body"
+        class="italic text-[13px] leading-relaxed text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 whitespace-pre-wrap">{{ reasoning }}</div>
     }
   </div>
 }

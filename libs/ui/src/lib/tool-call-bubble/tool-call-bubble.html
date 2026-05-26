@@ -1,23 +1,39 @@
-<div class="my-3 mx-auto w-full max-w-3xl px-3 py-2 rounded-md border border-jungle-border dark:border-jungle-night-border bg-jungle-card/60 dark:bg-jungle-night-card/60 text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+<div class="my-3 mx-auto w-full max-w-3xl rounded-xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/85 dark:bg-jungle-night-surface/85 backdrop-blur-sm shadow-[0_2px_8px_-2px_rgba(74,46,26,0.12)] dark:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.4)] overflow-hidden">
   <button
     type="button"
-    class="flex items-center justify-between w-full font-mono text-xs uppercase tracking-wide focus:outline-none"
+    class="flex items-center justify-between w-full px-3 py-2 gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent/50 dark:focus-visible:ring-jungle-night-accent/50 transition-colors hover:bg-jungle-card/30 dark:hover:bg-jungle-night-card/30"
     (click)="toggle()"
     [attr.aria-expanded]="expanded"
   >
-    <span>Tool call Â· {{ message.toolName }}</span>
-    <span aria-hidden="true">{{ expanded ? 'â–ľ' : 'â–¸' }}</span>
+    <span class="flex items-center gap-2 min-w-0">
+      <svg class="w-4 h-4 flex-shrink-0 text-jungle-accent dark:text-jungle-night-accent" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M14.207 2.793a1 1 0 00-1.32-.083l-.094.083-2.5 2.5a1 1 0 00-.284.576l-.013.131v1.586l-5.207 5.207a2.5 2.5 0 103.535 3.535L13.53 11.0h1.586a1 1 0 00.576-.184l.131-.113 2.5-2.5a1 1 0 00-.083-1.497l-.094-.083-1.353-1.353 1.06-1.06a1 1 0 00-1.32-1.497l-.094.083-1.06 1.06-1.172-1.172zM6.5 14.5a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd" />
+      </svg>
+      <span class="text-xs font-mono uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted truncate">
+        Used tool: {{ message.toolName }}
+      </span>
+    </span>
+    <svg
+      class="w-4 h-4 flex-shrink-0 text-jungle-ink-muted dark:text-jungle-night-muted transition-transform duration-200"
+      [class.rotate-90]="expanded"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+    </svg>
   </button>
 
   @if (expanded) {
-    <div class="mt-2">
-      <p class="text-[10px] uppercase tracking-wide mb-1 opacity-70">Arguments</p>
-      <pre class="text-xs whitespace-pre-wrap font-mono bg-jungle-card dark:bg-jungle-night-card p-2 rounded">{{ prettyArgs }}</pre>
+    <div class="px-3 pb-3 pt-1 space-y-3">
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-jungle-ink-muted/70 dark:text-jungle-night-muted/70 mb-1">Arguments</p>
+        <pre class="text-xs whitespace-pre-wrap font-mono bg-jungle-bg/50 dark:bg-jungle-night/50 text-jungle-ink dark:text-jungle-night-text p-2 rounded-md border border-jungle-border/20 dark:border-jungle-night-border/30">{{ prettyArgs }}</pre>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-jungle-ink-muted/70 dark:text-jungle-night-muted/70 mb-1">Result</p>
+        <pre class="text-xs whitespace-pre-wrap font-mono bg-jungle-bg/50 dark:bg-jungle-night/50 text-jungle-ink dark:text-jungle-night-text p-2 rounded-md border border-jungle-border/20 dark:border-jungle-night-border/30">{{ resultText }}</pre>
+      </div>
     </div>
   }
-
-  <div class="mt-2">
-    <p class="text-[10px] uppercase tracking-wide mb-1 opacity-70">Result</p>
-    <pre class="text-xs whitespace-pre-wrap font-mono text-jungle-ink dark:text-jungle-night-text">{{ resultText }}</pre>
-  </div>
 </div>

@@ -35,25 +35,26 @@ export class ReasoningBlock {
     return this.reasoning.trim().length > 0;
   }
 
-  durationLabel(): string {
-    if (this.durationMs == null) {
-      return this.streaming ? 'Thinking…' : '';
+  /**
+   * Header chip text:
+   *  - streaming             => "Thinking…"
+   *  - done + durationMs     => "Thought for X.Xs"
+   *  - done + no duration    => "Reasoning"
+   */
+  headerLabel(): string {
+    if (this.streaming) return 'Thinking…';
+    if (this.durationMs != null) {
+      return `Thought for ${(this.durationMs / 1000).toFixed(1)}s`;
     }
-    if (this.durationMs < 1000) return 'Thought for <1s';
-    return `Thought for ${Math.round(this.durationMs / 1000)}s`;
-  }
-
-  actionLabel(): string {
-    return this.collapsed() ? 'Show reasoning' : 'Hide reasoning';
+    return 'Reasoning';
   }
 
   ariaLabel(): string {
     return this.collapsed() ? 'Show model reasoning' : 'Hide model reasoning';
   }
 
+  // Kept for backwards-compat with any external references; not used in template.
   toggleLabel(): string {
-    const dur = this.durationLabel();
-    const action = this.actionLabel();
-    return dur ? `${dur} · ${action}` : action;
+    return this.headerLabel();
   }
 }
