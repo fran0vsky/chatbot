@@ -16,15 +16,40 @@
     aria-hidden="true"
   ></div>
 
+  <!-- Mobile hamburger trigger (below md) -->
+  <button
+    type="button"
+    (click)="toggleMobileSidebar()"
+    class="md:hidden absolute top-3 left-3 z-50 p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent bg-jungle-bg/40 dark:bg-jungle-night/40 backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+    aria-label="Open navigation"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Mobile backdrop (below md, only when sidebar open) -->
+  @if (mobileSidebarOpen()) {
+    <div
+      class="md:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-[2px]"
+      (click)="closeMobileSidebar()"
+      aria-hidden="true"
+    ></div>
+  }
+
   <!-- Left sidebar (SPINO nav + session history) -->
   <app-history-panel
     [sessions]="sessions"
     [activeSessionId]="activeSessionId"
-    (sessionSelected)="switchToSession($event)"
+    [mobileOpen]="mobileSidebarOpen()"
+    (sessionSelected)="switchToSession($event); closeMobileSidebar()"
     (sessionDeleted)="deleteSession($event)"
     (sessionRenamed)="renameSession($event.id, $event.title)"
     (sessionPinned)="togglePinSession($event)"
-    (newChat)="newChat()"
+    (newChat)="newChat(); closeMobileSidebar()"
+    (closed)="closeMobileSidebar()"
   />
 
   <!-- Floating theme toggle (top-right) -->

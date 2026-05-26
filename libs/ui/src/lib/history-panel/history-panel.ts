@@ -30,6 +30,7 @@ interface DateGroup {
 })
 export class HistoryPanel implements AfterViewChecked {
   @Input() open = false;
+  @Input() mobileOpen = false;
   @Input() sessions: ConversationSession[] = [];
   @Input() activeSessionId = '';
   @Output() sessionSelected = new EventEmitter<ConversationSession>();

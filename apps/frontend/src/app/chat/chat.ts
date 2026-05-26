@@ -49,6 +49,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private currentAbort: AbortController | null = null;
   private streamingToolCallIds: string[] = [];
 
+  readonly mobileSidebarOpen = signal(false);
   readonly streamingText = signal('');
   readonly streamingReasoning = signal('');
   readonly reasoningCollapsed = signal(false);
@@ -74,6 +75,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   usePrompt(text: string): void {
     if (this.isLoading || this.isStreaming()) return;
     this.onSend(text);
+  }
+
+  toggleMobileSidebar(): void {
+    this.mobileSidebarOpen.update((v) => !v);
+  }
+
+  closeMobileSidebar(): void {
+    this.mobileSidebarOpen.set(false);
   }
 
   showDateDivider(index: number): boolean {
