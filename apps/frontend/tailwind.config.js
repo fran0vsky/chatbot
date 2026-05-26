@@ -36,6 +36,21 @@ module.exports = {
         body: ["'Inter'", 'system-ui', 'sans-serif'],
         serif: ["'Lora'", 'Georgia', 'serif'],
       },
+      keyframes: {
+        'spino-wave': {
+          '0%, 100%': { transform: 'scaleY(0.25)' },
+          '50%': { transform: 'scaleY(1)' },
+        },
+        'spino-paw': {
+          '0%, 100%': { opacity: '0.2', transform: 'translateY(0)' },
+          '50%': { opacity: '1', transform: 'translateY(-3px)' },
+        },
+      },
+      animation: {
+        'spino-wave-idle': 'spino-wave 1.6s ease-in-out infinite',
+        'spino-wave-thinking': 'spino-wave 0.5s ease-in-out infinite',
+        'spino-paw': 'spino-paw 1.4s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

@@ -7,8 +7,8 @@ const SRC_DIR = path.resolve(__dirname, '..', 'apps', 'frontend', 'public', 'spi
 const TARGETS = [
   { file: 'bg-day.png',       width: 1920, height: 1080, fit: 'cover',   quality: 85 },
   { file: 'bg-night.png',     width: 1920, height: 1080, fit: 'cover',   quality: 85 },
-  { file: 'mascot-day.png',   width: 768,  height: 1024, fit: 'cover',   quality: 90 },
-  { file: 'mascot-night.png', width: 768,  height: 1024, fit: 'cover',   quality: 90 },
+  { file: 'mascot-day.png',   width: 800,  height: 800,  fit: 'inside',  quality: 90, alpha: true, noPalette: true },
+  { file: 'mascot-night.png', width: 800,  height: 800,  fit: 'inside',  quality: 90, alpha: true, noPalette: true },
   { file: 'spino-avatar.png', width: 256,  height: 256,  fit: 'contain', quality: 90, alpha: true },
   { file: 'spino-logo.png',   width: 128,  height: 128,  fit: 'contain', quality: 90, alpha: true },
 ];
@@ -25,7 +25,7 @@ async function run() {
     });
 
     await pipeline
-      .png({ quality: t.quality, compressionLevel: 9, palette: true })
+      .png({ quality: t.quality, compressionLevel: 9, palette: !t.noPalette })
       .toFile(tmpPath);
 
     fs.renameSync(tmpPath, srcPath);

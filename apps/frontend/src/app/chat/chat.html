@@ -27,6 +27,26 @@
     (newChat)="newChat()"
   />
 
+  <!-- Floating theme toggle (top-right) -->
+  <button
+    type="button"
+    (click)="toggleTheme()"
+    class="absolute top-3 right-4 z-30 p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent bg-jungle-bg/40 dark:bg-jungle-night/40 backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+    [attr.aria-label]="isDayMode ? 'Switch to night mode' : 'Switch to day mode'"
+    [title]="isDayMode ? 'Night mode' : 'Day mode'"
+  >
+    @if (isDayMode) {
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    } @else {
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+      </svg>
+    }
+  </button>
+
   <!-- Center chat column -->
   <div class="relative z-10 flex flex-col flex-1 min-w-0">
     <main class="flex-1 overflow-hidden relative flex flex-col">
@@ -49,7 +69,7 @@
               (send)="onSend($event)"
               (stop)="onStop()"
             />
-            <div class="flex items-center px-1 pt-1.5">
+            <div class="hidden">
               <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
             </div>
           </div>
@@ -119,7 +139,7 @@
               (send)="onSend($event)"
               (stop)="onStop()"
             />
-            <div class="flex items-center px-1 pt-1.5">
+            <div class="hidden">
               <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
             </div>
           </div>

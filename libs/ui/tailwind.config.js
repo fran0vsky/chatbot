@@ -33,6 +33,21 @@ module.exports = {
         title: ["'Playfair Display'", 'Georgia', 'serif'],
         body: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      keyframes: {
+        'spino-wave': {
+          '0%, 100%': { transform: 'scaleY(0.25)' },
+          '50%': { transform: 'scaleY(1)' },
+        },
+        'spino-paw': {
+          '0%, 100%': { opacity: '0.2', transform: 'translateY(0)' },
+          '50%': { opacity: '1', transform: 'translateY(-3px)' },
+        },
+      },
+      animation: {
+        'spino-wave-idle': 'spino-wave 1.6s ease-in-out infinite',
+        'spino-wave-thinking': 'spino-wave 0.5s ease-in-out infinite',
+        'spino-paw': 'spino-paw 1.4s ease-in-out infinite',
+      },
     },
   },
   plugins: [],
