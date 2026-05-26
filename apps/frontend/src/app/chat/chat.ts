@@ -38,7 +38,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
   isLoading = false;
-  selectedModel = 'deepseek/deepseek-v4-flash:free';
+  selectedModel = 'openai/gpt-oss-120b:free';
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
   isDayMode = false;
   historyOpen = false;
@@ -59,12 +59,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly isStreaming = signal(false);
 
   readonly models = [
+    { id: 'openai/gpt-oss-120b:free', label: 'GPT-OSS 120B (free)' },
+    { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', label: 'Nemotron 3 Nano (free, reasoning)' },
     { id: 'deepseek/deepseek-v4-flash:free', label: 'DeepSeek V4 Flash (free, reasoning)' },
     { id: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B (free)' },
     { id: 'google/gemma-4-31b-it:free', label: 'Gemma 4 31B (free)' },
     { id: 'qwen/qwen3-next-80b-a3b-instruct:free', label: 'Qwen 3 Next 80B (free)' },
-    { id: 'openai/gpt-oss-120b:free', label: 'GPT-OSS 120B (free)' },
-    { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', label: 'Nemotron 3 Nano (free, reasoning)' },
   ] as const;
 
   readonly suggestionPrompts = [
