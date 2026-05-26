@@ -92,6 +92,20 @@
   }
 }
 
+.error-markdown {
+  ::ng-deep {
+    a {
+      @apply font-medium underline decoration-red-300/60 hover:decoration-red-200 text-red-100;
+    }
+    p {
+      @apply my-0.5 leading-snug;
+    }
+    em {
+      @apply italic opacity-90;
+    }
+  }
+}
+
 @keyframes msg-slide-fade-right {
   from { opacity: 0; transform: translateX(16px); }
   to   { opacity: 1; transform: translateX(0); }
