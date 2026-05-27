@@ -12,16 +12,15 @@ export type Database = NodePgDatabase<typeof schema>;
   providers: [
     {
       provide: DATABASE_CONNECTION,
-      useFactory: (): { db: Database; pool: Pool } => {
+      useFactory: (): { db: Database | null; pool: Pool | null } => {
         const logger = new Logger('Database');
         const url = process.env['DATABASE_URL'];
         if (!url) {
-          throw new Error('DATABASE_URL env var is required');
+          logger.warn('DATABASE_URL not set — DB features disabled (e2e/local dev mode)');
+          return { db: null, pool: null };
         }
         const pool = new Pool({
           connectionString: url,
-          // Cloud SQL public IP needs ssl; Cloud SQL Auth Proxy + Unix socket does not.
-          // sslmode=require in the URL is enough for node-postgres to enable TLS.
           max: 10,
           idleTimeoutMillis: 30_000,
         });
