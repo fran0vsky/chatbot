@@ -59,7 +59,7 @@ test.describe('ReasoningBlock UX', () => {
     const textarea = page.getByTestId('message-input');
     await expect(textarea).toBeVisible();
 
-    await page.locator('select[aria-label="Choose model"]').selectOption('deepseek/deepseek-r1:free');
+    await page.locator('select[aria-label="Choose model"]').selectOption('openai/gpt-oss-120b:free');
     await textarea.fill('What is the answer to life?');
     await textarea.press('Enter');
 
@@ -107,7 +107,7 @@ test.describe('ReasoningBlock UX', () => {
     const textarea = page.getByTestId('message-input');
     await expect(textarea).toBeVisible();
 
-    await page.locator('select[aria-label="Choose model"]').selectOption('deepseek/deepseek-r1:free');
+    await page.locator('select[aria-label="Choose model"]').selectOption('openai/gpt-oss-120b:free');
     await textarea.fill('First question');
     await textarea.press('Enter');
 
@@ -152,12 +152,12 @@ test.describe('ReasoningBlock UX', () => {
 test.describe('ReasoningBlock — real backend', () => {
   test.skip(!process.env['OPENROUTER_API_KEY'], 'Skipped: OPENROUTER_API_KEY not set');
 
-  test('DeepSeek R1 produces a reasoning block in the live app', async ({ page }) => {
+  test('Reasoning model produces a reasoning block in the live app', async ({ page }) => {
     await page.goto('/');
     const textarea = page.getByTestId('message-input');
     await expect(textarea).toBeVisible();
 
-    await page.locator('select[aria-label="Choose model"]').selectOption('deepseek/deepseek-r1:free');
+    await page.locator('select[aria-label="Choose model"]').selectOption('openai/gpt-oss-120b:free');
     await textarea.fill('What is 2 + 2? Answer briefly.');
     await textarea.press('Enter');
 
