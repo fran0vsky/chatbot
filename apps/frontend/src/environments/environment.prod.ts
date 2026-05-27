@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://chatbot-backend-oihaopzolq-ew.a.run.app',
+  apiUrl: 'http://35.255.147.179',
 };

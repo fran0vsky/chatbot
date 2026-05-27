@@ -1,0 +1,39 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.github
+.planning
+.claude
+.nx
+.angular
+.storybook-static
+
+# Frontend (irrelevant for backend image)
+apps/frontend
+apps/frontend-e2e
+
+# Local env files (secrets via Secret Manager only)
+.env
+.env.*
+!.env.example
+
+# IDE / editor
+.vscode
+.idea
+*.swp
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Build / test outputs
+coverage
+*.log
+*.tsbuildinfo
+
+# Docs
+README.md
+*.md
+!apps/backend/CLAUDE.md
