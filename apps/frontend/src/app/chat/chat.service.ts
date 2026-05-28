@@ -2,16 +2,31 @@ import { Injectable } from '@angular/core';
 import { ChatRequest, StreamEvent } from '@org/shared-types';
 import { environment } from '../../environments/environment';
 
+// crypto.randomUUID() is only exposed in secure contexts (HTTPS / localhost).
+// On a plain-HTTP origin like the demo VM, calling it throws and breaks the
+// Angular bootstrap. Fall back to a Math.random-based RFC4122 v4 generator —
+// not cryptographically strong, but fine for client-side session IDs.
+function newUuid(): string {
+  const c = (typeof crypto !== 'undefined' ? crypto : undefined) as
+    | (Crypto & { randomUUID?: () => string })
+    | undefined;
+  if (c?.randomUUID) return c.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatService {
-  private threadId: string = crypto.randomUUID();
+  private threadId: string = newUuid();
 
   get currentThreadId(): string {
     return this.threadId;
   }
 
   resetThread(): void {
-    this.threadId = crypto.randomUUID();
+    this.threadId = newUuid();
   }
 
   setThread(id: string): void {
