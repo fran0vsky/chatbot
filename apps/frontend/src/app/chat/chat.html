@@ -190,8 +190,11 @@
               [placeholder]="placeholder"
               [disabled]="isLoading"
               [loading]="isLoading"
+              [tools]="availableTools"
+              [enabledToolNames]="enabledToolNames()"
               (send)="onSend($event)"
               (stop)="onStop()"
+              (toolToggled)="toggleTool($event.name, $event.enabled)"
             />
             <div class="flex items-center justify-center px-1 pt-2">
               <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
@@ -267,8 +270,11 @@
               [placeholder]="placeholder"
               [disabled]="isLoading"
               [loading]="isLoading"
+              [tools]="availableTools"
+              [enabledToolNames]="enabledToolNames()"
               (send)="onSend($event)"
               (stop)="onStop()"
+              (toolToggled)="toggleTool($event.name, $event.enabled)"
             />
             <div class="flex items-center justify-center px-1 pt-2">
               <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />

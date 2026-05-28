@@ -37,8 +37,9 @@ export class ChatService {
     message: string,
     model: string | undefined,
     signal: AbortSignal,
+    enabledTools?: string[],
   ): AsyncGenerator<StreamEvent, void, void> {
-    const body: ChatRequest = { message, threadId: this.threadId, model };
+    const body: ChatRequest = { message, threadId: this.threadId, model, enabledTools };
 
     let response: Response;
     try {

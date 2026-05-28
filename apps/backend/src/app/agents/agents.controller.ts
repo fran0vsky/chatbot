@@ -34,6 +34,7 @@ export class AgentsController {
         body.threadId,
         body.model,
         controller.signal,
+        body.enabledTools,
       )) {
         write(event);
       }

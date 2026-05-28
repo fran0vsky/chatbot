@@ -2,6 +2,14 @@ export interface ChatRequest {
   message: string;
   threadId?: string;
   model?: string;
+  /** Tool names the user has enabled. Undefined = all available tools. */
+  enabledTools?: string[];
+}
+
+export interface ToolInfo {
+  name: string;
+  label: string;
+  description: string;
 }
 
 export interface ToolCallRecord {

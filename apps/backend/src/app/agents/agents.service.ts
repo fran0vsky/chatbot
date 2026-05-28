@@ -36,15 +36,22 @@ export class AgentsService {
     threadId = 'default',
     model = 'openai/gpt-oss-120b:free',
     signal: AbortSignal,
+    enabledTools?: string[],
   ): AsyncGenerator<StreamEvent, void, void> {
     this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
 
+    // Caller may restrict the toolset; undefined or empty array means "use all".
+    const activeTools = enabledTools && enabledTools.length > 0
+      ? tools.filter((t) => enabledTools.includes(t.name))
+      : [...tools];
+
     try {
-      const llm = new ChatOpenAI({
+      const llmBase = new ChatOpenAI({
         model,
         apiKey: process.env['OPENROUTER_API_KEY'],
         configuration: { baseURL: 'https://openrouter.ai/api/v1' },
-      }).bindTools([...tools]);
+      });
+      const llm = activeTools.length > 0 ? llmBase.bindTools(activeTools) : llmBase;
 
       const conversation: BaseMessage[] = [new HumanMessage(message)];
       const toolCallRecords: ToolCallRecord[] = [];
@@ -72,7 +79,7 @@ export class AgentsService {
         // Execute each requested tool call, stream events as we go.
         for (const call of calls) {
           if (signal.aborted) return;
-          const tool = tools.find((t) => t.name === call.name);
+          const tool = activeTools.find((t) => t.name === call.name);
           const callId = call.id ?? `${call.name}-${iter}`;
           const args = (call.args ?? {}) as Record<string, unknown>;
 

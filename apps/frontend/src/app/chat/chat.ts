@@ -9,7 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord } from '@org/shared-types';
+import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
 import { HistoryPanel, InputComposer, MascotPanel, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { HistoryService } from './history.service';
@@ -95,6 +95,34 @@ export class ChatComponent implements OnInit, OnDestroy {
     { id: 'openai/gpt-oss-20b:free', label: 'GPT-OSS 20B (free, lighter)' },
     { id: 'z-ai/glm-4.5-air:free', label: 'GLM 4.5 Air (free)' },
   ] as const;
+
+  // Tool catalog must mirror the names registered in
+  // apps/backend/src/app/agents/tools/index.ts. Backend filters by name.
+  readonly availableTools: readonly ToolInfo[] = [
+    {
+      name: 'get_current_time',
+      label: 'Current time',
+      description: 'Lets Spino fetch the current UTC date and time.',
+    },
+    {
+      name: 'web_search',
+      label: 'Web search',
+      description: 'DuckDuckGo instant-answer for fresh facts and recent events.',
+    },
+    {
+      name: 'fetch_page',
+      label: 'Fetch page',
+      description: 'Reads a URL and lets Spino summarise its contents.',
+    },
+  ];
+
+  readonly enabledToolNames = signal<string[]>(this.availableTools.map((t) => t.name));
+
+  toggleTool(name: string, enabled: boolean): void {
+    this.enabledToolNames.update((current) =>
+      enabled ? [...new Set([...current, name])] : current.filter((n) => n !== name),
+    );
+  }
 
   readonly suggestionPrompts = [
     { icon: '💡', text: 'Explain quantum computing in simple terms' },
@@ -428,6 +456,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         augmented,
         this.selectedModel,
         controller.signal,
+        this.enabledToolNames(),
       )) {
         this.handleStreamEvent(event);
       }

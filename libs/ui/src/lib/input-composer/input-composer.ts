@@ -3,11 +3,13 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  HostListener,
   Input,
   Output,
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ToolInfo } from '@org/shared-types';
 
 @Component({
   standalone: true,
@@ -20,13 +22,40 @@ export class InputComposer {
   @Input() placeholder = 'Message';
   @Input() disabled = false;
   @Input() loading = false;
+  @Input() tools: readonly ToolInfo[] = [];
+  @Input() enabledToolNames: string[] = [];
   @Output() send = new EventEmitter<string>();
   @Output() stop = new EventEmitter<void>();
+  @Output() toolToggled = new EventEmitter<{ name: string; enabled: boolean }>();
 
   draft = '';
   atMaxHeight = false;
+  toolsOpen = false;
 
   @ViewChild('textareaRef') private textareaRef?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('toolsPopover') private toolsPopoverRef?: ElementRef<HTMLDivElement>;
+
+  toggleToolsPopover(): void {
+    this.toolsOpen = !this.toolsOpen;
+  }
+
+  isToolEnabled(name: string): boolean {
+    return this.enabledToolNames.includes(name);
+  }
+
+  onToolCheckboxChange(name: string, ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    this.toolToggled.emit({ name, enabled: input.checked });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(ev: MouseEvent): void {
+    if (!this.toolsOpen) return;
+    const popover = this.toolsPopoverRef?.nativeElement;
+    if (popover && !popover.contains(ev.target as Node)) {
+      this.toolsOpen = false;
+    }
+  }
 
   submit(): void {
     if (this.loading) {
