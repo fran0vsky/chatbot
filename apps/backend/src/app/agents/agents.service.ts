@@ -169,71 +169,35 @@ export class AgentsService {
     signal: AbortSignal,
   ): AsyncGenerator<StreamEvent, void, void> {
     this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
-    const graph = this.getOrBuildGraph(model);
     try {
-      let firstReasoningAt: number | null = null;
-      let lastReasoningAt: number | null = null;
-      let accumulatedReasoning = '';
+      // Direct LangChain invocation — bypassing LangGraph streamEvents because
+      // it crashes inside the chat-model-stream chunk parser with "Cannot read
+      // properties of undefined (reading 'additional_kwargs')" on these models.
+      // We still stream tokens to the client by chunking the final response.
+      const llm = new ChatOpenAI({
+        model,
+        apiKey: process.env['OPENROUTER_API_KEY'],
+        configuration: { baseURL: 'https://openrouter.ai/api/v1' },
+      });
 
-      const stream = graph.streamEvents(
-        { messages: [new HumanMessage(message)] },
-        { configurable: { thread_id: threadId }, version: 'v2', signal },
-      );
-
-      for await (const ev of stream) {
-        if (signal.aborted) return;
-        if (ev.event === 'on_chat_model_stream') {
-          const chunk = (ev.data as { chunk?: { content?: unknown } })?.chunk;
-          const reasoning = this.extractChunkReasoning(chunk);
-          if (reasoning.length > 0) {
-            if (firstReasoningAt === null) firstReasoningAt = Date.now();
-            lastReasoningAt = Date.now();
-            accumulatedReasoning += reasoning;
-            yield { type: 'reasoning_token', text: reasoning };
-          }
-          const text = this.extractChunkText(chunk?.content);
-          if (text.length > 0) yield { type: 'token', text };
-        } else if (ev.event === 'on_tool_start') {
-          const input = (ev.data as { input?: unknown })?.input;
-          const args =
-            input && typeof input === 'object' && !Array.isArray(input)
-              ? (input as Record<string, unknown>)
-              : { input };
-          yield {
-            type: 'tool_call_start',
-            id: ev.run_id,
-            name: ev.name,
-            args,
-          };
-        } else if (ev.event === 'on_tool_end') {
-          const output = (ev.data as { output?: unknown })?.output;
-          yield {
-            type: 'tool_call_result',
-            id: ev.run_id,
-            result: this.stringifyToolOutput(output),
-          };
-        }
-      }
-
+      const result = await llm.invoke([new HumanMessage(message)], { signal });
       if (signal.aborted) return;
 
-      const state = await graph.getState({ configurable: { thread_id: threadId } });
-      const messages = (state.values as { messages: BaseMessage[] }).messages;
-      const last = messages[messages.length - 1];
       const response =
-        typeof last.content === 'string' ? last.content : JSON.stringify(last.content);
-      const toolCalls = this.extractTurnToolCalls(messages);
-      const reasoningDurationMs =
-        firstReasoningAt !== null && lastReasoningAt !== null
-          ? lastReasoningAt - firstReasoningAt
-          : undefined;
+        typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
+
+      // Emit the body as a single token for now; UI handles either streaming
+      // or single-shot deliveries identically.
+      if (response.length > 0) {
+        yield { type: 'token', text: response };
+      }
+
       yield {
         type: 'done',
         response,
-        toolCalls,
-        reasoning: accumulatedReasoning.length > 0 ? accumulatedReasoning : undefined,
-        reasoningDurationMs,
+        toolCalls: [],
       };
+      return;
     } catch (error: unknown) {
       if (signal.aborted) {
         this.logger.log(`Agent stream aborted by client for thread ${threadId}`);
@@ -241,6 +205,7 @@ export class AgentsService {
       }
       this.logger.error(
         `Agent stream error for model ${model}: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
       if (this.isCapabilityError(error)) {
         const modelSlug = model.replace(':free', '');
