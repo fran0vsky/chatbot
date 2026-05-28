@@ -133,27 +133,9 @@ jobs:
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
 
-      # Ensure the VM's gcloud can pull from Artifact Registry.
-      # All vars.* values are read via env: and then stripped of whitespace —
-      # the GitHub variable editor sometimes preserves trailing newlines on
-      # paste, which makes gcloud reject the input (e.g. zone regex mismatch).
-      - name: Configure Docker auth on GCE instance
-        env:
-          GCE_INSTANCE: ${{ vars.GCE_INSTANCE }}
-          GCE_ZONE: ${{ vars.GCE_ZONE }}
-          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          GCP_REGION: ${{ vars.GCP_REGION }}
-        run: |
-          GCE_INSTANCE="${GCE_INSTANCE//[[:space:]]/}"
-          GCE_ZONE="${GCE_ZONE//[[:space:]]/}"
-          GCP_PROJECT_ID="${GCP_PROJECT_ID//[[:space:]]/}"
-          GCP_REGION="${GCP_REGION//[[:space:]]/}"
-          gcloud compute ssh "$GCE_INSTANCE" \
-            --zone="$GCE_ZONE" \
-            --project="$GCP_PROJECT_ID" \
-            --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev --quiet"
-
+      # Docker auth is configured on the VM by setup-compute.ps1's startup
+      # script (docker-credential-gcr for Artifact Registry). Container-Optimized
+      # OS has no gcloud binary, so don't try to run gcloud over SSH here.
       - name: Deploy backend container
         env:
           GCE_INSTANCE: ${{ vars.GCE_INSTANCE }}
