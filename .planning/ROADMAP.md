@@ -26,11 +26,28 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## v1.1 — SpinoChat Brand Identity (begins 2026-05-25)
 
 - [x] **Phase 12: SpinoChat Foundation** - Jungle palette (hex-only swap on existing `studio-*` tokens), Spinosaurus mascot integration, "Chatbot" → "SpinoChat / Spino" rename, tagline placement (completed 2026-05-25)
-- [ ] **Phase 13: Jungle Atmosphere** - Background gradient system (day/night), edge silhouettes (palms/ferns), shared theme-aware BG component
-- [ ] **Phase 14: Mascot Motion** - Rive integration; idle breathing + blink; reactive "thinking" state (eye glow) bound to streaming/reasoning signals
-- [ ] **Phase 15: Themed States** - Re-skin TypingIndicator, ReasoningBlock, and request-loading state with jungle-themed visuals (replace generic dots/spinners)
-- [ ] **Phase 16: Ambient Polish [stretch]** - Optional ambient motion layer (drifting leaves / dust / fog), toggleable, respects `prefers-reduced-motion`
-- [ ] **Phase 17: Sound [stretch]** - Optional ambient jungle audio layer, toggleable, OFF by default, no autoplay
+- [~] **Phase 13: Jungle Atmosphere** - DEFERRED to backlog at v2.0 start
+- [~] **Phase 14: Mascot Motion** - DEFERRED to backlog at v2.0 start (re-scoped to apply across all v2.0 dino mascots later)
+- [~] **Phase 15: Themed States** - DEFERRED to backlog at v2.0 start
+- [~] **Phase 16: Ambient Polish [stretch]** - DEFERRED to backlog
+- [~] **Phase 17: Sound [stretch]** - DEFERRED to backlog
+
+## v2.0 — Dino Platform (begins 2026-05-29)
+
+**Milestone goal:** Pivot SpinoChat from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos"). A dino = fixed model + system prompt + tool subset. Foundation ships first (dino abstraction → picker/Explore → pixel-art mascots), then memory & learning, multi-dino experiences, multimodal input, and ngrx-driven voice control. Riskiest clusters (Multimodal, Voice) come last as clean cut points.
+
+- [ ] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected
+- [ ] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned
+- [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat
+- [ ] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads
+- [ ] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills
+- [ ] **Phase 23: Dino Groupchat** - One prompt → multiple dinos respond in a single attributed view
+- [ ] **Phase 24: Dino Arena + Leaderboard** - Blind split-screen compare, vote → Elo-style scoring, Leaderboard tab
+- [ ] **Phase 25: Multimodal Input** - Screenshot paste, vision dino on a free OpenRouter vision model, OCR
+- [ ] **Phase 26: Image Generation** - Artist dino generates images inline, downloadable
+- [ ] **Phase 27: NgRx State Refactor** - Move app state to NgRx; expose a whitelisted dispatchable action catalogue
+- [ ] **Phase 28: Voice I/O + SSML** - Two-way voice (TTS with SSML) + speech-to-text input, with a free/browser fallback
+- [ ] **Phase 29: Voice Dino Assistant** - Voice commands fire whitelisted app actions; clarifies when ambiguous; refuses out-of-scope actions; finds & switches past chats
 
 ## Phase Details
 
@@ -96,11 +113,24 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 10. Token Streaming | 3/3 | Complete | 2026-05-24 |
 | 11. Reasoning Display | 6/6 | Complete | 2026-05-24 |
 | 12. SpinoChat Foundation | 3/3 | Complete    | 2026-05-25 |
-| 13. Jungle Atmosphere | 0/TBD | Planned (v1.1) | - |
-| 14. Mascot Motion | 0/TBD | Planned (v1.1) | - |
-| 15. Themed States | 0/TBD | Planned (v1.1) | - |
-| 16. Ambient Polish | 0/TBD | Planned (v1.1, stretch) | - |
-| 17. Sound | 0/TBD | Planned (v1.1, stretch) | - |
+| 13. Jungle Atmosphere | 0/TBD | Deferred to backlog | - |
+| 14. Mascot Motion | 0/TBD | Deferred to backlog | - |
+| 15. Themed States | 0/TBD | Deferred to backlog | - |
+| 16. Ambient Polish | 0/TBD | Deferred to backlog | - |
+| 17. Sound | 0/TBD | Deferred to backlog | - |
+| **— v2.0 Dino Platform —** | | | |
+| 18. Dino Abstraction | 0/TBD | Planned (v2.0) | - |
+| 19. Dino Picker + Explore | 0/TBD | Planned (v2.0) | - |
+| 20. Dino Mascots | 0/TBD | Planned (v2.0) | - |
+| 21. Cross-Thread Memory | 0/TBD | Planned (v2.0) | - |
+| 22. Teach-a-Skill | 0/TBD | Planned (v2.0) | - |
+| 23. Dino Groupchat | 0/TBD | Planned (v2.0) | - |
+| 24. Arena + Leaderboard | 0/TBD | Planned (v2.0) | - |
+| 25. Multimodal Input | 0/TBD | Planned (v2.0) | - |
+| 26. Image Generation | 0/TBD | Planned (v2.0) | - |
+| 27. NgRx State Refactor | 0/TBD | Planned (v2.0) | - |
+| 28. Voice I/O + SSML | 0/TBD | Planned (v2.0) | - |
+| 29. Voice Dino Assistant | 0/TBD | Planned (v2.0) | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -318,3 +348,182 @@ Plans:
 **Scope note:** Stretch — last and most optional phase.
 **Plans:** TBD (run `/gsd-plan-phase 17`)
 **UI hint:** no (UI is just a toggle button)
+
+---
+
+## v2.0 Milestone: Dino Platform
+
+**Milestone goal:** Transform SpinoChat from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos") — each a fixed model + system prompt + tool subset — with cross-thread memory, teachable skills, groupchat, arena + leaderboard, multimodal input, and ngrx-driven voice control.
+
+**Execution order:** 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 26 → 27 → 28 → 29. The foundation (18–20) is sequential and unblocks most later work. Memory (21–22), multi-dino (23–24), multimodal (25–26), and voice (27–29) are clusters that can be re-ordered or trimmed after the foundation if scope tightens. Voice/multimodal are deliberately last (highest complexity / external-provider risk).
+
+**Architecture note (correcting stale docs — PLAT-01):** The backend runs a **manual agent loop** in `agents.service.ts` (LangGraph was dropped per mentor guidance), and persistence is **Postgres + Drizzle** (`sessions`, `messages`) — *not* MemorySaver-only. v2.0 builds on this real foundation.
+
+**Identity note:** Cross-thread memory, leaderboards, and learned skills key on an **anonymous per-device id** (localStorage) until accounts land. `sessions.userId` is already a nullable text column ready for this.
+
+### Phase 18: Dino Abstraction
+**Goal:** A "dino" becomes a first-class backend concept — a registry entry of model + system prompt + allowed tool subset — and the agent loop injects the dino's system prompt and enforces its toolset. At least 4 distinct dinos exist.
+**Mode:** mvp
+**Depends on:** v1.0 backend (Phases 9–11)
+**Requirements:** DINO-01, DINO-02, DINO-03, DINO-04, DINO-05, DINO-06, PLAT-01
+**Success Criteria** (what must be TRUE):
+  1. A backend dino registry defines ≥4 dinos, each with a distinct model, system prompt, and tool subset
+  2. Sending a chat with a given dino injects that dino's system prompt as a system message (observable: personality differs between dinos on the same prompt)
+  3. A dino cannot call a tool outside its allowed subset (server-side enforced; verified by attempting an out-of-set tool)
+  4. Dino definitions are exposed to the frontend via a typed contract in `@org/shared-types`
+  5. A session records which dino it belongs to and the active dino is recoverable
+  6. PROJECT.md / ROADMAP.md / GSD-CONTEXT.md no longer claim LangGraph or MemorySaver-only
+**Scope note:** In — backend registry, system-prompt injection, per-dino tool gating, shared types, doc correction. Out — UI picker (Phase 19), dino-specific mascots (Phase 20).
+**Plans:** TBD (run `/gsd-plan-phase 18`)
+**UI hint:** no
+
+### Phase 19: Dino Picker + Explore
+**Goal:** Choosing a dino replaces choosing a model. Starting a new chat opens a dino picker, the model dropdown is gone, and an Explore page presents every dino.
+**Mode:** mvp
+**Depends on:** Phase 18
+**Requirements:** PICK-01, PICK-02, PICK-03, PICK-04, UX-01
+**Success Criteria** (what must be TRUE):
+  1. Starting a new chat presents a dino picker; the chosen dino drives the session
+  2. The model dropdown is removed from the composer
+  3. An Explore page lists every dino with name, personality blurb, and specialty/toolset
+  4. The active dino's name (and mascot slot) appears in the chat header
+  5. The footer is pinned to the bottom of the viewport at all sizes
+**Scope note:** In — picker UI, Explore page, header, dropdown removal, footer fix. Mascots use the existing Spino placeholder until Phase 20 supplies per-dino art.
+**Plans:** TBD (run `/gsd-plan-phase 19`)
+**UI hint:** yes
+
+### Phase 20: Dino Mascots
+**Goal:** Each dino gets a unique pixel-art mascot in the exact style of `dual-mascot.png` (new species), with day/night variants produced through the existing split pipeline, integrated everywhere a dino appears.
+**Mode:** mvp
+**Depends on:** Phase 19 (dinos must be wired and visible first — per maker's explicit sequencing)
+**Requirements:** MASC-06, MASC-07, MASC-08
+**Success Criteria** (what must be TRUE):
+  1. Each of the ≥4 dinos has a distinct pixel-art species mascot matching the established style
+  2. Each mascot has day + night variants generated via `split-mascot.js` → optimize scripts
+  3. Mascots render in the picker, Explore page, and assistant message bubbles bound to the active dino
+  4. Mascots render crisply (integer-scaled, no artifacts), consistent with MASC-02
+**Scope note:** In — art generation per species, pipeline run, integration. Out — mascot motion/animation (deferred ex-Phase 14). Art creation is partly a human/asset task; this phase defines per-species art specs and wires the pipeline + integration.
+**Plans:** TBD (run `/gsd-plan-phase 20`)
+**UI hint:** yes
+
+### Phase 21: Cross-Thread Memory
+**Goal:** A dino remembers facts about the user across separate threads, scoped per (user × dino), and uses them in later conversations.
+**Mode:** mvp
+**Depends on:** Phase 18
+**Requirements:** MEM-01, MEM-02, MEM-03
+**Success Criteria** (what must be TRUE):
+  1. Facts surfaced in one thread with a dino are available to that dino in a different thread (same anonymous user)
+  2. Memory is scoped per (user × dino): a different dino does not see another dino's memories
+  3. Relevant memories are retrieved and injected into the dino's context at turn start (observable: dino references an earlier-thread fact)
+  4. A new DB table backs memory; no regression to existing chat persistence
+**Scope note:** In — memory schema, write/extract on turns, retrieval + injection. Out — teach-a-skill UI (Phase 22), cross-device sync (needs auth).
+**Plans:** TBD (run `/gsd-plan-phase 21`)
+**UI hint:** no
+
+### Phase 22: Teach-a-Skill
+**Goal:** A user can teach a dino a skill once, in a dedicated training chat, and that skill persists and applies automatically in all future chats with that dino.
+**Mode:** mvp
+**Depends on:** Phase 21
+**Requirements:** MEM-04, MEM-05, MEM-06
+**Success Criteria** (what must be TRUE):
+  1. A button in the chat opens a dedicated "teach a skill" flow for the active dino
+  2. A skill taught in that flow persists and is applied in a new normal chat without re-teaching
+  3. The user can view and remove a dino's learned memories and skills
+**Scope note:** In — training-chat UI, skill persistence, management UI. Builds on the Phase 21 memory store.
+**Plans:** TBD (run `/gsd-plan-phase 22`)
+**UI hint:** yes
+
+### Phase 23: Dino Groupchat
+**Goal:** The user sends one prompt and several selected dinos answer in a single, attributed view.
+**Mode:** mvp
+**Depends on:** Phase 19
+**Requirements:** GRP-01, GRP-02
+**Success Criteria** (what must be TRUE):
+  1. The user can select multiple dinos and send one prompt that all of them answer
+  2. Each response is clearly attributed to its dino (name + mascot)
+  3. Responses stream/appear without blocking each other; no regression to single-dino chat
+**Scope note:** In — multi-dino fan-out, attributed rendering. Out — dinos talking to each other (future idea).
+**Plans:** TBD (run `/gsd-plan-phase 23`)
+**UI hint:** yes
+
+### Phase 24: Dino Arena + Leaderboard
+**Goal:** A blind head-to-head where two dinos answer the same prompt; the user votes, identities are revealed, scores update, and a Leaderboard ranks dinos.
+**Mode:** mvp
+**Depends on:** Phase 19
+**Requirements:** ARN-01, ARN-02, ARN-03, ARN-04
+**Success Criteria** (what must be TRUE):
+  1. Arena splits the screen; two dinos answer the same prompt with identities hidden
+  2. The user votes for the better answer; both dinos are then revealed
+  3. Votes update a persistent, documented ranking score (Elo-style or equivalent)
+  4. A Leaderboard tab ranks all dinos by score
+**Scope note:** In — arena UI, blind compare, voting, scoring system + table, leaderboard. Scoring algorithm is designed and documented in this phase.
+**Plans:** TBD (run `/gsd-plan-phase 24`)
+**UI hint:** yes
+
+### Phase 25: Multimodal Input
+**Goal:** Users can paste screenshots; a vision dino reasons about images on a free OpenRouter vision model; OCR extracts text from screenshots.
+**Mode:** mvp
+**Depends on:** Phase 18
+**Requirements:** VIS-01, VIS-02, VIS-03, VIS-04
+**Success Criteria** (what must be TRUE):
+  1. A user can paste or attach an image into the composer
+  2. A vision dino accepts the image and answers questions about it via a free OpenRouter vision model
+  3. The user can extract text (OCR) from a pasted screenshot
+  4. Free vision-model viability is verified and documented; the vision dino degrades gracefully when unavailable
+**Scope note:** In — image attach/paste, vision dino, OCR. Begin with a short spike to confirm which free vision models (e.g. Kimi, Gemma) actually work on OpenRouter. Out — image generation (Phase 26).
+**Plans:** TBD (run `/gsd-plan-phase 25`)
+**UI hint:** yes
+
+### Phase 26: Image Generation
+**Goal:** An artist dino generates images from text prompts, rendered inline and downloadable.
+**Mode:** mvp
+**Depends on:** Phase 25
+**Requirements:** IMG-01, IMG-02
+**Success Criteria** (what must be TRUE):
+  1. The artist dino generates an image from a text prompt
+  2. Generated images render inline in the chat
+  3. The user can download a generated image
+**Scope note:** In — image-gen integration, inline render, download. Provider/cost confirmed during the phase (free tier preferred).
+**Plans:** TBD (run `/gsd-plan-phase 26`)
+**UI hint:** yes
+
+### Phase 27: NgRx State Refactor
+**Goal:** Move frontend app state to NgRx and expose a whitelisted catalogue of dispatchable app actions — the foundation the voice assistant drives.
+**Mode:** mvp
+**Depends on:** Phase 19 (dino/session state should exist before it's modeled in the store)
+**Requirements:** NGX-01, NGX-02
+**Success Criteria** (what must be TRUE):
+  1. Active dino, theme, chat session, and message list are managed via NgRx with typed actions/selectors
+  2. A documented whitelist of dispatchable actions exists (change theme, new chat, switch chat, read/listen last message, send message)
+  3. No regression: all existing flows work through the store
+**Scope note:** In — store, actions, selectors, effects for existing flows; action whitelist. Out — voice (Phase 28), assistant (Phase 29). This is a refactor, not a feature — guard against regressions.
+**Plans:** TBD (run `/gsd-plan-phase 27`)
+**UI hint:** no
+
+### Phase 28: Voice I/O + SSML
+**Goal:** A dino can read its responses aloud (TTS with SSML) and the user can dictate input (STT), with a free/browser fallback.
+**Mode:** mvp
+**Depends on:** Phase 18
+**Requirements:** VOX-01, VOX-02, VOX-03
+**Success Criteria** (what must be TRUE):
+  1. A dino reads its response aloud on demand
+  2. Spoken output uses SSML for natural prosody/pauses (or documents the fallback when the provider lacks SSML)
+  3. The user can dictate a message by voice (speech-to-text)
+  4. A free/browser fallback exists so voice works without a paid provider
+**Scope note:** In — TTS + SSML, STT, provider/cost decision (browser SpeechSynthesis fallback vs. Azure/ElevenLabs for real SSML). Out — voice commands that control the app (Phase 29).
+**Plans:** TBD (run `/gsd-plan-phase 28`)
+**UI hint:** yes
+
+### Phase 29: Voice Dino Assistant
+**Goal:** A voice assistant dino that controls the app by firing whitelisted NgRx actions, asks for clarification when ambiguous, refuses out-of-scope actions, and can find & switch to past chats.
+**Mode:** mvp
+**Depends on:** Phase 27 (NgRx action whitelist), Phase 28 (voice I/O)
+**Requirements:** AST-01, AST-02, AST-03, AST-04
+**Success Criteria** (what must be TRUE):
+  1. A voice command fires a whitelisted app action (e.g. "switch to night theme", "start a new chat", "read the last message")
+  2. An ambiguous command triggers a spoken clarifying question instead of a guess
+  3. A command outside the whitelist (e.g. "delete my account") is declined with a spoken explanation
+  4. The assistant can find and switch to a previous chat by topic/recency
+**Scope note:** In — intent → whitelisted action mapping, clarification loop, refusal path, past-chat lookup. The assistant's only powers are the Phase 27 whitelist — it cannot invent actions.
+**Plans:** TBD (run `/gsd-plan-phase 29`)
+**UI hint:** yes

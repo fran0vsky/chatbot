@@ -16,7 +16,26 @@ A general-purpose text chatbot with a distinctive prehistoric jungle aesthetic a
 
 ## Core Value
 
-A user can open the app, type a message, get a real answer, and keep the conversation going — everything else is secondary.
+A user can open the app, type a message, get a real answer, and keep the conversation going — everything else is secondary. **(v2.0 evolves this:** the user picks a characterful agent — a "dino" — that remembers them and can be summoned across modes: chat, groupchat, arena, and voice.)
+
+## Current Milestone: v2.0 — Dino Platform
+
+**Goal:** Pivot from a single-model chatbot to a platform of distinct, characterful AI agents ("dinos"). A dino = fixed model + system prompt (personality, tools it may use, response workflow) + tool subset.
+
+**Target features:**
+- **Dino abstraction** — backend registry of ≥4 dinos (model + system prompt + tool subset); system-prompt injection + server-side tool gating (Phase 18)
+- **Dino picker + Explore** — choosing a dino replaces choosing a model; model dropdown removed (Phase 19)
+- **Pixel-art dino mascots** — unique species per dino in the `dual-mascot.png` style, day/night via the split pipeline, sequenced after dinos are wired (Phase 20)
+- **Cross-thread memory + teachable skills** — per-(user × dino) memory; teach a skill once and it persists (Phases 21–22)
+- **Multi-dino experiences** — groupchat + arena with Elo-style scoring + leaderboard (Phases 23–24)
+- **Multimodal** — screenshot paste, vision dino on free models, OCR, image generation (Phases 25–26)
+- **NgRx + voice dino assistant** — state refactor exposing a whitelisted action catalogue; voice control of the app (Phases 27–29)
+
+**Key context / decisions baked into this milestone:**
+- **v1.1 Phases 13–17 are deferred to backlog** (jungle atmosphere, mascot motion, themed states, ambient, sound). Mascot *motion* is deliberately parked until the dino roster is final, then applied across all dinos.
+- **Docs were stale.** The backend already runs a **manual agent loop** (LangGraph dropped per mentor guidance) and persists to **Postgres + Drizzle** (`sessions`, `messages`) — *not* MemorySaver-only. v2.0 builds on this real foundation (PLAT-01).
+- **No auth yet.** Memory/leaderboards/skills key on an **anonymous per-device id** (localStorage); `sessions.userId` is already nullable text awaiting accounts.
+- **Voice/multimodal are last** — highest complexity and external-provider/cost risk; natural cut points if scope tightens.
 
 ## Requirements
 
@@ -91,6 +110,11 @@ A user can open the app, type a message, get a real answer, and keep the convers
 | **Jungle / dinosaur theme** (2026-05-25) | Niche but underexplored in AI chatbot space (most use abstract, owl, fox, alligator). Differentiates the portfolio piece | Active |
 | **Rive for mascot animation** (2026-05-25) | State-driven animation needed (idle / thinking / reactive eyes). Industry standard (Duolingo uses for Duo). ~50KB dep accepted | Active |
 | **Portfolio-grade scope** (2026-05-25) | Trademark/domain/legal are deferred until/unless project is published. Code quality matches a portfolio piece, not a SaaS company | Active |
+| **v2.0 pivot to Dino Platform** (2026-05-29) | Mentor guidance: select a *dino* (model + system prompt + tools), not a raw model. Reframes the product from "chatbot" to "platform of agents" | Active |
+| **Defer v1.1 Phases 13–17** (2026-05-29) | Pivot is large; mascot-motion work was scoped for one Spino and would be throwaway against a 4+ species roster. Finalize roster + static mascots first, add motion later across all dinos | Active |
+| **Dino mascots sequenced after dinos** (2026-05-29) | Maker's explicit ask: wire dinos in (Phases 18–19) before drawing per-species pixel-art mascots (Phase 20), reusing the `dual-mascot.png` → `split-mascot.js` pipeline | Active |
+| **Anonymous per-device identity for memory** (2026-05-29) | No auth in v2.0; memory/leaderboards/skills key on a localStorage id. `sessions.userId` (nullable text) is ready for real accounts later | Active |
+| **Docs corrected: manual loop + Postgres** (2026-05-29) | PROJECT/ROADMAP claimed LangGraph + MemorySaver; code already uses a manual agent loop and Drizzle/Postgres. v2.0 builds on the real foundation (PLAT-01) | Active |
 
 ## Evolution
 
@@ -110,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — v1.1 milestone start (SpinoChat brand identity)*
+*Last updated: 2026-05-29 — v2.0 milestone start (Dino Platform); v1.1 Phases 13–17 deferred to backlog*

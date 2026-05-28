@@ -1,153 +1,190 @@
-# Requirements: Chatbot
+# Requirements: SpinoChat
 
 **Defined:** 2026-05-17
-**Core Value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
+**Core Value (v2.0):** A user can open the app, pick a characterful AI agent ("dino"), get a real answer, and keep the conversation going — the dino remembers them and can be summoned across modes (chat, groupchat, arena, voice).
 
-## v1 Requirements
+> **Milestone status:** v1.0 (Phases 1–11) complete. v1.1 SpinoChat Brand Identity (Phases 12–17) — Phase 12 shipped; Phases 13–17 **deferred to backlog** at v2.0 start (see "Deferred — v1.1 polish" below). **v2.0 "Dino Platform" is the active milestone.**
 
-### Backend
+---
 
-- [ ] **BACK-01**: Backend uses OpenRouter as the LLM provider (ChatOpenAI pointed at `https://openrouter.ai/api/v1`)
-- [ ] **BACK-02**: Default model is `openai/gpt-4o-mini`
-- [ ] **BACK-03**: LangGraph graph simplified to `START → agent → END` (placeholder search tool removed)
-- [ ] **BACK-04**: `@langchain/openai` declared explicitly in package.json (not just a transitive dep)
-- [ ] **BACK-05**: Dockerfile copies `libs/` so `@org/shared-types` resolves inside Docker
+## v2.0 Requirements — Dino Platform (ACTIVE)
 
-### Chat UI
+**Defined:** 2026-05-29
+**Scope:** Pivot from a single-model chatbot to a platform of distinct, characterful AI agents ("dinos"). Each dino = fixed model + system prompt + tool subset. Adds cross-thread memory, teachable skills, groupchat, arena + leaderboard, multimodal input, and ngrx-driven voice control. Phases execute in dependency order; foundation first, riskiest clusters (Multimodal, Voice) last.
 
-- [ ] **UI-01**: User can type a message in a text input and submit it (Enter key or send button)
-- [ ] **UI-02**: Messages are displayed in a bubble layout — user messages on the right, assistant messages on the left
-- [ ] **UI-03**: A loading indicator (typing dots) is visible while waiting for the assistant response
-- [ ] **UI-04**: The message list automatically scrolls to the newest message
+### Dino Abstraction
 
-### Conversation
+- [ ] **DINO-01**: A "dino" is defined as a fixed model + system prompt (personality, response style, workflow) + an allowed tool subset, stored in a backend registry as the single source of truth
+- [ ] **DINO-02**: At least 4 distinct dinos exist, each with a different model, personality, and tool set
+- [ ] **DINO-03**: The selected dino's system prompt is injected as a system message at the start of every agent turn (no system prompt is injected today)
+- [ ] **DINO-04**: A dino can only invoke tools in its allowed subset; tool access is enforced server-side
+- [ ] **DINO-05**: Dino definitions (id, name, blurb, specialty, model, tools) are exposed to the frontend via a typed contract in `@org/shared-types`
+- [ ] **DINO-06**: A chat session is bound to exactly one dino for its lifetime; the active dino is recoverable from the session
 
-- [ ] **CONV-01**: The frontend generates a `threadId` (UUID) once per session and sends it with every request so the backend MemorySaver maintains conversation context across turns
-- [ ] **CONV-02**: Refreshing the page or opening a new tab starts a fresh conversation
+### Dino Selection & Explore
 
-### Deployment & Quality
+- [ ] **PICK-01**: Starting a new chat presents a dino picker the user chooses from (replacing model selection)
+- [ ] **PICK-02**: The model dropdown is removed from the composer
+- [ ] **PICK-03**: An Explore page lists every dino with its mascot, name, personality blurb, and specialty/toolset
+- [ ] **PICK-04**: The active dino's name and mascot are shown in the chat header
 
-- [ ] **DEPLOY-01**: Backend Docker image is built and deployed to GCP Cloud Run; accessible via Cloud Run public URL
-- [ ] **DEPLOY-02**: Angular frontend is built and deployed to Firebase Hosting; accessible via Firebase public URL with the backend URL configured
-- [ ] **DEPLOY-03**: GitHub Actions CI/CD pipeline runs lint + build on every push; deploys backend to Cloud Run and frontend to Firebase Hosting on push to `main`
-- [ ] **E2E-01**: Playwright E2E test covers the core happy path — app loads, user sends a message, assistant response appears in the chat bubble list
+### Dino Mascots (pixel-art)
 
-### Model Switching (Task 2)
+- [ ] **MASC-06**: Each dino has a unique pixel-art mascot drawn in the exact style of `dual-mascot.png` (a distinct dinosaur species)
+- [ ] **MASC-07**: Each dino mascot ships day + night palette variants produced through the `split-mascot.js` → optimize pipeline
+- [ ] **MASC-08**: Dino mascots appear in the picker, Explore page, and assistant message bubbles (per active dino)
 
-- [ ] **MODEL-01**: User can select from a list of available models in the UI and the selection is used for subsequent messages
+### Memory & Learning
 
-## v1.1 Requirements — SpinoChat Brand Identity
+- [ ] **MEM-01**: A dino retains facts learned about the user across separate threads/sessions
+- [ ] **MEM-02**: Memory is scoped per (user × dino) so each dino accumulates its own understanding of the user
+- [ ] **MEM-03**: Relevant stored memories are retrieved and injected into the dino's context at the start of a turn
+- [ ] **MEM-04**: User can open a dedicated "teach a skill" chat for a dino from a button in the chat
+- [ ] **MEM-05**: A skill taught to a dino persists and is applied automatically in all future chats with that dino (no re-teaching)
+- [ ] **MEM-06**: User can review and remove what a dino has learned (memories and skills)
 
-**Defined:** 2026-05-25
-**Scope:** Visual + identity overhaul of the existing working chatbot — rebrand to "SpinoChat", introduce jungle aesthetic + Spinosaurus mascot ("Spino"), themed motion and states. Backend behavior unchanged.
-**Context:** Portfolio project. No production-grade requirements (legal, GDPR, accessibility certification, etc.) imposed by this milestone.
+### Multi-Dino — Groupchat
 
-### Brand
+- [ ] **GRP-01**: Groupchat mode lets the user send one prompt and receive responses from multiple selected dinos in a single view
+- [ ] **GRP-02**: Each dino's response in groupchat is clearly attributed to that dino (name + mascot)
 
-- [x] **BRAND-01**: All visible product naming in the UI reads "SpinoChat" or short-form "Spino" — header title, browser tab title, meta description, landing-state copy
-- [x] **BRAND-02**: The tagline "The AI that survived" is placed at least once on the landing/empty state
-- [x] **BRAND-03**: README.md and CLAUDE.md project description updated to "SpinoChat"
+### Multi-Dino — Arena & Leaderboard
 
-### Visual identity (palette)
+- [ ] **ARN-01**: Arena mode splits the screen and has two dinos answer the same prompt; dino identities are hidden until after voting
+- [ ] **ARN-02**: The user votes for the better answer, after which both dinos are revealed
+- [ ] **ARN-03**: Votes update a persistent dino ranking score (Elo-style or equivalent), defined and documented
+- [ ] **ARN-04**: A Leaderboard tab ranks all dinos by their ranking score
 
-- [x] **PAL-01**: Day-mode palette is a daytime-jungle theme — warm sunlit greens, beige/sand neutrals, soft amber highlights. Replaces current Soft Studio cream/tan day palette
-- [x] **PAL-02**: Night-mode palette is a night-jungle / sunset theme — deep teals/blues, warm sunset orange/coral accents, optional bioluminescent-style accent for highlights. Replaces current Soft Studio slate dark palette
-- [x] **PAL-03**: Both palettes pass minimum readable contrast for body text against background (WCAG AA — pragmatic enforcement, not formal audit)
-- [x] **PAL-04**: All existing `studio-*` Tailwind tokens get re-mapped hex values; no new token names introduced (palette swap is hex-only; no rename pass needed)
+### Multimodal Input
 
-### Mascot (Spino)
+- [ ] **VIS-01**: User can paste or attach a screenshot/image into the composer
+- [ ] **VIS-02**: A vision-capable dino accepts images and reasons about them, using a free OpenRouter vision model
+- [ ] **VIS-03**: User can extract (OCR) the text contained in a pasted screenshot
+- [ ] **VIS-04**: Free vision-model availability is verified and documented; the vision dino degrades gracefully if its model is unavailable
 
-- [x] **MASC-01**: A Spinosaurus-inspired mascot replaces the current capybara SVG in `MessageBubble` (assistant role)
-- [x] **MASC-02**: Mascot renders crisply at all sizes — vector (SVG / Rive) or PNG rendered at integer-multiple of native size
-- [ ] **MASC-03**: Mascot has an idle breathing/blink animation (subtle, slow loop)
-- [ ] **MASC-04**: Mascot has a distinct visual state during a "thinking" (streaming/reasoning) response — eyes glow or equivalent
-- [x] **MASC-05**: Mascot is also shown at larger size in the landing/empty state (hero placement) before any messages are sent
+### Image Generation
 
-### Atmosphere (background)
+- [ ] **IMG-01**: An "artist" dino can generate an image from a text prompt
+- [ ] **IMG-02**: Generated images render inline in the chat and can be downloaded
 
-- [ ] **BG-01**: Day-mode chat background uses a subtle vertical gradient + low-opacity silhouette band (e.g. fern fronds) along the bottom edge — must never overlap or compete with message content
-- [ ] **BG-02**: Night-mode chat background uses a sunset gradient (deep top → warm bottom) + palm silhouettes at the bottom horizon
-- [ ] **BG-03**: Background is implemented in a single shared component so day/night variants stay in lockstep with the theme toggle
+### Frontend State (NgRx)
 
-### Themed states
+- [ ] **NGX-01**: Frontend application state (active dino, theme, chat session, message list) is managed via NgRx with typed actions and selectors
+- [ ] **NGX-02**: A whitelisted catalogue of dispatchable app actions exists (change theme, new chat, switch chat, read/listen last message, send message) for the assistant layer to call
 
-- [ ] **STATE-01**: The typing indicator (`TypingIndicator` component) is re-skinned to feel jungle-themed — pulsing ripple, footstep pattern, or equivalent — not generic dots
-- [ ] **STATE-02**: The reasoning block (`ReasoningBlock` component) header is restyled to match the jungle palette and uses themed iconography instead of the generic "thinking" icon
-- [ ] **STATE-03**: The send-loading state (during a request) uses a themed mascot animation instead of a generic spinner — at minimum the mascot's "thinking" state from MASC-04
+### Voice I/O
 
-### Stretch (optional — only if earlier phases ship cleanly)
+- [ ] **VOX-01**: A dino can read its responses aloud via text-to-speech (two-way voice)
+- [ ] **VOX-02**: Spoken output is driven by SSML for natural prosody/pauses
+- [ ] **VOX-03**: User can dictate input by voice (speech-to-text)
 
-- [ ] **AMB-01**: An ambient motion layer (slow drifting leaves OR dust particles OR fog) overlays the chat background. Performance budget: must not drop frame rate measurably; toggleable via a UI control; OFF by default
-- [ ] **AMB-02**: Ambient motion respects `prefers-reduced-motion` (auto-off when set)
-- [ ] **SND-01**: An ambient jungle/rain audio layer can be toggled on from the UI. OFF by default. Volume control or simple on/off. No autoplay
+### Voice Dino Assistant
 
-### Out of v1.1 scope
+- [ ] **AST-01**: A voice "dino assistant" interprets voice commands and fires whitelisted NgRx app actions (change theme, new chat, read last message, switch to a previous chat, write a message)
+- [ ] **AST-02**: When a command is ambiguous, the assistant asks a clarifying question by voice instead of guessing
+- [ ] **AST-03**: For actions outside its whitelist (e.g. delete account), the assistant states it cannot perform them
+- [ ] **AST-04**: The assistant can locate and switch to a previous chat by querying past chats (by topic/recency)
 
-| Item | Reason |
-|------|--------|
-| Backend changes | Visual/identity milestone only — backend (`agents.service.ts`, LangGraph, OpenRouter) unchanged |
-| Mobile native apps | Web-first portfolio piece |
-| Trademark filing, domain purchase | Deferred — pending decision on public release |
-| Full WCAG audit | Pragmatic contrast check only; formal accessibility audit deferred |
-| Per-user theme customization | Day/night toggle is sufficient |
-| Internationalization of brand copy | English only |
+### Platform / Hygiene
 
-## v2 Requirements
+- [ ] **UX-01**: The footer is pinned to the bottom of the viewport across screen sizes
+- [ ] **PLAT-01**: Planning docs (PROJECT.md, ROADMAP.md, GSD-CONTEXT.md) are corrected to reflect the real architecture — manual agent loop (no LangGraph), Postgres/Drizzle persistence (no MemorySaver-only)
 
-### Enhancement
+---
 
-- **ENH-01**: Persistent conversation history across sessions (requires database)
-- **ENH-02**: Markdown rendering in assistant messages
-- **ENH-03**: Message timestamps
-- **ENH-04**: Copy-to-clipboard on messages
+## Historical Requirements (v1.0 + v1.1)
+
+### v1.0 — Working Chat & Model Switching (Phases 1–11, complete)
+
+#### Backend
+- [x] **BACK-01**: Backend uses OpenRouter as the LLM provider (ChatOpenAI pointed at `https://openrouter.ai/api/v1`)
+- [x] **BACK-02**: Default model is `openai/gpt-4o-mini`
+- [x] **BACK-03**: Agent loop simplified (placeholder search tool removed) — *note: LangGraph later replaced with a manual agent loop; see PLAT-01*
+- [x] **BACK-04**: `@langchain/openai` declared explicitly in package.json
+- [x] **BACK-05**: Dockerfile copies `libs/` so `@org/shared-types` resolves inside Docker
+
+#### Chat UI
+- [x] **UI-01**: User can type a message in a text input and submit it (Enter key or send button)
+- [x] **UI-02**: Messages are displayed in a bubble layout — user right, assistant left
+- [x] **UI-03**: A loading indicator is visible while waiting for the assistant response
+- [x] **UI-04**: The message list automatically scrolls to the newest message
+
+#### Conversation
+- [x] **CONV-01**: The frontend generates a `threadId` per session and sends it with every request
+- [x] **CONV-02**: Refreshing the page or opening a new tab starts a fresh conversation
+
+#### Deployment & Quality
+- [x] **DEPLOY-01**: Backend deployed to GCP Cloud Run
+- [x] **DEPLOY-02**: Frontend deployed to Firebase Hosting
+- [x] **DEPLOY-03**: GitHub Actions CI/CD pipeline (lint + build + deploy on `main`)
+- [x] **E2E-01**: Playwright E2E covers the core happy path
+
+#### Model Switching
+- [x] **MODEL-01**: User can select from a list of models in the UI *(superseded in v2.0 — replaced by dino picker, see PICK-02)*
+
+### v1.1 — SpinoChat Brand Identity
+
+#### Shipped (Phase 12)
+- [x] **BRAND-01**: Visible product naming reads "SpinoChat" / "Spino"
+- [x] **BRAND-02**: Tagline "The AI that survived" on the landing/empty state
+- [x] **BRAND-03**: README.md and CLAUDE.md updated to "SpinoChat"
+- [x] **PAL-01**: Day-mode jungle palette
+- [x] **PAL-02**: Night-mode jungle/sunset palette
+- [x] **PAL-03**: Palettes pass pragmatic AA contrast
+- [x] **PAL-04**: `studio-*` tokens re-mapped (hex-only)
+- [x] **MASC-01**: Spinosaurus mascot replaces capybara in `MessageBubble`
+- [x] **MASC-02**: Mascot renders crisply at all sizes
+- [x] **MASC-05**: Mascot shown at hero size on landing/empty state
+
+#### Deferred — v1.1 polish (parked at v2.0 start, tracked for a future polish milestone)
+- **BG-01..03** (was Phase 13): Theme-aware jungle background system (gradients + edge silhouettes)
+- **MASC-03..04** (was Phase 14): Mascot motion — idle breathing/blink + reactive "thinking" state. *Deliberately deferred until the v2.0 dino roster is final, then applied across all dino mascots.*
+- **STATE-01..03** (was Phase 15): Jungle-themed loading/typing/reasoning states
+- **AMB-01..02** (was Phase 16, stretch): Optional ambient motion layer
+- **SND-01** (was Phase 17, stretch): Optional ambient jungle/rain audio
+
+---
+
+## Future Requirements (beyond v2.0)
+
+- **AUTH-01**: User accounts so memory, leaderboards, and learned skills are portable across devices (v2.0 uses an anonymous per-device identity)
 - **ENH-05**: Real web search tool (replace placeholder with Tavily/SerpAPI)
 - **ENH-06**: Rate limiting on the chat endpoint
 - **ENH-07**: Input validation with `ValidationPipe` and DTOs
+- **DINO-USER-01**: User-authored dinos (end users create their own agents)
 
-## Out of Scope
+## Out of Scope (v2.0)
 
 | Feature | Reason |
 |---------|--------|
-| Image / video / audio input | Task 1 spec explicitly limits to text-only |
-| Authentication / user accounts | Not in scope for current tasks |
-| Persistent history across sessions | User chose per-session; MemorySaver is sufficient |
-| Real web search | Placeholder acceptable; not needed for core chat |
-| Mobile app | Web-first |
+| User authentication / accounts | Deferred; v2.0 keys memory on an anonymous per-device id (localStorage), sufficient for a portfolio piece |
+| Real-time multi-user collaboration | Single-user app; not core to the dino value |
+| Paid/premium TTS as a hard dependency | TTS/SSML provider is a cost decision made in the Voice phase; must have a free/browser fallback |
+| Self-serve dino creation by end users | Dinos are curated by the maker in v2.0; user-authored dinos are a future idea |
+| Mobile native app | Web-first |
 
-## Traceability
+## Traceability (v2.0)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BACK-01 | Phase 1 | Pending |
-| BACK-02 | Phase 1 | Pending |
-| BACK-03 | Phase 1 | Pending |
-| BACK-04 | Phase 1 | Pending |
-| BACK-05 | Phase 1 | Pending |
-| UI-01 | Phase 1 | Pending |
-| UI-02 | Phase 1 | Pending |
-| UI-03 | Phase 1 | Pending |
-| UI-04 | Phase 1 | Pending |
-| CONV-01 | Phase 1 | Pending |
-| CONV-02 | Phase 1 | Pending |
-| DEPLOY-01 | Phase 1 | Pending |
-| DEPLOY-02 | Phase 1 | Pending |
-| DEPLOY-03 | Phase 1 | Pending |
-| E2E-01 | Phase 1 | Pending |
-| MODEL-01 | Phase 2 | Pending |
-| BRAND-01..03 | Phase 12 | Pending |
-| PAL-01..04 | Phase 12 | Pending |
-| MASC-01..02 | Phase 12 | Pending |
-| MASC-05 | Phase 12 | Complete |
-| BG-01..03 | Phase 13 | Pending |
-| MASC-03..04 | Phase 14 | Pending |
-| STATE-01..03 | Phase 15 | Pending |
-| AMB-01..02 | Phase 16 (stretch) | Pending |
-| SND-01 | Phase 17 (stretch) | Pending |
+| DINO-01..06, PLAT-01 | Phase 18 | Pending |
+| PICK-01..04, UX-01 | Phase 19 | Pending |
+| MASC-06..08 | Phase 20 | Pending |
+| MEM-01..03 | Phase 21 | Pending |
+| MEM-04..06 | Phase 22 | Pending |
+| GRP-01..02 | Phase 23 | Pending |
+| ARN-01..04 | Phase 24 | Pending |
+| VIS-01..04 | Phase 25 | Pending |
+| IMG-01..02 | Phase 26 | Pending |
+| NGX-01..02 | Phase 27 | Pending |
+| VOX-01..03 | Phase 28 | Pending |
+| AST-01..04 | Phase 29 | Pending |
 
-**Coverage:**
-- v1 requirements: 16 total — mapped (Phases 1-11)
-- v1.1 requirements: 19 total — mapped to Phases 12-17 ✓
+**Coverage (v2.0):**
+- v2.0 requirements: 42 total
+- Mapped to phases: 42
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-17*
-*Last updated: 2026-05-25 — v1.1 SpinoChat brand-identity requirements added*
+*Last updated: 2026-05-29 — v2.0 "Dino Platform" milestone requirements added; v1.1 Phases 13–17 deferred to backlog*
