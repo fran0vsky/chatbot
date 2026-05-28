@@ -7,120 +7,231 @@
 >
   <!-- Inner panel fixed at full-expanded width; outer aside clips it when collapsed -->
   <div class="w-[260px] h-full flex flex-col flex-shrink-0">
-  <!-- Logo + wordmark -->
-  <div class="flex items-center justify-between px-4 py-4 border-b border-jungle-border/30 dark:border-jungle-night-border/50">
-    <div class="flex items-center gap-2">
-      <img src="/spino/spino-logo.png" alt="" class="w-7 h-7 object-contain" />
-      <span class="font-title text-lg tracking-wider text-jungle-accent dark:text-jungle-night-accent opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">SPINO</span>
+    <!-- Logo + wordmark -->
+    <div
+      class="flex items-center justify-between px-4 py-4 border-b border-jungle-border/30 dark:border-jungle-night-border/50"
+    >
+      <div class="flex items-center gap-2">
+        <img
+          src="/spino/spino-logo.png"
+          alt=""
+          class="w-7 h-7 object-contain"
+        />
+        <span
+          class="font-title text-lg tracking-wider text-jungle-accent dark:text-jungle-night-accent opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >SPINO</span
+        >
+      </div>
+      <span
+        class="text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded border border-jungle-accent/60 dark:border-jungle-night-accent/60 text-jungle-accent dark:text-jungle-night-accent opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+      >
+        BETA
+      </span>
     </div>
-    <span class="text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded border border-jungle-accent/60 dark:border-jungle-night-accent/60 text-jungle-accent dark:text-jungle-night-accent opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">
-      BETA
-    </span>
-  </div>
 
-  <!-- New chat pill -->
-  <div class="px-3 pt-3 pb-2">
-    <button
-      type="button"
-      (click)="newChat.emit()"
-      class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg bg-jungle-surface/60 hover:bg-jungle-surface/90 dark:bg-jungle-night-surface/60 dark:hover:bg-jungle-night-surface/90 border border-jungle-border/40 dark:border-jungle-night-border/60 text-sm text-jungle-ink dark:text-jungle-night-text overflow-hidden transition-[width,background-color] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
-    >
-      <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-      </svg>
-      <span class="font-medium ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">New chat</span>
-      <kbd class="ml-auto text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted font-mono opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">⌘K</kbd>
-    </button>
-  </div>
+    <!-- New chat pill -->
+    <div class="px-3 pt-3 pb-2">
+      <button
+        type="button"
+        (click)="newChat.emit()"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg bg-jungle-surface/60 hover:bg-jungle-surface/90 dark:bg-jungle-night-surface/60 dark:hover:bg-jungle-night-surface/90 border border-jungle-border/40 dark:border-jungle-night-border/60 text-sm text-jungle-ink dark:text-jungle-night-text overflow-hidden transition-[width,background-color] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span
+          class="font-medium ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >New chat</span
+        >
+        <kbd
+          class="ml-auto text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted font-mono opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >⌘K</kbd
+        >
+      </button>
+    </div>
 
-  <!-- Top nav items -->
-  <nav class="px-3 pb-2 flex flex-col gap-0.5">
-    <button
-      type="button"
-      class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text bg-jungle-accent/15 dark:bg-jungle-night-accent/15 overflow-hidden transition-[width,background-color] duration-300"
-      aria-current="page"
-    >
-      <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path d="M18 10c0 3.866-3.582 7-8 7a8.84 8.84 0 01-2.083-.245l-3.21 1.337a.5.5 0 01-.66-.58l.717-2.868A6.62 6.62 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
-      </svg>
-      <span class="font-medium ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">Chats</span>
-    </button>
-    <button
-      type="button"
-      disabled
-      class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
-      title="Coming soon"
-    >
-      <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7.5 8a2.5 2.5 0 115 0c0 .96-.57 1.79-1.5 2.16V11a1 1 0 11-2 0v-.5C8.07 10.13 7.5 9.30 7.5 8z" clip-rule="evenodd" />
-      </svg>
-      <span class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">Explore</span>
-    </button>
-    <button
-      type="button"
-      disabled
-      class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
-      title="Coming soon"
-    >
-      <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v2H7V5z" />
-      </svg>
-      <span class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">Knowledge</span>
-    </button>
-    <button
-      type="button"
-      disabled
-      class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
-      title="Coming soon"
-    >
-      <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-      </svg>
-      <span class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">Settings</span>
-    </button>
-  </nav>
+    <!-- Top nav items -->
+    <nav class="px-3 pb-2 flex flex-col gap-0.5">
+      <button
+        type="button"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text bg-jungle-accent/15 dark:bg-jungle-night-accent/15 overflow-hidden transition-[width,background-color] duration-300"
+        aria-current="page"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M18 10c0 3.866-3.582 7-8 7a8.84 8.84 0 01-2.083-.245l-3.21 1.337a.5.5 0 01-.66-.58l.717-2.868A6.62 6.62 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"
+          />
+        </svg>
+        <span
+          class="font-medium ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >Chats</span
+        >
+      </button>
+      <button
+        type="button"
+        disabled
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
+        title="Coming soon"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM7.5 8a2.5 2.5 0 115 0c0 .96-.57 1.79-1.5 2.16V11a1 1 0 11-2 0v-.5C8.07 10.13 7.5 9.30 7.5 8z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span
+          class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >Explore</span
+        >
+      </button>
+      <button
+        type="button"
+        disabled
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
+        title="Coming soon"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v2H7V5z"
+          />
+        </svg>
+        <span
+          class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >Knowledge</span
+        >
+      </button>
+      <button
+        type="button"
+        disabled
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
+        title="Coming soon"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span
+          class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >Settings</span
+        >
+      </button>
+    </nav>
 
-  <!-- Sessions list (scrollable) -->
-  <div class="flex-1 overflow-y-auto px-1 py-1 chat-scroll-area border-t border-jungle-border/30 dark:border-jungle-night-border/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">
-    @for (group of groupedSessions; track group.label) {
-      <p class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 font-semibold select-none">{{ group.label }}</p>
+    <!-- Sessions list (scrollable) -->
+    <div
+      class="flex-1 overflow-y-auto px-1 py-1 chat-scroll-area border-t border-jungle-border/30 dark:border-jungle-night-border/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+    >
+      @for (group of groupedSessions; track group.label) {
+      <p
+        class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 font-semibold select-none"
+      >
+        {{ group.label }}
+      </p>
       @for (session of group.sessions; track session.id) {
-        <ng-container
-          *ngTemplateOutlet="sessionRow; context: { $implicit: session }"
-        ></ng-container>
-      }
-    } @empty {
-      <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted text-center py-6 px-4 italic opacity-70">
+      <ng-container
+        *ngTemplateOutlet="sessionRow; context: { $implicit: session }"
+      ></ng-container>
+      } } @empty {
+      <p
+        class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted text-center py-6 px-4 italic opacity-70"
+      >
         No conversations yet
       </p>
-    }
-  </div>
-
-  <!-- Promo card -->
-  <div class="mx-3 mb-3 p-3 rounded-xl bg-gradient-to-br from-jungle-surface/70 to-jungle-card/40 dark:from-jungle-night-surface/70 dark:to-jungle-night-card/40 border border-jungle-accent/30 dark:border-jungle-night-accent/30 flex items-center gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">
-    <img src="/spino/spino-avatar.png" alt="" class="w-9 h-9 object-contain flex-shrink-0" />
-    <div class="min-w-0">
-      <p class="text-xs font-semibold text-jungle-ink dark:text-jungle-night-text leading-tight">The AI that survived.</p>
-      <p class="text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted italic mt-0.5">Ancient brain. Modern AI.</p>
+      }
     </div>
-  </div>
 
-  <!-- User chip -->
-  <div class="px-3 pb-3">
-    <button
-      type="button"
-      class="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+    <!-- Promo card -->
+    <div
+      class="mx-3 mb-3 p-3 rounded-xl bg-gradient-to-br from-jungle-surface/70 to-jungle-card/40 dark:from-jungle-night-surface/70 dark:to-jungle-night-card/40 border border-jungle-accent/30 dark:border-jungle-night-accent/30 flex items-center gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
     >
-      <span class="w-8 h-8 rounded-full bg-jungle-accent/80 dark:bg-jungle-night-accent/80 text-jungle-user-ink flex items-center justify-center text-sm font-semibold flex-shrink-0">M</span>
-      <span class="flex-1 min-w-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75">
-        <span class="block text-sm text-jungle-ink dark:text-jungle-night-text leading-tight truncate">Mateusz</span>
-        <span class="block text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted">Free Plan</span>
-      </span>
-      <svg class="w-4 h-4 text-jungle-ink-muted dark:text-jungle-night-muted flex-shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-      </svg>
-    </button>
-  </div>
+      <img
+        src="/spino/spino-avatar.png"
+        alt=""
+        class="w-9 h-9 object-contain flex-shrink-0"
+      />
+      <div class="min-w-0">
+        <p
+          class="text-xs font-semibold text-jungle-ink dark:text-jungle-night-text leading-tight"
+        >
+          The AI that survived.
+        </p>
+        <p
+          class="text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted italic mt-0.5"
+        >
+          Ancient brain. Modern AI.
+        </p>
+      </div>
+    </div>
+
+    <!-- User chip -->
+    <div class="px-3 pb-3">
+      <button
+        type="button"
+        class="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+      >
+        <span
+          class="w-8 h-8 rounded-full bg-jungle-accent/80 dark:bg-jungle-night-accent/80 text-jungle-user-ink flex items-center justify-center text-sm font-semibold flex-shrink-0"
+          >F</span
+        >
+        <span
+          class="flex-1 min-w-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+        >
+          <span
+            class="block text-sm text-jungle-ink dark:text-jungle-night-text leading-tight truncate"
+            >Franek</span
+          >
+          <span
+            class="block text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted"
+            >Free Plan</span
+          >
+        </span>
+        <svg
+          class="w-4 h-4 text-jungle-ink-muted dark:text-jungle-night-muted flex-shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
 </aside>
 
@@ -136,94 +247,124 @@
   >
     <div class="flex-1 min-w-0">
       @if (renamingId === session.id) {
-        <input
-          #renameInput
-          type="text"
-          [(ngModel)]="renameDraft"
-          (click)="$event.stopPropagation()"
-          (keydown)="onRenameKeydown($event, session)"
-          (blur)="commitRename(session)"
-          [attr.data-session-id]="session.id"
-          class="w-full bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-accent/60 dark:border-jungle-night-accent/60 rounded px-1.5 py-0.5 text-sm text-jungle-ink dark:text-jungle-night-text focus:outline-none focus:ring-2 focus:ring-jungle-accent dark:focus:ring-jungle-night-accent"
-        />
+      <input
+        #renameInput
+        type="text"
+        [(ngModel)]="renameDraft"
+        (click)="$event.stopPropagation()"
+        (keydown)="onRenameKeydown($event, session)"
+        (blur)="commitRename(session)"
+        [attr.data-session-id]="session.id"
+        class="w-full bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-accent/60 dark:border-jungle-night-accent/60 rounded px-1.5 py-0.5 text-sm text-jungle-ink dark:text-jungle-night-text focus:outline-none focus:ring-2 focus:ring-jungle-accent dark:focus:ring-jungle-night-accent"
+      />
       } @else {
-        <p
-          class="text-sm text-jungle-ink dark:text-jungle-night-text truncate leading-snug flex items-center gap-1"
-          [class.font-semibold]="session.id === activeSessionId"
-          (dblclick)="onTitleDblClick($event, session)"
-          title="Double-click to rename"
+      <p
+        class="text-sm text-jungle-ink dark:text-jungle-night-text truncate leading-snug flex items-center gap-1"
+        [class.font-semibold]="session.id === activeSessionId"
+        (dblclick)="onTitleDblClick($event, session)"
+        title="Double-click to rename"
+      >
+        @if (session.pinned) {
+        <svg
+          class="w-3 h-3 flex-shrink-0 text-jungle-accent dark:text-jungle-night-accent"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
         >
-          @if (session.pinned) {
-            <svg class="w-3 h-3 flex-shrink-0 text-jungle-accent dark:text-jungle-night-accent" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M9.5 1.5a1.5 1.5 0 013 0V8l2 2v2H4v-2l2-2V4.5a3 3 0 013-3z" />
-              <path d="M9 14h2v5l-1 1-1-1z" />
-            </svg>
-          }
-          <span class="truncate">{{ session.title }}</span>
-        </p>
+          <path
+            d="M9.5 1.5a1.5 1.5 0 013 0V8l2 2v2H4v-2l2-2V4.5a3 3 0 013-3z"
+          />
+          <path d="M9 14h2v5l-1 1-1-1z" />
+        </svg>
+        }
+        <span class="truncate">{{ session.title }}</span>
+      </p>
       }
     </div>
     @if (renamingId !== session.id) {
-      <div class="flex-shrink-0 flex items-center gap-0.5 mt-0.5">
-        @if (confirmingDeleteId === session.id) {
-          <button
-            type="button"
-            (click)="confirmDelete($event, session.id)"
-            class="px-2 py-0.5 text-xs rounded bg-red-500 text-white hover:bg-red-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
-            aria-label="Confirm delete"
-          >
-            Delete?
-          </button>
-          <button
-            type="button"
-            (click)="cancelDelete($event)"
-            class="px-2 py-0.5 text-xs rounded text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors"
-            aria-label="Cancel delete"
-          >
-            Cancel
-          </button>
-        } @else {
-          <button
-            type="button"
-            (click)="onPinClick($event, session.id)"
-            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
-            [class.opacity-100]="session.pinned"
-            [class.text-jungle-accent]="session.pinned"
-            [class.dark:text-jungle-night-accent]="session.pinned"
-            [class.text-jungle-ink-muted]="!session.pinned"
-            [class.dark:text-jungle-night-muted]="!session.pinned"
-            [attr.aria-label]="session.pinned ? 'Unpin conversation' : 'Pin conversation'"
-            [title]="session.pinned ? 'Unpin' : 'Pin to top'"
-          >
-            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M9.5 1.5a1.5 1.5 0 013 0V8l2 2v2H4v-2l2-2V4.5a3 3 0 013-3z" />
-              <path d="M9 14h2v5l-1 1-1-1z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="startRename($event, session)"
-            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
-            aria-label="Rename conversation"
-            title="Rename"
-          >
-            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            (click)="requestDelete($event, session.id)"
-            class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-jungle-ink-muted dark:text-jungle-night-muted hover:text-red-500 dark:hover:text-red-400 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
-            aria-label="Delete conversation"
-            title="Delete"
-          >
-            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-          </button>
-        }
-      </div>
+    <div class="flex-shrink-0 flex items-center gap-0.5 mt-0.5">
+      @if (confirmingDeleteId === session.id) {
+      <button
+        type="button"
+        (click)="confirmDelete($event, session.id)"
+        class="px-2 py-0.5 text-xs rounded bg-red-500 text-white hover:bg-red-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+        aria-label="Confirm delete"
+      >
+        Delete?
+      </button>
+      <button
+        type="button"
+        (click)="cancelDelete($event)"
+        class="px-2 py-0.5 text-xs rounded text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors"
+        aria-label="Cancel delete"
+      >
+        Cancel
+      </button>
+      } @else {
+      <button
+        type="button"
+        (click)="onPinClick($event, session.id)"
+        class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
+        [class.opacity-100]="session.pinned"
+        [class.text-jungle-accent]="session.pinned"
+        [class.dark:text-jungle-night-accent]="session.pinned"
+        [class.text-jungle-ink-muted]="!session.pinned"
+        [class.dark:text-jungle-night-muted]="!session.pinned"
+        [attr.aria-label]="session.pinned ? 'Unpin conversation' : 'Pin conversation'"
+        [title]="session.pinned ? 'Unpin' : 'Pin to top'"
+      >
+        <svg
+          class="w-3.5 h-3.5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M9.5 1.5a1.5 1.5 0 013 0V8l2 2v2H4v-2l2-2V4.5a3 3 0 013-3z"
+          />
+          <path d="M9 14h2v5l-1 1-1-1z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        (click)="startRename($event, session)"
+        class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
+        aria-label="Rename conversation"
+        title="Rename"
+      >
+        <svg
+          class="w-3.5 h-3.5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        (click)="requestDelete($event, session.id)"
+        class="p-0.5 rounded opacity-0 group-hover/row:opacity-100 text-jungle-ink-muted dark:text-jungle-night-muted hover:text-red-500 dark:hover:text-red-400 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
+        aria-label="Delete conversation"
+        title="Delete"
+      >
+        <svg
+          class="w-3.5 h-3.5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+      }
+    </div>
     }
   </div>
 </ng-template>
