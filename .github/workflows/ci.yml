@@ -211,13 +211,10 @@ jobs:
             --cache-control="no-cache, no-store, must-revalidate"
 
   # ── Deploy Storybook to GCS (after frontend succeeds) ───────────────────────
-  # continue-on-error: Storybook currently fails on @angular-devkit/build-angular
-  # version drift. Doesn't block the app deploy — fix tracked separately.
   deploy-storybook:
     runs-on: ubuntu-latest
     needs: deploy-frontend
     if: github.ref == 'refs/heads/main'
-    continue-on-error: true
     permissions:
       id-token: write
       contents: read
