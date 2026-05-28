@@ -10,8 +10,8 @@ dist
 .angular
 .storybook-static
 
-# Frontend (irrelevant for backend image)
-apps/frontend
+# Frontend e2e isn't needed in the image, but the frontend itself is now
+# baked in (Nest serves it as static) — keep apps/frontend in the build context.
 apps/frontend-e2e
 
 # Local env files (secrets via Secret Manager only)
