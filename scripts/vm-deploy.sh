@@ -22,7 +22,8 @@ fi
 echo "[deploy] Fetching access token from metadata service"
 ACCESS_TOKEN=$(curl -sf -H "Metadata-Flavor: Google" \
     "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" \
-    | sed -E 's/.*"access_token":"([^"]+)".*/\1/')
+    | tr -d '\r\n' \
+    | sed -E 's/.*"access_token": ?"([^"]+)".*/\1/')
 
 if [[ -z "$ACCESS_TOKEN" ]]; then
     echo "ERROR: failed to obtain access token from metadata service" >&2
@@ -43,9 +44,12 @@ docker --config "$DOCKER_CFG" pull "$IMAGE_PATH"
 
 fetch_secret() {
     local name="$1"
+    # Flatten the JSON to one line so sed's line-mode doesn't miss a match when
+    # GCP pretty-prints the response across lines.
     curl -sf -H "Authorization: Bearer $ACCESS_TOKEN" \
         "https://secretmanager.googleapis.com/v1/projects/$PROJECT_ID/secrets/$name/versions/latest:access" \
-        | sed -E 's/.*"data":"([^"]+)".*/\1/' \
+        | tr -d '\r\n' \
+        | sed -E 's/.*"data": ?"([^"]+)".*/\1/' \
         | base64 -d
 }
 
