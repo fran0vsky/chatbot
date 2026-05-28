@@ -151,7 +151,10 @@ jobs:
           GCE_ZONE="${GCE_ZONE//[[:space:]]/}"
           GCP_PROJECT_ID="${GCP_PROJECT_ID//[[:space:]]/}"
           FRONTEND_URL="${FRONTEND_URL//[[:space:]]/}"
-          gcloud compute ssh "$GCE_INSTANCE" \
+          # --quiet stops gcloud from prompting "Do you want to create .ssh
+          # dir?" — otherwise that prompt reads from stdin and consumes the
+          # script we're trying to pipe through.
+          gcloud --quiet compute ssh "$GCE_INSTANCE" \
             --zone="$GCE_ZONE" \
             --project="$GCP_PROJECT_ID" \
             --ssh-flag="-o StrictHostKeyChecking=no" \
