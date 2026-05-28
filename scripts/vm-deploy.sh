@@ -1,6 +1,6 @@
-#!/bin/bash
+﻿#!/bin/bash
 # Deploy script invoked by GitHub Actions over SSH on the Compute Engine VM.
-# Installed at /opt/chatbot/deploy.sh by setup-compute.ps1.
+# Installed at /var/lib/chatbot/deploy.sh by setup-compute.ps1.
 #
 # Args:
 #   $1 = full image path in Artifact Registry (e.g. europe-west1-docker.pkg.dev/proj/repo/backend:sha)
@@ -42,7 +42,7 @@ docker run -d \
 
 echo "[deploy] Cleaning up old images (keep last 3)"
 docker image prune -f
-# Keep image history short — get image IDs from oldest to newest, remove all but last 3
+# Keep image history short â€” get image IDs from oldest to newest, remove all but last 3
 docker images --filter=reference="*/backend" --format='{{.ID}}' | tail -n +4 | xargs -r docker rmi || true
 
 echo "[deploy] Done. Container status:"

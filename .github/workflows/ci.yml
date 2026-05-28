@@ -157,7 +157,7 @@ jobs:
             --zone="$GCE_ZONE" \
             --project="$GCP_PROJECT_ID" \
             --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="sudo mkdir -p /opt/chatbot && sudo mv /tmp/deploy.sh /opt/chatbot/deploy.sh && sudo chmod +x /opt/chatbot/deploy.sh"
+            --command="sudo mkdir -p /var/lib/chatbot && sudo mv /tmp/deploy.sh /var/lib/chatbot/deploy.sh && sudo chmod +x /var/lib/chatbot/deploy.sh"
 
       - name: Deploy backend container
         env:
@@ -175,7 +175,7 @@ jobs:
             --zone="$GCE_ZONE" \
             --project="$GCP_PROJECT_ID" \
             --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="sudo /opt/chatbot/deploy.sh '$IMAGE' '$FRONTEND_URL'"
+            --command="sudo /var/lib/chatbot/deploy.sh '$IMAGE' '$FRONTEND_URL'"
 
   # ── Deploy Angular frontend to GCS ──────────────────────────────────────────
   deploy-frontend:

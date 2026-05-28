@@ -1,4 +1,4 @@
-# One-time Compute Engine setup for SpinoChat backend.
+﻿# One-time Compute Engine setup for SpinoChat backend.
 # Replaces Cloud Run per mentor's "Cloud Compute" guidance.
 #
 # Variable names align with .github/workflows/ci.yml expectations:
@@ -10,7 +10,7 @@
 #   - Static external IP reservation
 #   - Firewall rule to allow HTTP traffic
 #   - VM service account with secret/registry/logging access
-#   - /opt/chatbot/deploy.sh on the VM (CI invokes it over SSH)
+#   - /var/lib/chatbot/deploy.sh on the VM (CI invokes it over SSH)
 #
 # Free tier note:
 #   - e2-micro is free ONLY in us-west1 / us-central1 / us-east1
@@ -91,7 +91,7 @@ if ($LASTEXITCODE -eq 0) {
 
 # --- Startup script (installs deploy.sh + grants github-deployer SSH access) -
 # vm-deploy.sh is shipped from the local repo; embed it as base64 to avoid file
-# upload complexity. The startup-script writes it to /opt/chatbot/deploy.sh
+# upload complexity. The startup-script writes it to /var/lib/chatbot/deploy.sh
 # every boot, so updates to vm-deploy.sh take effect after a VM restart OR
 # you can rsync the file manually for hotfixes.
 
@@ -106,15 +106,15 @@ $StartupScript = @"
 #!/bin/bash
 set -e
 
-# Install deploy.sh at /opt/chatbot/deploy.sh
-mkdir -p /opt/chatbot
-echo '$DeployScriptBase64' | base64 -d > /opt/chatbot/deploy.sh
-chmod +x /opt/chatbot/deploy.sh
+# Install deploy.sh at /var/lib/chatbot/deploy.sh
+mkdir -p /var/lib/chatbot
+echo '$DeployScriptBase64' | base64 -d > /var/lib/chatbot/deploy.sh
+chmod +x /var/lib/chatbot/deploy.sh
 
 # Configure Docker to authenticate to Artifact Registry on this VM
 docker-credential-gcr configure-docker --registries=$Region-docker.pkg.dev || true
 
-echo 'SpinoChat VM ready. Deploy script installed at /opt/chatbot/deploy.sh'
+echo 'SpinoChat VM ready. Deploy script installed at /var/lib/chatbot/deploy.sh'
 "@
 
 $tmp = New-TemporaryFile
