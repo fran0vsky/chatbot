@@ -50,6 +50,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   private streamingToolCallIds: string[] = [];
 
   readonly mobileSidebarOpen = signal(false);
+  readonly activeView = signal<'chats' | 'explore' | 'knowledge'>('chats');
+  readonly knowledgeFiles = signal<{ name: string; size: number }[]>([]);
   readonly streamingText = signal('');
   readonly streamingReasoning = signal('');
   readonly reasoningCollapsed = signal(false);
@@ -91,6 +93,29 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   closeMobileSidebar(): void {
     this.mobileSidebarOpen.set(false);
+  }
+
+  setActiveView(view: 'chats' | 'explore' | 'knowledge'): void {
+    this.activeView.set(view);
+    this.closeMobileSidebar();
+  }
+
+  pickModelFromExplore(modelId: string): void {
+    this.selectedModel = modelId;
+    this.activeView.set('chats');
+  }
+
+  onKnowledgeFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const list = input.files;
+    if (!list) return;
+    const incoming = Array.from(list).map((f) => ({ name: f.name, size: f.size }));
+    this.knowledgeFiles.update((prev) => [...prev, ...incoming]);
+    input.value = '';
+  }
+
+  removeKnowledgeFile(name: string): void {
+    this.knowledgeFiles.update((files) => files.filter((f) => f.name !== name));
   }
 
   showDateDivider(index: number): boolean {

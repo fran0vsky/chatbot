@@ -63,8 +63,11 @@
     <nav class="px-3 pb-2 flex flex-col gap-0.5">
       <button
         type="button"
-        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text bg-jungle-accent/15 dark:bg-jungle-night-accent/15 overflow-hidden transition-[width,background-color] duration-300"
-        aria-current="page"
+        (click)="viewChange.emit('chats')"
+        [class.bg-jungle-accent\/15]="activeView === 'chats'"
+        [class.dark:bg-jungle-night-accent\/15]="activeView === 'chats'"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 overflow-hidden transition-[width,background-color] duration-300"
+        [attr.aria-current]="activeView === 'chats' ? 'page' : null"
       >
         <svg
           class="w-4 h-4 flex-shrink-0"
@@ -83,9 +86,11 @@
       </button>
       <button
         type="button"
-        disabled
-        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
-        title="Coming soon"
+        (click)="viewChange.emit('explore')"
+        [class.bg-jungle-accent\/15]="activeView === 'explore'"
+        [class.dark:bg-jungle-night-accent\/15]="activeView === 'explore'"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 overflow-hidden transition-[width,background-color] duration-300"
+        [attr.aria-current]="activeView === 'explore' ? 'page' : null"
       >
         <svg
           class="w-4 h-4 flex-shrink-0"
@@ -106,9 +111,11 @@
       </button>
       <button
         type="button"
-        disabled
-        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
-        title="Coming soon"
+        (click)="viewChange.emit('knowledge')"
+        [class.bg-jungle-accent\/15]="activeView === 'knowledge'"
+        [class.dark:bg-jungle-night-accent\/15]="activeView === 'knowledge'"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 overflow-hidden transition-[width,background-color] duration-300"
+        [attr.aria-current]="activeView === 'knowledge' ? 'page' : null"
       >
         <svg
           class="w-4 h-4 flex-shrink-0"
