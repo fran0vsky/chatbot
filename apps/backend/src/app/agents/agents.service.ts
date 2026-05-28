@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatOpenRouter } from '@langchain/openrouter';
+import { ChatOpenAI } from '@langchain/openai';
 import {
   AIMessage,
   BaseMessage,
@@ -14,7 +14,6 @@ import {
   MemorySaver,
 } from '@langchain/langgraph';
 import { StreamEvent, ToolCallRecord } from '@org/shared-types';
-import { getModelCapabilities } from './model-capabilities';
 
 const AgentState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -29,15 +28,16 @@ export class AgentsService {
   private readonly graphs = new Map<string, ReturnType<typeof this.buildGraph>>();
 
   private buildGraph(modelId: string) {
-    const caps = getModelCapabilities(modelId);
-    const modelKwargs: Record<string, unknown> = {};
-    if (caps.reasoning) {
-      modelKwargs['reasoning'] = { effort: 'medium' };
-    }
-    const model = new ChatOpenRouter({
+    // OpenRouter is OpenAI-API-compatible; using the official @langchain/openai
+    // client against the OpenRouter base URL avoids a streaming-parser crash in
+    // @langchain/openrouter ("Cannot read properties of undefined (reading
+    // 'additional_kwargs')") that affects the free models.
+    const model = new ChatOpenAI({
       model: modelId,
       apiKey: process.env['OPENROUTER_API_KEY'],
-      modelKwargs,
+      configuration: {
+        baseURL: 'https://openrouter.ai/api/v1',
+      },
     });
 
     // Tool-binding currently triggers a crash in @langchain/openrouter when
