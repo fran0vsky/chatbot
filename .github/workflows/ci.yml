@@ -154,9 +154,12 @@ jobs:
           # --quiet stops gcloud from prompting "Do you want to create .ssh
           # dir?" — otherwise that prompt reads from stdin and consumes the
           # script we're trying to pipe through.
+          # Use IAP tunneling so we don't depend on OS Login pubkey propagation
+          # (which sporadically races and yields "Permission denied (publickey)").
           gcloud --quiet compute ssh "$GCE_INSTANCE" \
             --zone="$GCE_ZONE" \
             --project="$GCP_PROJECT_ID" \
+            --tunnel-through-iap \
             --ssh-flag="-o StrictHostKeyChecking=no" \
             --command="sudo bash -s -- '$IMAGE' '$FRONTEND_URL'" \
             < scripts/vm-deploy.sh
