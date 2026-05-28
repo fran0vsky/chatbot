@@ -40,10 +40,13 @@ export class AgentsService {
   ): AsyncGenerator<StreamEvent, void, void> {
     this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
 
-    // Caller may restrict the toolset; undefined or empty array means "use all".
-    const activeTools = enabledTools && enabledTools.length > 0
-      ? tools.filter((t) => enabledTools.includes(t.name))
-      : [...tools];
+    // Caller may restrict the toolset. undefined = use all; [] = use none;
+    // non-empty array = filter by name. Empty array is meaningful: the user
+    // explicitly unchecked every tool in the popover.
+    const activeTools =
+      enabledTools === undefined
+        ? [...tools]
+        : tools.filter((t) => enabledTools.includes(t.name));
 
     try {
       const llmBase = new ChatOpenAI({
