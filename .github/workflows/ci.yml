@@ -135,30 +135,10 @@ jobs:
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
 
-      # Ship vm-deploy.sh fresh on every run — that way we don't depend on the
-      # VM's startup-script having installed it (which can silently fail), and
-      # script updates take effect immediately without recreating the VM.
-      - name: Upload deploy.sh to VM
-        env:
-          GCE_INSTANCE: ${{ vars.GCE_INSTANCE }}
-          GCE_ZONE: ${{ vars.GCE_ZONE }}
-          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-        run: |
-          GCE_INSTANCE="${GCE_INSTANCE//[[:space:]]/}"
-          GCE_ZONE="${GCE_ZONE//[[:space:]]/}"
-          GCP_PROJECT_ID="${GCP_PROJECT_ID//[[:space:]]/}"
-          # Stage in /tmp first (writable as the SSH user), then move with sudo.
-          gcloud compute scp scripts/vm-deploy.sh \
-            "$GCE_INSTANCE:/tmp/deploy.sh" \
-            --zone="$GCE_ZONE" \
-            --project="$GCP_PROJECT_ID" \
-            --scp-flag="-o StrictHostKeyChecking=no"
-          gcloud compute ssh "$GCE_INSTANCE" \
-            --zone="$GCE_ZONE" \
-            --project="$GCP_PROJECT_ID" \
-            --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="sudo mkdir -p /var/lib/chatbot && sudo mv /tmp/deploy.sh /var/lib/chatbot/deploy.sh && sudo chmod +x /var/lib/chatbot/deploy.sh"
-
+      # Pipe vm-deploy.sh through SSH stdin — Container-Optimized OS mounts
+      # most writable dirs noexec, so writing the script to disk and chmod+x'ing
+      # it doesn't work. `sudo bash -s -- args` reads the script from stdin and
+      # passes positional args, sidestepping the noexec mounts entirely.
       - name: Deploy backend container
         env:
           GCE_INSTANCE: ${{ vars.GCE_INSTANCE }}
@@ -175,7 +155,8 @@ jobs:
             --zone="$GCE_ZONE" \
             --project="$GCP_PROJECT_ID" \
             --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="sudo /var/lib/chatbot/deploy.sh '$IMAGE' '$FRONTEND_URL'"
+            --command="sudo bash -s -- '$IMAGE' '$FRONTEND_URL'" \
+            < scripts/vm-deploy.sh
 
   # ── Deploy Angular frontend to GCS ──────────────────────────────────────────
   deploy-frontend:
