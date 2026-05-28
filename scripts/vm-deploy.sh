@@ -30,11 +30,16 @@ if [[ -z "$ACCESS_TOKEN" ]]; then
 fi
 
 echo "[deploy] Logging Docker into Artifact Registry"
-echo "$ACCESS_TOKEN" | docker login -u oauth2accesstoken --password-stdin \
+# COS mounts /root read-only, so point docker at a writable config dir in /tmp.
+# Once the image is pulled the auth is no longer needed (docker run uses cache).
+DOCKER_CFG=/tmp/docker-config
+mkdir -p "$DOCKER_CFG"
+echo "$ACCESS_TOKEN" | docker --config "$DOCKER_CFG" login \
+    -u oauth2accesstoken --password-stdin \
     "https://europe-west1-docker.pkg.dev"
 
 echo "[deploy] Pulling image: $IMAGE_PATH"
-docker pull "$IMAGE_PATH"
+docker --config "$DOCKER_CFG" pull "$IMAGE_PATH"
 
 fetch_secret() {
     local name="$1"
