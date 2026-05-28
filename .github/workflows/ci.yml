@@ -133,22 +133,44 @@ jobs:
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
 
-      # Ensure the VM's gcloud can pull from Artifact Registry
+      # Ensure the VM's gcloud can pull from Artifact Registry.
+      # All vars.* values are read via env: and then stripped of whitespace —
+      # the GitHub variable editor sometimes preserves trailing newlines on
+      # paste, which makes gcloud reject the input (e.g. zone regex mismatch).
       - name: Configure Docker auth on GCE instance
+        env:
+          GCE_INSTANCE: ${{ vars.GCE_INSTANCE }}
+          GCE_ZONE: ${{ vars.GCE_ZONE }}
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
         run: |
-          gcloud compute ssh ${{ vars.GCE_INSTANCE }} \
-            --zone=${{ vars.GCE_ZONE }} \
-            --project=${{ vars.GCP_PROJECT_ID }} \
+          GCE_INSTANCE="${GCE_INSTANCE//[[:space:]]/}"
+          GCE_ZONE="${GCE_ZONE//[[:space:]]/}"
+          GCP_PROJECT_ID="${GCP_PROJECT_ID//[[:space:]]/}"
+          GCP_REGION="${GCP_REGION//[[:space:]]/}"
+          gcloud compute ssh "$GCE_INSTANCE" \
+            --zone="$GCE_ZONE" \
+            --project="$GCP_PROJECT_ID" \
             --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet"
+            --command="gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev --quiet"
 
       - name: Deploy backend container
+        env:
+          GCE_INSTANCE: ${{ vars.GCE_INSTANCE }}
+          GCE_ZONE: ${{ vars.GCE_ZONE }}
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          IMAGE: ${{ needs.build-backend-image.outputs.image }}
         run: |
-          gcloud compute ssh ${{ vars.GCE_INSTANCE }} \
-            --zone=${{ vars.GCE_ZONE }} \
-            --project=${{ vars.GCP_PROJECT_ID }} \
+          GCE_INSTANCE="${GCE_INSTANCE//[[:space:]]/}"
+          GCE_ZONE="${GCE_ZONE//[[:space:]]/}"
+          GCP_PROJECT_ID="${GCP_PROJECT_ID//[[:space:]]/}"
+          FRONTEND_URL="${FRONTEND_URL//[[:space:]]/}"
+          gcloud compute ssh "$GCE_INSTANCE" \
+            --zone="$GCE_ZONE" \
+            --project="$GCP_PROJECT_ID" \
             --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="/opt/chatbot/deploy.sh '${{ needs.build-backend-image.outputs.image }}' '${{ vars.FRONTEND_URL }}'"
+            --command="/opt/chatbot/deploy.sh '$IMAGE' '$FRONTEND_URL'"
 
   # ── Deploy Angular frontend to GCS ──────────────────────────────────────────
   deploy-frontend:
@@ -183,14 +205,17 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Sync frontend to GCS
+        env:
+          FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
         run: |
+          FRONTEND_BUCKET="${FRONTEND_BUCKET//[[:space:]]/}"
           gcloud storage rsync dist/apps/frontend/browser \
-            gs://${{ vars.FRONTEND_BUCKET }} \
+            "gs://$FRONTEND_BUCKET" \
             --recursive --delete-unmatched-destination-objects
 
           # index.html must never be served from cache so users get the latest shell
           gcloud storage objects update \
-            gs://${{ vars.FRONTEND_BUCKET }}/index.html \
+            "gs://$FRONTEND_BUCKET/index.html" \
             --cache-control="no-cache, no-store, must-revalidate"
 
   # ── Deploy Storybook to GCS (after frontend succeeds) ───────────────────────
@@ -226,7 +251,10 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Sync Storybook to GCS
+        env:
+          STORYBOOK_BUCKET: ${{ vars.STORYBOOK_BUCKET }}
         run: |
+          STORYBOOK_BUCKET="${STORYBOOK_BUCKET//[[:space:]]/}"
           gcloud storage rsync dist/storybook/ui \
-            gs://${{ vars.STORYBOOK_BUCKET }} \
+            "gs://$STORYBOOK_BUCKET" \
             --recursive --delete-unmatched-destination-objects
