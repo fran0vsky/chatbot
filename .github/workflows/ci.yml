@@ -211,10 +211,15 @@ jobs:
             --cache-control="no-cache, no-store, must-revalidate"
 
   # ── Deploy Storybook to GCS (after frontend succeeds) ───────────────────────
+  # NOTE: @storybook/angular@8 doesn't yet support Angular 21's @angular/build
+  # builder. Throws AngularLegacyBuildOptionsError. Real fix is to migrate
+  # Storybook to v9 or wire the @storybook/angular:build-storybook executor in
+  # a project.json. Marked continue-on-error so it doesn't block app deploys.
   deploy-storybook:
     runs-on: ubuntu-latest
     needs: deploy-frontend
     if: github.ref == 'refs/heads/main'
+    continue-on-error: true
     permissions:
       id-token: write
       contents: read
