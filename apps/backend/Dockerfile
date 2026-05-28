@@ -13,8 +13,15 @@ COPY libs/ libs/
 RUN npm ci --legacy-peer-deps
 
 COPY apps/backend ./apps/backend
+COPY apps/frontend ./apps/frontend
 
-RUN npx nx sync && npx nx build backend --configuration=production
+# Build both backend and frontend. Frontend's static output gets copied into
+# the runner stage so Nest can serve it from the same origin — that removes
+# the mixed-content / CORS problem when frontend was on HTTPS GCS and the
+# backend was on plain HTTP.
+RUN npx nx sync && \
+    npx nx build backend --configuration=production && \
+    npx nx build frontend --configuration=production
 
 # ---------- Stage 2: runtime --------------------------------------------------
 FROM node:24-alpine AS runner
@@ -28,6 +35,7 @@ WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=builder --chown=app:app /app/apps/backend/dist ./dist
+COPY --from=builder --chown=app:app /app/dist/apps/frontend/browser ./dist/frontend
 COPY --from=builder --chown=app:app /app/package*.json ./
 
 RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force && \
