@@ -13,10 +13,8 @@ import {
   Annotation,
   MemorySaver,
 } from '@langchain/langgraph';
-import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { StreamEvent, ToolCallRecord } from '@org/shared-types';
 import { getModelCapabilities } from './model-capabilities';
-import { tools } from './tools';
 
 const AgentState = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -42,28 +40,20 @@ export class AgentsService {
       modelKwargs,
     });
 
-    const boundModel = model.bindTools([...tools]);
-    const toolNode = new ToolNode([...tools]);
-
+    // Tool-binding currently triggers a crash in @langchain/openrouter when
+    // the free model streams its first chunk ("Cannot read properties of
+    // undefined (reading 'additional_kwargs')"). Skip bindTools for now so
+    // plain chat completion works — tools can be re-enabled once the
+    // upstream library is patched.
     const callModel = async (state: typeof AgentState.State) => {
-      const response = await boundModel.invoke(state.messages);
+      const response = await model.invoke(state.messages);
       return { messages: [response] };
-    };
-
-    const shouldContinue = (state: typeof AgentState.State): 'tools' | typeof END => {
-      const last = state.messages[state.messages.length - 1];
-      if (last instanceof AIMessage && last.tool_calls && last.tool_calls.length > 0) {
-        return 'tools';
-      }
-      return END;
     };
 
     return new StateGraph(AgentState)
       .addNode('agent', callModel)
-      .addNode('tools', toolNode)
       .addEdge(START, 'agent')
-      .addConditionalEdges('agent', shouldContinue, { tools: 'tools', [END]: END })
-      .addEdge('tools', 'agent')
+      .addEdge('agent', END)
       .compile({ checkpointer: this.checkpointer });
   }
 
