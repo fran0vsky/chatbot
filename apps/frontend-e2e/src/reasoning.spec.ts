@@ -132,7 +132,10 @@ test.describe('ReasoningBlock UX', () => {
 
 // Real-backend scenarios — only run when OPENROUTER_API_KEY is set
 test.describe('ReasoningBlock — real backend', () => {
-  test.skip(!process.env['OPENROUTER_API_KEY'], 'Skipped: OPENROUTER_API_KEY not set');
+  // Skipped: reasoning is temporarily disabled in agents.service.ts due to a
+  // @langchain/openrouter streaming-parser bug. Re-enable this test when
+  // reasoning is wired back on.
+  test.skip();
 
   test('Reasoning model produces a reasoning block in the live app', async ({ page }) => {
     await page.goto('/');
