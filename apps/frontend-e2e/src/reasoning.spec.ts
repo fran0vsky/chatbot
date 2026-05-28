@@ -115,17 +115,9 @@ test.describe('ReasoningBlock UX', () => {
     const reasoningBlock = page.getByTestId('reasoning-block').last();
     await expect(reasoningBlock).toBeVisible({ timeout: 10_000 });
 
-    // Open history panel using the header button that emits (historyToggled)
-    await page.locator('app-header-bar button[aria-label*="history" i], app-header-bar button[title*="history" i]')
-      .first()
-      .click()
-      .catch(() => page.locator('app-header-bar button').nth(2).click());
-
-    // Start a new chat (navigates away from the session)
-    await page.locator('app-header-bar button[aria-label*="new" i], app-header-bar button[title*="new" i]')
-      .first()
-      .click()
-      .catch(() => page.locator('app-header-bar button').first().click());
+    // Start a new chat via the history panel "New chat" pill (history is always
+    // mounted on desktop — icon rail collapsed by default, expands on hover).
+    await page.locator('app-history-panel').getByRole('button', { name: /new chat/i }).first().click();
 
     // Navigate back to prior session via history sidebar
     const historyItem = page.locator('app-history-panel').getByRole('button').first();
