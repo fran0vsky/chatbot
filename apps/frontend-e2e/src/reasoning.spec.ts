@@ -123,7 +123,7 @@ test.describe('ReasoningBlock UX', () => {
     // mechanism). The icon-rail sidebar auto-collapses, so re-navigating via
     // UI selectors is fragile — the storage check is what we really care about.
     const hasReasoning = await page.evaluate(() => {
-      const raw = localStorage.getItem('chatbot-sessions');
+      const raw = localStorage.getItem('desert-chat-history');
       return raw ? raw.includes('"reasoning"') : false;
     });
     expect(hasReasoning).toBe(true);
