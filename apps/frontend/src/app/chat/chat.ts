@@ -23,6 +23,27 @@ const PLACEHOLDER_EXAMPLES = [
 
 const PLACEHOLDER_NEUTRAL = 'Message';
 
+// Text-ish extensions we can safely read as UTF-8 in the browser and stuff
+// into the prompt. Binary formats (PDF, docx, images) are not supported here —
+// they'd need a parser; for the demo we just flag them as unreadable.
+const READABLE_EXTENSIONS = new Set([
+  'txt', 'md', 'markdown', 'json', 'csv', 'tsv', 'log', 'yml', 'yaml', 'xml',
+  'html', 'htm', 'css', 'scss', 'sass', 'less', 'js', 'jsx', 'ts', 'tsx',
+  'mjs', 'cjs', 'py', 'rb', 'go', 'rs', 'java', 'kt', 'swift', 'c', 'cpp',
+  'h', 'hpp', 'sh', 'bash', 'zsh', 'sql', 'env', 'ini', 'toml', 'conf',
+]);
+
+const MAX_READABLE_BYTES = 2 * 1024 * 1024; // 2 MB cap per file
+
+type KnowledgeStatus = 'ready' | 'unreadable' | 'too-large';
+
+interface KnowledgeFile {
+  name: string;
+  size: number;
+  status: KnowledgeStatus;
+  content?: string;
+}
+
 @Component({
   standalone: true,
   selector: 'app-chat',
@@ -51,7 +72,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   readonly mobileSidebarOpen = signal(false);
   readonly activeView = signal<'chats' | 'explore' | 'knowledge'>('chats');
-  readonly knowledgeFiles = signal<{ name: string; size: number }[]>([]);
+  readonly knowledgeFiles = signal<KnowledgeFile[]>([]);
   readonly streamingText = signal('');
   readonly streamingReasoning = signal('');
   readonly reasoningCollapsed = signal(false);
@@ -109,13 +130,64 @@ export class ChatComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const list = input.files;
     if (!list) return;
-    const incoming = Array.from(list).map((f) => ({ name: f.name, size: f.size }));
-    this.knowledgeFiles.update((prev) => [...prev, ...incoming]);
+    for (const file of Array.from(list)) {
+      this.ingestKnowledgeFile(file);
+    }
     input.value = '';
   }
 
   removeKnowledgeFile(name: string): void {
     this.knowledgeFiles.update((files) => files.filter((f) => f.name !== name));
+  }
+
+  private ingestKnowledgeFile(file: File): void {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    const readable = READABLE_EXTENSIONS.has(ext);
+    if (!readable) {
+      this.knowledgeFiles.update((prev) => [
+        ...prev,
+        { name: file.name, size: file.size, status: 'unreadable' },
+      ]);
+      this.cdr.markForCheck();
+      return;
+    }
+    if (file.size > MAX_READABLE_BYTES) {
+      this.knowledgeFiles.update((prev) => [
+        ...prev,
+        { name: file.name, size: file.size, status: 'too-large' },
+      ]);
+      this.cdr.markForCheck();
+      return;
+    }
+    file
+      .text()
+      .then((content) => {
+        this.knowledgeFiles.update((prev) => [
+          ...prev,
+          { name: file.name, size: file.size, status: 'ready', content },
+        ]);
+        this.cdr.markForCheck();
+      })
+      .catch(() => {
+        this.knowledgeFiles.update((prev) => [
+          ...prev,
+          { name: file.name, size: file.size, status: 'unreadable' },
+        ]);
+        this.cdr.markForCheck();
+      });
+  }
+
+  private buildKnowledgePrefix(): string {
+    const ready = this.knowledgeFiles().filter((f) => f.status === 'ready' && f.content);
+    if (ready.length === 0) return '';
+    const blocks = ready
+      .map((f) => `--- ${f.name} ---\n${f.content}\n--- end of ${f.name} ---`)
+      .join('\n\n');
+    const names = ready.map((f) => f.name).join(', ');
+    return (
+      `The user has attached the following reference document(s): ${names}. ` +
+      `Use them as context for the question that follows.\n\n${blocks}\n\nUser question: `
+    );
   }
 
   showDateDivider(index: number): boolean {
@@ -347,9 +419,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.streamingToolCallIds = [];
     this.isStreaming.set(true);
 
+    // Stuff any client-side readable knowledge files into the prompt as context.
+    // Not RAG — just prompt-stuffing — but enough for short docs in the demo.
+    const augmented = this.buildKnowledgePrefix() + text;
+
     try {
       for await (const event of this.chatService.streamMessage(
-        text,
+        augmented,
         this.selectedModel,
         controller.signal,
       )) {
