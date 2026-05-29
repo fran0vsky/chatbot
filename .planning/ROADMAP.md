@@ -119,18 +119,18 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 16. Ambient Polish | 0/TBD | Deferred to backlog | - |
 | 17. Sound | 0/TBD | Deferred to backlog | - |
 | **— v2.0 Dino Platform —** | | | |
-| 18. Dino Abstraction | 0/TBD | Planned (v2.0) | - |
-| 19. Dino Picker + Explore | 0/TBD | Planned (v2.0) | - |
-| 20. Dino Mascots | 0/TBD | Planned (v2.0) | - |
-| 21. Cross-Thread Memory | 0/TBD | Planned (v2.0) | - |
-| 22. Teach-a-Skill | 0/TBD | Planned (v2.0) | - |
-| 23. Dino Groupchat | 0/TBD | Planned (v2.0) | - |
-| 24. Arena + Leaderboard | 0/TBD | Planned (v2.0) | - |
-| 25. Multimodal Input | 0/TBD | Planned (v2.0) | - |
-| 26. Image Generation | 0/TBD | Planned (v2.0) | - |
-| 27. NgRx State Refactor | 0/TBD | Planned (v2.0) | - |
-| 28. Voice I/O + SSML | 0/TBD | Planned (v2.0) | - |
-| 29. Voice Dino Assistant | 0/TBD | Planned (v2.0) | - |
+| 18. Dino Abstraction | 0/1 | Plan written ✎ | - |
+| 19. Dino Picker + Explore | 0/1 | Plan written ✎ | - |
+| 20. Dino Mascots | 0/1 | Plan written ✎ (has human art step) | - |
+| 21. Cross-Thread Memory | 0/1 | Plan written ✎ | - |
+| 22. Teach-a-Skill | 0/1 | Plan written ✎ | - |
+| 23. Dino Groupchat | 0/1 | Plan written ✎ | - |
+| 24. Arena + Leaderboard | 0/1 | Plan written ✎ | - |
+| 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
+| 26. Image Generation | 0/TBD | Needs research spike (free image provider) | - |
+| 27. NgRx State Refactor | 0/1 | Plan written ✎ | - |
+| 28. Voice I/O + SSML | 0/TBD | Needs research spike (TTS/SSML provider) | - |
+| 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
