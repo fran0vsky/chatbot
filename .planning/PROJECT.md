@@ -134,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-29 — v2.0 milestone start (Dino Platform); v1.1 Phases 13–17 deferred to backlog*
+*Last updated: 2026-05-30 — Phase 24 (Dino Arena + Leaderboard) code-complete: blind compare, vote, documented Elo (K=24, base 1000) persisted via `dino_ratings`, Leaderboard tab; live smoke test pending human UAT. v1.1 Phases 13–17 deferred to backlog.*
