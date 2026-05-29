@@ -33,14 +33,14 @@ export class HistoryPanel implements AfterViewChecked {
   @Input() mobileOpen = false;
   @Input() sessions: ConversationSession[] = [];
   @Input() activeSessionId = '';
-  @Input() activeView: 'chats' | 'explore' | 'knowledge' | 'groupchat' = 'chats';
+  @Input() activeView: 'chats' | 'explore' | 'knowledge' | 'groupchat' | 'arena' | 'leaderboard' = 'chats';
   @Output() sessionSelected = new EventEmitter<ConversationSession>();
   @Output() sessionDeleted = new EventEmitter<string>();
   @Output() sessionRenamed = new EventEmitter<{ id: string; title: string }>();
   @Output() sessionPinned = new EventEmitter<string>();
   @Output() closed = new EventEmitter<void>();
   @Output() newChat = new EventEmitter<void>();
-  @Output() viewChange = new EventEmitter<'chats' | 'explore' | 'knowledge' | 'groupchat'>();
+  @Output() viewChange = new EventEmitter<'chats' | 'explore' | 'knowledge' | 'groupchat' | 'arena' | 'leaderboard'>();
 
   renamingId: string | null = null;
   renameDraft = '';

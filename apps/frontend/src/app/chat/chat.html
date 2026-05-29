@@ -169,6 +169,165 @@
           }
         </div>
       </main>
+    } @else if (activeView() === 'arena') {
+      <!-- ───────── Arena: blind head-to-head comparison ───────── -->
+      <main class="flex-1 overflow-y-auto px-6 py-6">
+        <div class="max-w-5xl mx-auto flex flex-col gap-6">
+          <div>
+            <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-1">Arena</h1>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+              Two dinos answer the same prompt — you vote for the better answer. Identities revealed after your vote.
+            </p>
+          </div>
+
+          @if (arenaPhase() === 'idle') {
+            <!-- Prompt entry -->
+            <div class="flex flex-col gap-3 max-w-2xl">
+              <textarea
+                rows="3"
+                [value]="arenaPrompt()"
+                (input)="updateArenaPrompt($event)"
+                placeholder="Ask anything — two dinos will answer anonymously…"
+                class="w-full px-4 py-3 rounded-2xl text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 backdrop-blur-sm border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+              ></textarea>
+              <button
+                type="button"
+                (click)="onArenaStart()"
+                [disabled]="!arenaPrompt().trim()"
+                class="self-start px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+              >
+                Start battle
+              </button>
+            </div>
+          }
+
+          @if (arenaPhase() === 'streaming' || arenaPhase() === 'voted') {
+            <!-- Two anonymous panels side-by-side -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              @for (panel of arenaPanels(); track panel.panel) {
+                @let revealed = arenaPhase() === 'voted';
+                @let panelDino = revealed ? dinoById(panel.dinoId) : null;
+                <div class="flex flex-col rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/80 dark:bg-jungle-night-surface/80 backdrop-blur-sm overflow-hidden shadow-md">
+                  <!-- Panel header: anonymous or revealed -->
+                  <div class="flex items-center gap-2.5 px-4 py-3 border-b border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40">
+                    @if (revealed && panelDino) {
+                      <app-mascot [dinoId]="panelDino.id" size="sm" class="flex-shrink-0 w-8 h-8" />
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-jungle-ink dark:text-jungle-night-text truncate">{{ panelDino.name }}</p>
+                        <p class="text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ panelDino.species }}</p>
+                      </div>
+                    } @else {
+                      <div class="w-8 h-8 rounded-full bg-jungle-border/30 dark:bg-jungle-night-border/30 flex items-center justify-center flex-shrink-0">
+                        <span class="text-xs font-bold text-jungle-ink-muted dark:text-jungle-night-muted">{{ panel.panel === 'a' ? 'A' : 'B' }}</span>
+                      </div>
+                      <p class="text-sm font-semibold text-jungle-ink-muted dark:text-jungle-night-muted">Dino {{ panel.panel === 'a' ? 'A' : 'B' }}</p>
+                    }
+                    <div class="ml-auto flex-shrink-0">
+                      @if (panel.status === 'streaming') {
+                        <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide font-medium text-jungle-accent dark:text-jungle-night-accent">
+                          <span class="w-1.5 h-1.5 rounded-full bg-jungle-accent dark:bg-jungle-night-accent animate-pulse"></span>
+                          Live
+                        </span>
+                      } @else if (panel.status === 'done') {
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-jungle-ink-muted dark:text-jungle-night-muted">Done</span>
+                      } @else if (panel.status === 'error') {
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-red-400">Error</span>
+                      }
+                    </div>
+                  </div>
+                  <!-- Response body -->
+                  <div class="flex-1 px-4 py-3 min-h-[8rem] text-sm text-jungle-ink dark:text-jungle-night-text font-body leading-relaxed">
+                    @if (panel.status === 'idle' || (panel.status === 'streaming' && panel.text.length === 0)) {
+                      <div class="flex gap-1 items-center h-6">
+                        <span class="w-1.5 h-1.5 rounded-full bg-jungle-ink-muted/50 dark:bg-jungle-night-muted/50 animate-bounce [animation-delay:0ms]"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-jungle-ink-muted/50 dark:bg-jungle-night-muted/50 animate-bounce [animation-delay:150ms]"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-jungle-ink-muted/50 dark:bg-jungle-night-muted/50 animate-bounce [animation-delay:300ms]"></span>
+                      </div>
+                    } @else if (panel.status === 'error') {
+                      <p class="text-red-400 text-sm">{{ panel.error ?? 'This dino encountered an error.' }}</p>
+                    } @else {
+                      <p class="whitespace-pre-wrap break-words">{{ panel.text }}</p>
+                    }
+                  </div>
+                  @if (revealed && panelDino) {
+                    <div class="px-4 py-2 border-t border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/30 dark:bg-jungle-night/30 text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted">
+                      {{ panelDino.persona }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (arenaPhase() === 'streaming') {
+              <!-- Vote buttons — shown while streaming, disabled until both done -->
+              @let bothDone = arenaPanels().every(p => p.status === 'done' || p.status === 'error');
+              <div class="flex flex-wrap gap-3 justify-center">
+                <button
+                  type="button"
+                  (click)="onArenaVote('a')"
+                  [disabled]="!bothDone"
+                  class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                >
+                  A is better
+                </button>
+                <button
+                  type="button"
+                  (click)="onArenaVote('draw')"
+                  [disabled]="!bothDone"
+                  class="px-6 py-2.5 rounded-xl text-sm font-semibold text-jungle-ink dark:text-jungle-night-text bg-jungle-surface/80 dark:bg-jungle-night-surface/80 border border-jungle-border/50 dark:border-jungle-night-border/50 hover:bg-jungle-surface dark:hover:bg-jungle-night-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                >
+                  Tie
+                </button>
+                <button
+                  type="button"
+                  (click)="onArenaVote('b')"
+                  [disabled]="!bothDone"
+                  class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                >
+                  B is better
+                </button>
+              </div>
+            }
+
+            @if (arenaPhase() === 'voted') {
+              <!-- Post-vote: show updated ratings + next battle -->
+              <div class="flex flex-col items-center gap-4">
+                @if (arenaLeaderboard().length > 0) {
+                  <div class="flex gap-6 text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+                    @for (panel of arenaPanels(); track panel.panel) {
+                      @let panelDinoRev = dinoById(panel.dinoId);
+                      @let panelRating = arenaLeaderboard().find(r => r.dinoId === panel.dinoId);
+                      @if (panelDinoRev && panelRating) {
+                        <span>{{ panelDinoRev.name }}: <strong class="text-jungle-ink dark:text-jungle-night-text">{{ panelRating.rating }}</strong></span>
+                      }
+                    }
+                  </div>
+                }
+                <button
+                  type="button"
+                  (click)="onArenaNext()"
+                  class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                >
+                  Next battle
+                </button>
+              </div>
+            }
+          }
+        </div>
+      </main>
+    } @else if (activeView() === 'leaderboard') {
+      <!-- ───────── Leaderboard: rankings ───────── -->
+      <main class="flex-1 overflow-y-auto px-6 py-6">
+        <div class="max-w-3xl mx-auto flex flex-col gap-6">
+          <div>
+            <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-1">Leaderboard</h1>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+              Dinos ranked by Arena Elo rating. Ratings update after every battle.
+            </p>
+          </div>
+          <app-leaderboard [rows]="leaderboardRows()" />
+        </div>
+      </main>
     } @else if (activeView() === 'knowledge') {
       <!-- ───────── Knowledge: file upload ───────── -->
       <main class="flex-1 overflow-y-auto px-6 py-10">

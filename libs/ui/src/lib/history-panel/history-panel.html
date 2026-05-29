@@ -155,6 +155,48 @@
       </button>
       <button
         type="button"
+        (click)="viewChange.emit('arena')"
+        [class.bg-jungle-accent\/15]="activeView === 'arena'"
+        [class.dark:bg-jungle-night-accent\/15]="activeView === 'arena'"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 overflow-hidden transition-[width,background-color] duration-300"
+        [attr.aria-current]="activeView === 'arena' ? 'page' : null"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span
+          class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >Arena</span
+        >
+      </button>
+      <button
+        type="button"
+        (click)="viewChange.emit('leaderboard')"
+        [class.bg-jungle-accent\/15]="activeView === 'leaderboard'"
+        [class.dark:bg-jungle-night-accent\/15]="activeView === 'leaderboard'"
+        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 overflow-hidden transition-[width,background-color] duration-300"
+        [attr.aria-current]="activeView === 'leaderboard' ? 'page' : null"
+      >
+        <svg
+          class="w-4 h-4 flex-shrink-0"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd" />
+        </svg>
+        <span
+          class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
+          >Leaderboard</span
+        >
+      </button>
+      <button
+        type="button"
         disabled
         class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden transition-[width,background-color] duration-300"
         title="Coming soon"

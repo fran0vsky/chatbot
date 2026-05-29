@@ -10,8 +10,9 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
-import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
+import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
+import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
 import { GroupchatService } from './groupchat.service';
@@ -51,7 +52,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [DinoPicker, GroupResponse, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
+  imports: [DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -62,6 +63,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly dinoService = inject(DinoService);
   private readonly skillService = inject(SkillService);
   readonly groupchatService = inject(GroupchatService);
+  readonly arenaService = inject(ArenaService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
@@ -77,7 +79,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   private streamingToolCallIds: string[] = [];
 
   readonly mobileSidebarOpen = signal(false);
-  readonly activeView = signal<'chats' | 'explore' | 'knowledge' | 'groupchat'>('chats');
+  readonly activeView = signal<'chats' | 'explore' | 'knowledge' | 'groupchat' | 'arena' | 'leaderboard'>('chats');
+
+  // Arena state
+  readonly arenaPrompt = signal('');
+  readonly arenaLeaderboard = this.arenaService.leaderboard;
+  /** Expose arena panels for the template. */
+  readonly arenaPanels = this.arenaService.panels;
+  readonly arenaPhase = this.arenaService.phase;
 
   // Groupchat: set of selected dino IDs
   readonly selectedGroupDinoIds = signal<string[]>([]);
@@ -151,9 +160,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.mobileSidebarOpen.set(false);
   }
 
-  setActiveView(view: 'chats' | 'explore' | 'knowledge' | 'groupchat'): void {
+  setActiveView(view: 'chats' | 'explore' | 'knowledge' | 'groupchat' | 'arena' | 'leaderboard'): void {
     this.activeView.set(view);
     this.closeMobileSidebar();
+    if (view === 'leaderboard') {
+      this.arenaService.loadLeaderboard().then(() => this.cdr.markForCheck());
+    }
   }
 
   /** Toggle a dino in/out of the groupchat selection (cap: GroupchatService.MAX_DINOS). */
@@ -178,6 +190,42 @@ export class ChatComponent implements OnInit, OnDestroy {
   /** Retrieve a dino by id for template iteration over groupchat entries. */
   groupDinoById(id: string): ReturnType<DinoService['getById']> {
     return this.dinoService.getById(id);
+  }
+
+  // ─────────────────────────── Arena methods ────────────────────────────────
+
+  updateArenaPrompt(event: Event): void {
+    this.arenaPrompt.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  onArenaStart(): void {
+    const prompt = this.arenaPrompt().trim();
+    if (!prompt) return;
+    this.arenaService.startBattle(prompt).then(() => this.cdr.markForCheck());
+  }
+
+  onArenaVote(result: 'a' | 'b' | 'draw'): void {
+    const panels = this.arenaPanels();
+    const a = panels.find((p) => p.panel === 'a');
+    const b = panels.find((p) => p.panel === 'b');
+    if (!a || !b) return;
+    this.arenaService.vote(a.dinoId, b.dinoId, result).then(() => this.cdr.markForCheck());
+  }
+
+  onArenaNext(): void {
+    this.arenaPrompt.set('');
+    this.arenaService.reset();
+    this.cdr.markForCheck();
+  }
+
+  /** Look up a dino by id for template use (used in arena reveal). */
+  dinoById(id: string): DinoSummary | undefined {
+    return this.dinoService.getById(id);
+  }
+
+  /** Cast LeaderboardRow[] for the Leaderboard component input. */
+  leaderboardRows(): LeaderboardRow[] {
+    return this.arenaLeaderboard();
   }
 
   /** Choosing a dino (from the picker or Explore) starts a fresh chat bound to it. */
