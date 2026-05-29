@@ -1,9 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { DATABASE_CONNECTION, Database } from '../database/database.module';
-import { userMemories, UserMemory } from '../database/schema';
+import { dinoSkills, userMemories, UserMemory } from '../database/schema';
 
 type DbConnection = { db: Database | null; pool: unknown };
+
+/** A user-authored skill in the shape callers/UI care about (no scoping columns). */
+export interface SkillView {
+  id: string;
+  title: string;
+  instruction: string;
+}
 
 const DEFAULT_LIMIT = 20;
 
@@ -88,6 +95,58 @@ export class MemoryService {
       await db.delete(userMemories).where(eq(userMemories.id, id));
     } catch (err) {
       this.logger.error(`deleteMemory failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // --- User-authored skills (Phase 22) — same (userId × dinoId) scoping ---
+
+  /** Skills taught for (userId, dinoId), newest first. [] when DB off or userId missing. */
+  async getSkills(userId: string | undefined, dinoId: string): Promise<SkillView[]> {
+    const db = this.connection.db;
+    if (!db || !userId || !dinoId) return [];
+    try {
+      return await db
+        .select({ id: dinoSkills.id, title: dinoSkills.title, instruction: dinoSkills.instruction })
+        .from(dinoSkills)
+        .where(and(eq(dinoSkills.userId, userId), eq(dinoSkills.dinoId, dinoId)))
+        .orderBy(desc(dinoSkills.createdAt));
+    } catch (err) {
+      this.logger.error(`getSkills failed: ${err instanceof Error ? err.message : String(err)}`);
+      return [];
+    }
+  }
+
+  /** Persist a taught skill. Returns the created skill, or null when DB off / invalid input. */
+  async addSkill(
+    userId: string | undefined,
+    dinoId: string,
+    title: string,
+    instruction: string,
+  ): Promise<SkillView | null> {
+    const db = this.connection.db;
+    const cleanTitle = title?.trim();
+    const cleanInstruction = instruction?.trim();
+    if (!db || !userId || !dinoId || !cleanTitle || !cleanInstruction) return null;
+    try {
+      const [row] = await db
+        .insert(dinoSkills)
+        .values({ userId, dinoId, title: cleanTitle, instruction: cleanInstruction })
+        .returning({ id: dinoSkills.id, title: dinoSkills.title, instruction: dinoSkills.instruction });
+      return row ?? null;
+    } catch (err) {
+      this.logger.error(`addSkill failed: ${err instanceof Error ? err.message : String(err)}`);
+      return null;
+    }
+  }
+
+  /** Delete a single skill by id. No-op when DB off. */
+  async deleteSkill(id: string): Promise<void> {
+    const db = this.connection.db;
+    if (!db || !id) return;
+    try {
+      await db.delete(dinoSkills).where(eq(dinoSkills.id, id));
+    } catch (err) {
+      this.logger.error(`deleteSkill failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 }

@@ -153,10 +153,22 @@
           <div class="flex-shrink-0">
             <app-mascot size="sm" [dinoId]="dino.id" />
           </div>
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <p class="text-sm font-medium text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</p>
             <p class="text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ dino.species }} · {{ dino.specialty }}</p>
           </div>
+          <button
+            type="button"
+            (click)="openSkillPanel()"
+            class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-jungle-accent dark:text-jungle-night-accent bg-jungle-accent/10 dark:bg-jungle-night-accent/10 hover:bg-jungle-accent/20 dark:hover:bg-jungle-night-accent/20 border border-jungle-accent/30 dark:border-jungle-night-accent/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+            [title]="'Teach ' + dino.name + ' a skill'"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+            <span>Teach {{ dino.name }}</span>
+          </button>
         </header>
       }
       @if (messages.length <= 1 && !isLoading && !isStreaming()) {
@@ -325,6 +337,81 @@
           [dinos]="dinos()"
           [activeDinoId]="activeDinoId()"
           (dinoSelected)="pickDino($event)"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- Teach-a-skill + learned-items overlay (MEM-04..06) -->
+  @if (skillPanelOpen()) {
+    <div
+      class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+      (click)="closeSkillPanel()"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="fixed inset-0 z-[61] flex items-center justify-center p-4 pointer-events-none"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Teach ' + (activeDino()?.name ?? 'this dino') + ' a skill'"
+    >
+      <div
+        class="pointer-events-auto w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl bg-jungle-bg dark:bg-jungle-night border border-jungle-border/40 dark:border-jungle-night-border/40 shadow-2xl p-6"
+      >
+        <div class="flex items-start justify-between mb-5">
+          <div>
+            <h2 class="font-title text-2xl text-jungle-accent dark:text-jungle-night-accent">
+              Teach {{ activeDino()?.name ?? 'your dino' }}
+            </h2>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+              Skills apply automatically in every future chat with this dino.
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="closeSkillPanel()"
+            aria-label="Close"
+            class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Teach form -->
+        <div class="space-y-3 mb-6">
+          <input
+            type="text"
+            [value]="skillTitle()"
+            (input)="updateSkillTitle($event)"
+            placeholder="Skill name (e.g. British English)"
+            class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          />
+          <textarea
+            [value]="skillInstruction()"
+            (input)="updateSkillInstruction($event)"
+            rows="3"
+            placeholder="Instruction (e.g. Always answer in British English.)"
+            class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+          ></textarea>
+          <button
+            type="button"
+            (click)="saveSkill()"
+            [disabled]="skillSaving() || skillTitle().trim().length === 0 || skillInstruction().trim().length === 0"
+            class="w-full px-4 py-2 rounded-lg text-sm font-medium text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            {{ skillSaving() ? 'Saving…' : 'Save skill' }}
+          </button>
+        </div>
+
+        <!-- What this dino knows -->
+        <app-skill-manager
+          [skills]="learnedSkills()"
+          [memories]="learnedMemories()"
+          (skillDeleted)="onSkillDeleted($event)"
+          (memoryDeleted)="onMemoryDeleted($event)"
         />
       </div>
     </div>

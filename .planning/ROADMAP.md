@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned (completed 2026-05-29)
 - [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat
 - [x] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads (completed 2026-05-29)
-- [ ] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills
+- [x] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills (completed 2026-05-29)
 - [ ] **Phase 23: Dino Groupchat** - One prompt → multiple dinos respond in a single attributed view
 - [ ] **Phase 24: Dino Arena + Leaderboard** - Blind split-screen compare, vote → Elo-style scoring, Leaderboard tab
 - [ ] **Phase 25: Multimodal Input** - Screenshot paste, vision dino on a free OpenRouter vision model, OCR
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 19. Dino Picker + Explore | 1/1 | Complete   | 2026-05-29 |
 | 20. Dino Mascots | 0/1 | Plan written ✎ (has human art step) | - |
 | 21. Cross-Thread Memory | 1/1 | Complete   | 2026-05-29 |
-| 22. Teach-a-Skill | 0/1 | Plan written ✎ | - |
+| 22. Teach-a-Skill | 1/1 | Complete   | 2026-05-29 |
 | 23. Dino Groupchat | 0/1 | Plan written ✎ | - |
 | 24. Arena + Leaderboard | 0/1 | Plan written ✎ | - |
 | 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
@@ -430,7 +430,7 @@ Plans:
   2. A skill taught in that flow persists and is applied in a new normal chat without re-teaching
   3. The user can view and remove a dino's learned memories and skills
 **Scope note:** In — training-chat UI, skill persistence, management UI. Builds on the Phase 21 memory store.
-**Plans:** TBD (run `/gsd-plan-phase 22`)
+**Plans:** 1/1 plans complete
 **UI hint:** yes
 
 ### Phase 23: Dino Groupchat

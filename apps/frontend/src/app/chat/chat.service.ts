@@ -2,13 +2,27 @@ import { Injectable } from '@angular/core';
 import { ChatHistoryItem, ChatRequest, StreamEvent } from '@org/shared-types';
 import { environment } from '../../environments/environment';
 
-const USER_ID_KEY = 'spino-user-id';
+export const USER_ID_KEY = 'spino-user-id';
+
+/** Read the anonymous per-device userId, creating + persisting one if absent. */
+export function loadUserId(): string {
+  try {
+    const existing = localStorage.getItem(USER_ID_KEY);
+    if (existing) return existing;
+    const fresh = newUuid();
+    localStorage.setItem(USER_ID_KEY, fresh);
+    return fresh;
+  } catch {
+    // localStorage unavailable (private mode / SSR) — ephemeral id.
+    return newUuid();
+  }
+}
 
 // crypto.randomUUID() is only exposed in secure contexts (HTTPS / localhost).
 // On a plain-HTTP origin like the demo VM, calling it throws and breaks the
 // Angular bootstrap. Fall back to a Math.random-based RFC4122 v4 generator —
 // not cryptographically strong, but fine for client-side session IDs.
-function newUuid(): string {
+export function newUuid(): string {
   const c = (typeof crypto !== 'undefined' ? crypto : undefined) as
     | (Crypto & { randomUUID?: () => string })
     | undefined;
@@ -22,22 +36,9 @@ function newUuid(): string {
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private threadId: string = newUuid();
-  private readonly userId: string = this.loadUserId();
-
   // Anonymous, stable per-device id. Persisted so a dino can recall this user
   // across threads and across reloads (no auth yet). Scopes memory per userId.
-  private loadUserId(): string {
-    try {
-      const existing = localStorage.getItem(USER_ID_KEY);
-      if (existing) return existing;
-      const fresh = newUuid();
-      localStorage.setItem(USER_ID_KEY, fresh);
-      return fresh;
-    } catch {
-      // localStorage unavailable (private mode / SSR) — fall back to an ephemeral id.
-      return newUuid();
-    }
-  }
+  private readonly userId: string = loadUserId();
 
   get currentThreadId(): string {
     return this.threadId;

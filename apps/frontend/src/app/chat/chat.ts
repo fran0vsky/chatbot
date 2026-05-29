@@ -10,11 +10,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
-import { DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
+import { DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
 import { HistoryService } from './history.service';
+import { SkillService } from './skill.service';
 
 const PLACEHOLDER_EXAMPLES = [
   'Explain quantum computing in simple terms...',
@@ -49,7 +50,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, ToolCallBubble],
+  imports: [DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -58,6 +59,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
   private readonly historyService = inject(HistoryService);
   private readonly dinoService = inject(DinoService);
+  private readonly skillService = inject(SkillService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
@@ -158,6 +160,95 @@ export class ChatComponent implements OnInit, OnDestroy {
   closePicker(): void {
     this.pickerOpen.set(false);
     this.cdr.markForCheck();
+  }
+
+  // ───────── Teach-a-skill + learned-items management (MEM-04..06) ─────────
+
+  /** When true, the teach-a-skill + "what this dino knows" overlay is shown. */
+  readonly skillPanelOpen = signal(false);
+  readonly skillTitle = signal('');
+  readonly skillInstruction = signal('');
+  readonly skillSaving = signal(false);
+  readonly learnedSkills = signal<DinoSkill[]>([]);
+  readonly learnedMemories = signal<{ id: string; content: string }[]>([]);
+
+  openSkillPanel(): void {
+    const dinoId = this.activeDinoId();
+    if (!dinoId) return;
+    this.skillPanelOpen.set(true);
+    this.refreshLearned(dinoId);
+  }
+
+  closeSkillPanel(): void {
+    this.skillPanelOpen.set(false);
+    this.skillTitle.set('');
+    this.skillInstruction.set('');
+    this.cdr.markForCheck();
+  }
+
+  private refreshLearned(dinoId: string): void {
+    this.skillService.getLearned(dinoId).subscribe({
+      next: (items) => {
+        this.learnedSkills.set(items.skills);
+        this.learnedMemories.set(items.memories);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        // Graceful degradation (e.g. DB disabled): show an empty manager.
+        this.learnedSkills.set([]);
+        this.learnedMemories.set([]);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  updateSkillTitle(event: Event): void {
+    this.skillTitle.set((event.target as HTMLInputElement).value);
+  }
+
+  updateSkillInstruction(event: Event): void {
+    this.skillInstruction.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  saveSkill(): void {
+    const dinoId = this.activeDinoId();
+    const title = this.skillTitle().trim();
+    const instruction = this.skillInstruction().trim();
+    if (!dinoId || !title || !instruction || this.skillSaving()) return;
+    this.skillSaving.set(true);
+    this.skillService.addSkill(dinoId, title, instruction).subscribe({
+      next: (skill) => {
+        this.learnedSkills.update((s) => [skill, ...s]);
+        this.skillTitle.set('');
+        this.skillInstruction.set('');
+        this.skillSaving.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.skillSaving.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  onSkillDeleted(id: string): void {
+    this.skillService.deleteSkill(id).subscribe({
+      next: () => {
+        this.learnedSkills.update((s) => s.filter((x) => x.id !== id));
+        this.cdr.markForCheck();
+      },
+      error: () => this.cdr.markForCheck(),
+    });
+  }
+
+  onMemoryDeleted(id: string): void {
+    this.skillService.deleteMemory(id).subscribe({
+      next: () => {
+        this.learnedMemories.update((m) => m.filter((x) => x.id !== id));
+        this.cdr.markForCheck();
+      },
+      error: () => this.cdr.markForCheck(),
+    });
   }
 
   onKnowledgeFilesSelected(event: Event): void {

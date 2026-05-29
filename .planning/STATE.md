@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
 status: executing
-last_updated: "2026-05-29T21:30:00.000Z"
+last_updated: "2026-05-29T21:45:00.000Z"
 last_activity: 2026-05-29
 progress:
   total_phases: 0
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 0
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 21 — cross-thread memory: code-complete and verified (lint + frontend build + 30 backend tests green). Live cross-thread smoke test (Task 5, needs DATABASE_URL + OPENROUTER_API_KEY) is the only remaining human step. Next: Phase 22 — Teach-a-Skill.
+**Current focus:** Phases 21 + 22 (memory + teach-a-skill) code-complete and verified. Both have a live smoke test (Task 5 each) pending human run with DATABASE_URL + OPENROUTER_API_KEY. Next candidate: Phase 23 — Dino Groupchat (or Phase 20 real mascot art).
 
 ## Current Position
 
-Phase: 21 — Cross-Thread Memory (complete; live smoke test pending human run)
-Plan: 21-01 (Tasks 1–4 done + verified; Task 5 manual smoke test deferred to human)
-Status: user_memories table (userId × dinoId) + MemoryService/MemoryModule (null-safe, de-duping, never throws) + anonymous localStorage userId + capped within-thread history plumbed end-to-end. Agent loop injects a memories block into the dino prompt, replays history (closes the stateless-loop gap), and best-effort extracts durable facts after each turn via openai/gpt-oss-20b:free. Verified: `nx lint @org/backend,@org/shared-types,frontend` green (only pre-existing main.ts warning); `nx build frontend` green (frontend specs unrunnable on this box); backend Vitest 30/30 via vitest.run.mjs incl. new memory.service.spec.ts.
-Last activity: 2026-05-29 — Phase 21 implemented + verified; proceeding to Phase 22
+Phase: 22 — Teach-a-Skill (complete; live teach-once smoke test pending human run)
+Plan: 22-01 (Tasks 1–4 done + verified; Task 5 manual smoke test deferred to human)
+Status: dino_skills table (userId × dinoId) + MemoryService getSkills/addSkill/deleteSkill (null-safe) + SkillsController (GET/POST/DELETE skills, DELETE memories) + shared DinoSkill/LearnedItems. Agent loop assembles base prompt → skills block (standing instructions) → memories block. Frontend: SkillService, "Teach {dino}" header button + overlay (title/instruction + save), presentational SkillManager (skills + memories w/ delete) + stories, exported from @chatbot/ui. userId logic refactored into exported loadUserId()/USER_ID_KEY in chat.service (shared with SkillService). Verified: lint (@org/backend, @org/shared-types, frontend) green; `nx build @chatbot/ui` + `nx build frontend` green (frontend specs unrunnable on this box); backend Vitest 35/35 via vitest.run.mjs (5 new skill tests).
+Last activity: 2026-05-29 — Phases 21 + 22 implemented + verified in one session
 
 ## Performance Metrics
 
@@ -71,6 +71,8 @@ Recent decisions affecting current work:
 ### Pending Todos
 
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
+- **Phase 22 Task 5 — teach-once smoke test (human):** with DB + key and `dino_skills` pushed: teach rexford "Always answer in British English." → new chat with rexford applies it without re-teaching → manager delete stops it → veloce unaffected. See 22-01-SUMMARY.md.
+- **DB migration:** push the two new tables before the smoke tests — `user_memories` (Phase 21) and `dino_skills` (Phase 22) — via `npx nx run @org/backend:... drizzle-kit push` (or the project's drizzle push script) against `DATABASE_URL`.
 - **Commit all changes (Phases 1–4)** — run `pnpm nx build frontend` first to verify, then commit with message: `feat(phase-4): desert theme — day/night toggle, snake mascot, bubble restyling, cactus scrollbar`
 - Human one-time setup (Plan 03 Task 2): GCP project + APIs, Artifact Registry repo, Secret Manager `openrouter-api-key`, Cloud Run service `chatbot-backend`, Workload Identity Federation, Firebase project + Hosting, 8 GitHub Actions variables + 2 secrets. Full checklist in `README.md` `## Deployment`.
 - Local smoke test of the full stack: `npx nx serve backend` + `npx nx serve frontend` with `OPENROUTER_API_KEY` in `.env`; verify model selector routes to both models.

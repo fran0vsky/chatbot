@@ -64,9 +64,29 @@ export const userMemories = pgTable(
   }),
 );
 
+// User-authored, titled skills taught to a dino. Same scoping as userMemories
+// (per userId × dinoId) but distinct because skills are standing instructions
+// the user deliberately authored, not facts the model auto-extracted.
+export const dinoSkills = pgTable(
+  'dino_skills',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(),
+    dinoId: text('dino_id').notNull(),
+    title: text('title').notNull(),
+    instruction: text('instruction').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userDinoIdx: index('dino_skills_user_dino_idx').on(table.userId, table.dinoId),
+  }),
+);
+
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
 export type UserMemory = typeof userMemories.$inferSelect;
 export type NewUserMemory = typeof userMemories.$inferInsert;
+export type DinoSkill = typeof dinoSkills.$inferSelect;
+export type NewDinoSkill = typeof dinoSkills.$inferInsert;

@@ -25,3 +25,16 @@ export interface Dino {
 
 /** Frontend-safe projection — omits the raw system prompt. */
 export type DinoSummary = Omit<Dino, 'systemPrompt'>;
+
+/** A user-authored skill taught to a dino (Phase 22). */
+export interface DinoSkill {
+  id: string;
+  title: string;
+  instruction: string;
+}
+
+/** Everything a dino has learned about a user: taught skills + auto-extracted memories. */
+export interface LearnedItems {
+  skills: DinoSkill[];
+  memories: { id: string; content: string }[];
+}

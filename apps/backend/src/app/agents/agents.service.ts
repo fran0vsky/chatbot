@@ -10,7 +10,7 @@ import {
 import { ChatHistoryItem, Dino, StreamEvent, ToolCallRecord } from '@org/shared-types';
 import { tools } from './tools';
 import { getDino } from './dinos';
-import { MemoryService } from '../memory/memory.service';
+import { MemoryService, SkillView } from '../memory/memory.service';
 
 const MAX_TOOL_ITERATIONS = 5;
 
@@ -103,10 +103,17 @@ export class AgentsService {
       });
       const llm = activeTools.length > 0 ? llmBase.bindTools(activeTools) : llmBase;
 
-      // Cross-thread memory: pull what this dino remembers about this user and
-      // fold it into the system prompt. Scoped strictly per (userId × dinoId).
-      const memories = dino ? await this.memoryService.getMemories(userId, dino.id) : [];
-      const systemPrompt = dino ? this.systemPromptWithMemories(dino.systemPrompt, memories) : undefined;
+      // Cross-thread memory + taught skills: pull what this dino has learned about
+      // this user and fold it into the system prompt. Scoped per (userId × dinoId).
+      let memories: string[] = [];
+      let skills: SkillView[] = [];
+      if (dino) {
+        [memories, skills] = await Promise.all([
+          this.memoryService.getMemories(userId, dino.id),
+          this.memoryService.getSkills(userId, dino.id),
+        ]);
+      }
+      const systemPrompt = dino ? this.buildSystemPrompt(dino.systemPrompt, skills, memories) : undefined;
 
       // Within-thread context: replay recent prior turns so follow-ups have
       // context. Closes the prior stateless-loop gap (each request was a single
@@ -213,11 +220,22 @@ export class AgentsService {
     }
   }
 
-  /** Append a "what you remember" block to the dino's system prompt. No-op when empty. */
-  private systemPromptWithMemories(systemPrompt: string, memories: string[]): string {
-    if (memories.length === 0) return systemPrompt;
-    const block = memories.map((m) => `- ${m}`).join('\n');
-    return `${systemPrompt}\n\nWhat you remember about this user:\n${block}`;
+  /**
+   * Assemble the dino system prompt: base persona → user-taught skills (standing
+   * instructions) → auto-extracted memories (facts). Skills are deliberately a
+   * separate, higher-authority block from memories. Empty blocks are omitted.
+   */
+  private buildSystemPrompt(basePrompt: string, skills: SkillView[], memories: string[]): string {
+    let prompt = basePrompt;
+    if (skills.length > 0) {
+      const block = skills.map((s) => `- ${s.title}: ${s.instruction}`).join('\n');
+      prompt += `\n\nSkills this user has taught you (follow these as standing instructions):\n${block}`;
+    }
+    if (memories.length > 0) {
+      const block = memories.map((m) => `- ${m}`).join('\n');
+      prompt += `\n\nWhat you remember about this user:\n${block}`;
+    }
+    return prompt;
   }
 
   /**
