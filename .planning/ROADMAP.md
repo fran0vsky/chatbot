@@ -125,7 +125,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 21. Cross-Thread Memory | 1/1 | Complete   | 2026-05-29 |
 | 22. Teach-a-Skill | 1/1 | Complete   | 2026-05-29 |
 | 23. Dino Groupchat | 1/1 | Code complete | 2026-05-29 |
-| 24. Arena + Leaderboard | 0/1 | Plan written ✎ | - |
+| 24. Arena + Leaderboard | 1/1 | Complete    | 2026-05-29 |
 | 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
 | 26. Image Generation | 0/TBD | Needs research spike (free image provider) | - |
 | 27. NgRx State Refactor | 0/1 | Plan written ✎ | - |
@@ -457,7 +457,7 @@ Plans:
   3. Votes update a persistent, documented ranking score (Elo-style or equivalent)
   4. A Leaderboard tab ranks all dinos by score
 **Scope note:** In — arena UI, blind compare, voting, scoring system + table, leaderboard. Scoring algorithm is designed and documented in this phase.
-**Plans:** TBD (run `/gsd-plan-phase 24`)
+**Plans:** 1/1 plans complete
 **UI hint:** yes
 
 ### Phase 25: Multimodal Input
