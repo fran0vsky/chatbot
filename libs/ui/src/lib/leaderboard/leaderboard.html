@@ -1,0 +1,56 @@
+@if (rows.length === 0) {
+  <div class="rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/60 dark:bg-jungle-night-surface/60 px-6 py-12 text-center">
+    <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">No battles yet — head to the Arena to get the ranking started.</p>
+  </div>
+} @else {
+  <div class="rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/80 dark:bg-jungle-night-surface/80 backdrop-blur-sm overflow-hidden">
+    <!-- Header row -->
+    <div class="grid grid-cols-[2rem_1fr_5rem_6rem_3rem] gap-3 px-4 py-2 border-b border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40 text-[10px] uppercase tracking-wide font-semibold text-jungle-ink-muted dark:text-jungle-night-muted">
+      <span>#</span>
+      <span>Dino</span>
+      <span class="text-right">Rating</span>
+      <span class="text-right">W / L / D</span>
+      <span class="text-right">Games</span>
+    </div>
+
+    <!-- Data rows -->
+    @for (row of rows; track row.dinoId; let i = $index) {
+      <div
+        class="grid grid-cols-[2rem_1fr_5rem_6rem_3rem] gap-3 px-4 py-2.5 items-center border-b border-jungle-border/10 dark:border-jungle-night-border/20 last:border-0 hover:bg-jungle-bg/30 dark:hover:bg-jungle-night/30 transition-colors"
+      >
+        <!-- Rank -->
+        <span class="text-sm font-bold text-jungle-ink-muted dark:text-jungle-night-muted">
+          {{ i + 1 }}
+        </span>
+
+        <!-- Mascot + name + species -->
+        <div class="flex items-center gap-2.5 min-w-0">
+          <app-mascot [dinoId]="row.dinoId" size="sm" class="flex-shrink-0 w-7 h-7" />
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-jungle-ink dark:text-jungle-night-text truncate">{{ row.name }}</p>
+            <p class="text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ row.species }}</p>
+          </div>
+        </div>
+
+        <!-- Rating -->
+        <span class="text-right text-sm font-semibold text-jungle-accent dark:text-jungle-night-accent tabular-nums">
+          {{ row.rating }}
+        </span>
+
+        <!-- W / L / D -->
+        <span class="text-right text-xs text-jungle-ink-muted dark:text-jungle-night-muted tabular-nums">
+          <span class="text-emerald-500 dark:text-emerald-400">{{ row.wins }}</span>
+          <span class="mx-0.5">/</span>
+          <span class="text-red-400">{{ row.losses }}</span>
+          <span class="mx-0.5">/</span>
+          <span>{{ row.draws }}</span>
+        </span>
+
+        <!-- Games -->
+        <span class="text-right text-xs text-jungle-ink-muted dark:text-jungle-night-muted tabular-nums">
+          {{ row.games }}
+        </span>
+      </div>
+    }
+  </div>
+}
