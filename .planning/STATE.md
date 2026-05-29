@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
 status: executing
-last_updated: "2026-05-29T13:30:00.000Z"
+last_updated: "2026-05-29T21:30:00.000Z"
 last_activity: 2026-05-29
 progress:
   total_phases: 0
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 0
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 20 — dino mascots: pipeline + Mascot wiring code-complete; per-dino art (Task 1) and visual QA (Task 5) are pending human steps before the phase can be verified complete
+**Current focus:** Phase 21 — cross-thread memory: code-complete and verified (lint + frontend build + 30 backend tests green). Live cross-thread smoke test (Task 5, needs DATABASE_URL + OPENROUTER_API_KEY) is the only remaining human step. Next: Phase 22 — Teach-a-Skill.
 
 ## Current Position
 
-Phase: 20 — Dino Mascots
-Plan: 20-01 (code-complete, HUMAN-NEEDED — art + QA pending)
-Status: Tasks 2–4 done (split/optimize scripts generalized to N dinos; Mascot renders per-dino pixel-art by dinoId+theme with Spino SVG fallback; wired into DinoCard + chat header). PLACEHOLDER mascots generated via scripts/gen-placeholder-mascots.js + pipeline, so per-dino mascots now render (distinct by hue) in Explore + chat. Real pixel-art (distinct species) DEFERRED to todo 2026-05-29-replace-placeholder-dino-mascots. Phase functionally working but NOT fully verified (MASC-06/07 need real art). `nx lint frontend` green; `nx lint ui` has 10 PRE-EXISTING errors (input-composer/message-bubble/tool-call-bubble), none in touched files.
-Last activity: 2026-05-29 — Phase 20 code + placeholder art shipped inline; real art tracked as a pending todo
+Phase: 21 — Cross-Thread Memory (complete; live smoke test pending human run)
+Plan: 21-01 (Tasks 1–4 done + verified; Task 5 manual smoke test deferred to human)
+Status: user_memories table (userId × dinoId) + MemoryService/MemoryModule (null-safe, de-duping, never throws) + anonymous localStorage userId + capped within-thread history plumbed end-to-end. Agent loop injects a memories block into the dino prompt, replays history (closes the stateless-loop gap), and best-effort extracts durable facts after each turn via openai/gpt-oss-20b:free. Verified: `nx lint @org/backend,@org/shared-types,frontend` green (only pre-existing main.ts warning); `nx build frontend` green (frontend specs unrunnable on this box); backend Vitest 30/30 via vitest.run.mjs incl. new memory.service.spec.ts.
+Last activity: 2026-05-29 — Phase 21 implemented + verified; proceeding to Phase 22
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
+- **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
 - **Commit all changes (Phases 1–4)** — run `pnpm nx build frontend` first to verify, then commit with message: `feat(phase-4): desert theme — day/night toggle, snake mascot, bubble restyling, cactus scrollbar`
 - Human one-time setup (Plan 03 Task 2): GCP project + APIs, Artifact Registry repo, Secret Manager `openrouter-api-key`, Cloud Run service `chatbot-backend`, Workload Identity Federation, Firebase project + Hosting, 8 GitHub Actions variables + 2 secrets. Full checklist in `README.md` `## Deployment`.
 - Local smoke test of the full stack: `npx nx serve backend` + `npx nx serve frontend` with `OPENROUTER_API_KEY` in `.env`; verify model selector routes to both models.

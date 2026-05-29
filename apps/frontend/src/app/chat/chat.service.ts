@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { ChatRequest, StreamEvent } from '@org/shared-types';
+import { ChatHistoryItem, ChatRequest, StreamEvent } from '@org/shared-types';
 import { environment } from '../../environments/environment';
+
+const USER_ID_KEY = 'spino-user-id';
 
 // crypto.randomUUID() is only exposed in secure contexts (HTTPS / localhost).
 // On a plain-HTTP origin like the demo VM, calling it throws and breaks the
@@ -20,6 +22,22 @@ function newUuid(): string {
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private threadId: string = newUuid();
+  private readonly userId: string = this.loadUserId();
+
+  // Anonymous, stable per-device id. Persisted so a dino can recall this user
+  // across threads and across reloads (no auth yet). Scopes memory per userId.
+  private loadUserId(): string {
+    try {
+      const existing = localStorage.getItem(USER_ID_KEY);
+      if (existing) return existing;
+      const fresh = newUuid();
+      localStorage.setItem(USER_ID_KEY, fresh);
+      return fresh;
+    } catch {
+      // localStorage unavailable (private mode / SSR) — fall back to an ephemeral id.
+      return newUuid();
+    }
+  }
 
   get currentThreadId(): string {
     return this.threadId;
@@ -38,9 +56,18 @@ export class ChatService {
     dinoId: string | undefined,
     signal: AbortSignal,
     enabledTools?: string[],
+    history?: ChatHistoryItem[],
   ): AsyncGenerator<StreamEvent, void, void> {
     // The backend resolves model + system prompt + allowed tools from the dino.
-    const body: ChatRequest = { message, threadId: this.threadId, dinoId, enabledTools };
+    // userId scopes cross-thread memory; history gives within-thread context.
+    const body: ChatRequest = {
+      message,
+      threadId: this.threadId,
+      dinoId,
+      enabledTools,
+      userId: this.userId,
+      history,
+    };
 
     let response: Response;
     try {

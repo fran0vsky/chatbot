@@ -39,7 +39,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected (completed 2026-05-29)
 - [x] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned (completed 2026-05-29)
 - [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat
-- [ ] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads
+- [x] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads (completed 2026-05-29)
 - [ ] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills
 - [ ] **Phase 23: Dino Groupchat** - One prompt → multiple dinos respond in a single attributed view
 - [ ] **Phase 24: Dino Arena + Leaderboard** - Blind split-screen compare, vote → Elo-style scoring, Leaderboard tab
@@ -122,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 18. Dino Abstraction | 1/1 | Complete   | 2026-05-29 |
 | 19. Dino Picker + Explore | 1/1 | Complete   | 2026-05-29 |
 | 20. Dino Mascots | 0/1 | Plan written ✎ (has human art step) | - |
-| 21. Cross-Thread Memory | 0/1 | Plan written ✎ | - |
+| 21. Cross-Thread Memory | 1/1 | Complete   | 2026-05-29 |
 | 22. Teach-a-Skill | 0/1 | Plan written ✎ | - |
 | 23. Dino Groupchat | 0/1 | Plan written ✎ | - |
 | 24. Arena + Leaderboard | 0/1 | Plan written ✎ | - |
@@ -417,7 +417,7 @@ Plans:
   3. Relevant memories are retrieved and injected into the dino's context at turn start (observable: dino references an earlier-thread fact)
   4. A new DB table backs memory; no regression to existing chat persistence
 **Scope note:** In — memory schema, write/extract on turns, retrieval + injection. Out — teach-a-skill UI (Phase 22), cross-device sync (needs auth).
-**Plans:** TBD (run `/gsd-plan-phase 21`)
+**Plans:** 1/1 plans complete
 **UI hint:** no
 
 ### Phase 22: Teach-a-Skill

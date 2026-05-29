@@ -36,6 +36,8 @@ export class AgentsController {
         controller.signal,
         body.enabledTools,
         body.dinoId,
+        body.userId,
+        body.history,
       )) {
         write(event);
       }

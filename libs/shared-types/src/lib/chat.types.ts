@@ -1,3 +1,9 @@
+/** A single prior turn sent so the backend has within-thread context. */
+export interface ChatHistoryItem {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
 export interface ChatRequest {
   message: string;
   threadId?: string;
@@ -6,6 +12,10 @@ export interface ChatRequest {
   enabledTools?: string[];
   /** Selected dino. When present, backend resolves model + system prompt + tools from it. */
   dinoId?: string;
+  /** Anonymous per-device user id (localStorage). Scopes cross-thread memory per (userId × dinoId). */
+  userId?: string;
+  /** Recent prior turns (capped) so multi-turn follow-ups have context. */
+  history?: ChatHistoryItem[];
 }
 
 export interface ToolInfo {

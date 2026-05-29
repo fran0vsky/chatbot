@@ -10,7 +10,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ChatMessage, ConversationSession, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
 import { DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
@@ -448,6 +448,20 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
   }
 
+  // Recent prior turns (user/assistant only) sent so the backend has within-thread
+  // context. The current turn's user message is already the last entry in
+  // this.messages, so it is excluded here; the backend receives it as `message`.
+  private buildHistory(): ChatHistoryItem[] {
+    const HISTORY_CAP = 20;
+    return this.messages
+      .slice(0, -1)
+      .filter((m): m is ChatMessage & { role: 'user' | 'assistant' } =>
+        (m.role === 'user' || m.role === 'assistant') && m.text.trim().length > 0,
+      )
+      .map((m) => ({ role: m.role, text: m.text }))
+      .slice(-HISTORY_CAP);
+  }
+
   private async dispatchRequest(text: string): Promise<void> {
     this.currentAbort?.abort();
     const controller = new AbortController();
@@ -469,6 +483,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.activeDinoId(),
         controller.signal,
         this.enabledToolNames(),
+        this.buildHistory(),
       )) {
         this.handleStreamEvent(event);
       }

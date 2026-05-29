@@ -45,7 +45,28 @@ export const messages = pgTable(
   }),
 );
 
+// Per-(user × dino) durable memory. Lets a dino recall facts a user shared in a
+// different thread. Scoped strictly by (userId, dinoId) — a dino never sees
+// another dino's memories. Identity is an anonymous per-device id (no auth yet).
+export const userMemories = pgTable(
+  'user_memories',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(),
+    dinoId: text('dino_id').notNull(),
+    content: text('content').notNull(),
+    // Provenance of the fact, e.g. 'extracted' (model-derived) | 'taught' (Phase 22).
+    source: text('source'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userDinoIdx: index('user_memories_user_dino_idx').on(table.userId, table.dinoId),
+  }),
+);
+
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
+export type UserMemory = typeof userMemories.$inferSelect;
+export type NewUserMemory = typeof userMemories.$inferInsert;
