@@ -120,7 +120,22 @@ art is dropped in and the pipeline is run.
   `no-console` warning). Recommend a separate quick task to fix the `ui` lib
   module-boundary config.
 
-## Human Steps Remaining (plan Tasks 1 & 5 — NOT done)
+## Update — placeholder art generated (real art deferred)
+
+At the maker's request, placeholder mascots were generated so the wiring is
+visibly working now without spending time on art:
+- `scripts/gen-placeholder-mascots.js` (created) tints the Spino silhouette per
+  dino into `dinos/_src/{id}-dual.png`.
+- Ran `split-mascot.js --all` + `optimize-spino-assets.js` → real assets now exist:
+  `dinos/{rexford,veloce,glyphos,nimbus}-{day,night}.png`.
+- Per-dino mascots now render (distinct by hue) in the Explore cards and chat header.
+
+Real pixel-art (distinct species, `dual-mascot.png` style) is deferred to a tracked
+todo: `.planning/todos/pending/2026-05-29-replace-placeholder-dino-mascots.md`.
+**MASC-06/07 are functionally wired but not yet visually satisfied** (placeholders
+are not distinct species), so the phase is not fully verified.
+
+## Human Steps Remaining (plan Tasks 1 & 5 — real art still pending via the todo above)
 
 **Task 1 — Generate the art (offline, no LLM usage):**
 For each dino id (`rexford`, `veloce`, `glyphos`, `nimbus`), create a stacked

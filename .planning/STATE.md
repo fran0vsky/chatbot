@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 Phase: 20 — Dino Mascots
 Plan: 20-01 (code-complete, HUMAN-NEEDED — art + QA pending)
-Status: Tasks 2–4 done (split/optimize scripts generalized to N dinos; Mascot renders per-dino pixel-art by dinoId+theme with Spino SVG fallback; wired into DinoCard + chat header). Committed b9bbe78. Phase NOT marked complete — per-dino mascots fall back to Spino until art is dropped in `apps/frontend/public/spino/dinos/_src/{id}-dual.png` and the pipeline is run. `nx lint frontend` green; `nx lint ui` has 10 PRE-EXISTING errors in input-composer/message-bubble/tool-call-bubble (module-boundary + empty fns), none in touched files.
-Last activity: 2026-05-29 — Phase 20 code executed inline; awaiting maker art + visual QA
+Status: Tasks 2–4 done (split/optimize scripts generalized to N dinos; Mascot renders per-dino pixel-art by dinoId+theme with Spino SVG fallback; wired into DinoCard + chat header). PLACEHOLDER mascots generated via scripts/gen-placeholder-mascots.js + pipeline, so per-dino mascots now render (distinct by hue) in Explore + chat. Real pixel-art (distinct species) DEFERRED to todo 2026-05-29-replace-placeholder-dino-mascots. Phase functionally working but NOT fully verified (MASC-06/07 need real art). `nx lint frontend` green; `nx lint ui` has 10 PRE-EXISTING errors (input-composer/message-bubble/tool-call-bubble), none in touched files.
+Last activity: 2026-05-29 — Phase 20 code + placeholder art shipped inline; real art tracked as a pending todo
 
 ## Performance Metrics
 
