@@ -130,6 +130,8 @@ describe('GroupchatService', () => {
           res();
         });
       });
+      // Yield point required by lint — never reached in practice (stream ends via abort above).
+      yield { type: 'done', response: '', toolCalls: [] } as StreamEvent;
     }
 
     (chatService.streamMessage as jest.Mock).mockImplementation(

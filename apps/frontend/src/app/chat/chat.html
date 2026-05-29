@@ -91,6 +91,84 @@
           />
         </div>
       </main>
+    } @else if (activeView() === 'groupchat') {
+      <!-- ───────── Groupchat: multi-dino parallel responses ───────── -->
+      <main class="flex-1 overflow-y-auto px-6 py-6">
+        <div class="max-w-6xl mx-auto flex flex-col gap-6">
+          <div>
+            <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-1">Group chat</h1>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+              Pick up to {{ groupchatMaxDinos }} dinos, send one prompt, and each answers independently.
+            </p>
+          </div>
+
+          <!-- Dino selector grid -->
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted mb-3">
+              Select dinos ({{ selectedGroupDinoIds().length }}/{{ groupchatMaxDinos }})
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              @for (dino of dinos(); track dino.id) {
+                @let isSelected = selectedGroupDinoIds().includes(dino.id);
+                @let isDisabled = !isSelected && selectedGroupDinoIds().length >= groupchatMaxDinos;
+                <button
+                  type="button"
+                  (click)="toggleGroupDino(dino.id)"
+                  [attr.aria-pressed]="isSelected"
+                  [disabled]="isDisabled"
+                  class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 backdrop-blur-sm border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent disabled:opacity-40 disabled:cursor-not-allowed"
+                  [class.border-jungle-accent]="isSelected"
+                  [class.dark:border-jungle-night-accent]="isSelected"
+                  [class.ring-2]="isSelected"
+                  [class.ring-jungle-accent]="isSelected"
+                  [class.dark:ring-jungle-night-accent]="isSelected"
+                  [class.border-jungle-border\/40]="!isSelected"
+                  [class.dark:border-jungle-night-border\/40]="!isSelected"
+                >
+                  <app-mascot [dinoId]="dino.id" size="sm" class="flex-shrink-0 w-8 h-8" />
+                  <div class="min-w-0">
+                    <p class="font-medium text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</p>
+                    <p class="text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ dino.species }}</p>
+                  </div>
+                  @if (isSelected) {
+                    <svg class="ml-auto flex-shrink-0 w-4 h-4 text-jungle-accent dark:text-jungle-night-accent" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Composer -->
+          <app-input-composer
+            [placeholder]="selectedGroupDinoIds().length === 0 ? 'Select at least one dino above…' : 'Ask all selected dinos…'"
+            [disabled]="selectedGroupDinoIds().length === 0"
+            [loading]="false"
+            [tools]="[]"
+            [enabledToolNames]="[]"
+            (send)="onGroupSend($event)"
+            (stop)="groupchatService.stopAll()"
+          />
+
+          <!-- Response grid -->
+          @if (groupchatEntries().length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              @for (entry of groupchatEntries(); track entry.dinoId) {
+                @let responseDino = groupDinoById(entry.dinoId);
+                @if (responseDino) {
+                  <app-group-response
+                    [dino]="responseDino"
+                    [text]="entry.text"
+                    [status]="entry.status"
+                    [error]="entry.error"
+                  />
+                }
+              }
+            </div>
+          }
+        </div>
+      </main>
     } @else if (activeView() === 'knowledge') {
       <!-- ───────── Knowledge: file upload ───────── -->
       <main class="flex-1 overflow-y-auto px-6 py-10">

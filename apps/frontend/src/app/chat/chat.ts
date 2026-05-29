@@ -11,9 +11,10 @@ import {
   signal,
 } from '@angular/core';
 import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
-import { DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
+import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
+import { GroupchatService } from './groupchat.service';
 import { HistoryService } from './history.service';
 import { SkillService } from './skill.service';
 
@@ -50,7 +51,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
+  imports: [DinoPicker, GroupResponse, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -60,6 +61,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly historyService = inject(HistoryService);
   private readonly dinoService = inject(DinoService);
   private readonly skillService = inject(SkillService);
+  readonly groupchatService = inject(GroupchatService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
@@ -75,7 +77,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   private streamingToolCallIds: string[] = [];
 
   readonly mobileSidebarOpen = signal(false);
-  readonly activeView = signal<'chats' | 'explore' | 'knowledge'>('chats');
+  readonly activeView = signal<'chats' | 'explore' | 'knowledge' | 'groupchat'>('chats');
+
+  // Groupchat: set of selected dino IDs
+  readonly selectedGroupDinoIds = signal<string[]>([]);
+  readonly groupchatEntries = this.groupchatService.entries;
+  /** Expose cap for template use (static → instance bridge). */
+  readonly groupchatMaxDinos = GroupchatService.MAX_DINOS;
   readonly knowledgeFiles = signal<KnowledgeFile[]>([]);
   readonly streamingText = signal('');
   readonly streamingReasoning = signal('');
@@ -143,9 +151,33 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.mobileSidebarOpen.set(false);
   }
 
-  setActiveView(view: 'chats' | 'explore' | 'knowledge'): void {
+  setActiveView(view: 'chats' | 'explore' | 'knowledge' | 'groupchat'): void {
     this.activeView.set(view);
     this.closeMobileSidebar();
+  }
+
+  /** Toggle a dino in/out of the groupchat selection (cap: GroupchatService.MAX_DINOS). */
+  toggleGroupDino(dinoId: string): void {
+    this.selectedGroupDinoIds.update((current) => {
+      if (current.includes(dinoId)) {
+        return current.filter((id) => id !== dinoId);
+      }
+      if (current.length >= GroupchatService.MAX_DINOS) return current;
+      return [...current, dinoId];
+    });
+  }
+
+  /** Send the prompt to all selected dinos via GroupchatService. */
+  onGroupSend(text: string): void {
+    const ids = this.selectedGroupDinoIds();
+    if (ids.length === 0 || !text.trim()) return;
+    this.groupchatService.send(text, ids);
+    this.cdr.markForCheck();
+  }
+
+  /** Retrieve a dino by id for template iteration over groupchat entries. */
+  groupDinoById(id: string): ReturnType<DinoService['getById']> {
+    return this.dinoService.getById(id);
   }
 
   /** Choosing a dino (from the picker or Explore) starts a fresh chat bound to it. */
