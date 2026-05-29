@@ -3,9 +3,9 @@
 ## Technology Stack
 
 **Languages:** TypeScript ~5.9.2, SCSS, JavaScript | **Runtime:** Node.js 24 (CI/Docker), npm
-**Core:** NestJS ^11, Angular ~21, LangChain + LangGraph, Tailwind CSS
+**Core:** NestJS ^11, Angular ~21, LangChain (manual agent loop — LangGraph dropped), Drizzle ORM + Postgres, Tailwind CSS
 **Build:** Nx 22.7, Webpack (backend), Angular CLI (frontend), SWC compilation
-**Testing:** Vitest (frontend), Jest (backend), Playwright (e2e)
+**Testing:** Vitest (frontend + backend), Playwright (e2e)
 **Lint:** ESLint 9.8 (flat config), Prettier 3.8, `@typescript-eslint`
 **Deploy:** Docker, Docker Compose, GitHub Actions CI
 **Config:** `tsconfig.base.json` — `strict: true`, `target: es2022`, `noImplicitReturns`, `noUnusedLocals`
@@ -30,18 +30,20 @@
 | Component | Responsibility |
 |-----------|-----------------|
 | `AppModule` / `AppController` | Root NestJS module; health endpoint `GET /api` |
-| `AgentsModule` / `AgentsController` | Feature module; HTTP adapter `POST /api/agents/chat` |
-| `AgentsService` | Builds LangGraph `StateGraph`; holds singleton `MemorySaver` per `thread_id` |
+| `AgentsModule` / `AgentsController` / `DinosController` | Feature module; HTTP adapters `POST /api/agents/chat` and `GET /api/dinos` |
+| `AgentsService` | Manual agent loop (no LangGraph): streams via `ChatOpenAI`, dispatches tools, and — when a `dinoId` is present — injects the dino's system prompt and gates tools to the dino's allowed set |
+| Dino registry (`agents/dinos/`) | Single source of truth for the dino roster (>=4 dinos = fixed model + system prompt + tool subset); `getDino` / `toDinoSummary` resolve and project them |
 | `App` (Angular) | Standalone SPA root; routing via `provideRouter`, HTTP via `provideHttpClient` |
-| `shared-types` | Shared `ChatRequest` / `ChatResponse` interfaces |
+| `DatabaseModule` | Drizzle ORM over a Postgres pool (`DATABASE_URL`); disabled gracefully when unset |
+| `shared-types` | Shared `ChatRequest` / `ChatResponse` and `Dino` / `DinoSummary` contracts |
 
-**Pattern:** NestJS standard module/controller/service layering. LangGraph `StateGraph` compiled once in constructor, reused across requests. Thread-scoped conversation memory in-process (lost on restart). Shared types via `@org/shared-types`.
+**Pattern:** NestJS standard module/controller/service layering. The agent loop is a manual, stateless-per-request loop over `ChatOpenAI` (LangGraph and its `MemorySaver` were dropped for full control of tool dispatch and streaming). No conversation history is sent today (addressed in a later phase). Persistence uses Drizzle ORM + Postgres. Shared types via `@org/shared-types`.
 
 **Key constraints:**
-- Global state: `AgentsService` singleton — shared across requests, not guarded for concurrent `thread_id`.
+- `AgentsService` is stateless per request — it builds the conversation fresh each call; no in-process conversation memory is retained.
 - CORS: Hardcoded `http://localhost:4200` (override via `CORS_ORIGIN`). Production must set explicitly.
-- `searchTool` is a placeholder stub, not wired to real search API.
-- Error handling: Errors bubble to NestJS default handler (no catch in `AgentsService`).
+- Tools (`get_current_time`, `web_search`, `fetch_page`) are real and wired; a dino's `toolNames` is the server-side ceiling and a client `enabledTools` may only narrow further.
+- Error handling: `AgentsService` catches stream errors and maps capability/quota errors to a user-facing message + OpenRouter link.
 - No request validation on `AgentsController` body.
 
 ## Project Skills

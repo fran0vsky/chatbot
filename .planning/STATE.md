@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: planning
-last_updated: "2026-05-28T23:37:27.287Z"
-last_activity: 2026-05-28
+status: executing
+last_updated: "2026-05-29T12:41:00.000Z"
+last_activity: 2026-05-29
 progress:
   total_phases: 0
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 0
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 13 — jungle atmosphere
+**Current focus:** Phase 18 — dino abstraction (complete); next is Phase 19 (dino picker / Explore)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-28 — Milestone v2.0 started
+Phase: 18 — Dino Abstraction
+Plan: 18-01 (complete)
+Status: Phase 18 complete — lint + test (23) + build green
+Last activity: 2026-05-29 — Phase 18 executed; backend is dino-aware, GET /api/dinos live
 
 ## Performance Metrics
 
@@ -77,7 +77,9 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- `npx nx build` fails on this dev machine: Nx 22.7.0 + Node 24.12.0 causes `ERR_UNSUPPORTED_ESM_URL_SCHEME` on Windows. This is pre-existing (Phase 1 commits were also CI-verified only). TypeScript compilation (tsc --noEmit) passes clean on all changed packages. Full build verification happens on CI push.
+- ~~`npx nx build` fails on this dev machine: Nx 22.7.0 + Node 24.12.0 `ERR_UNSUPPORTED_ESM_URL_SCHEME`~~ **RESOLVED (Phase 18):** root cause was Nx doing `import()` on a raw lowercase-drive Windows path. Fixed via `patches/nx+22.7.0.patch` (patch-package + `postinstall`). Nx, lint, test, and build now run locally. Backend `typecheck` target still has 2 pre-existing errors (NestJS decorator `import type` quirk + LangChain `tool.invoke` typing) — unrelated, not part of the lint/test gate.
+- Node: default `node` is now 20.18.1 (via nvm, set during Phase 18 diagnosis). The Nx patch also fixes Node 24, so either works.
+- Backend Vitest workers need an uppercase-drive cwd under Nx; handled by `apps/backend/vitest.run.mjs`.
 - `@langchain/openai ^1.10.0` was not on npm; pinned to `^1.4.0` (latest published 1.x is 1.4.5).
 - Docker not installed on the dev machine — Dockerfile changes are CI-only.
 - `apps/frontend/src/main.ts` has a pre-existing `console.error(err)` lint warning (1 warning, 0 errors).

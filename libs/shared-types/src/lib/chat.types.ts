@@ -4,6 +4,8 @@ export interface ChatRequest {
   model?: string;
   /** Tool names the user has enabled. Undefined = all available tools. */
   enabledTools?: string[];
+  /** Selected dino. When present, backend resolves model + system prompt + tools from it. */
+  dinoId?: string;
 }
 
 export interface ToolInfo {

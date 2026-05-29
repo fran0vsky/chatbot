@@ -34,8 +34,6 @@ export type Database = NodePgDatabase<typeof schema>;
   exports: [DATABASE_CONNECTION],
 })
 export class DatabaseModule implements OnModuleDestroy {
-  constructor() {}
-
   async onModuleDestroy(): Promise<void> {
     // Pool cleanup happens via the provider's lifecycle when the app shuts down.
   }

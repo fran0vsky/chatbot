@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone goal:** Pivot SpinoChat from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos"). A dino = fixed model + system prompt + tool subset. Foundation ships first (dino abstraction → picker/Explore → pixel-art mascots), then memory & learning, multi-dino experiences, multimodal input, and ngrx-driven voice control. Riskiest clusters (Multimodal, Voice) come last as clean cut points.
 
-- [ ] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected
+- [x] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected (completed 2026-05-29)
 - [ ] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned
 - [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat
 - [ ] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads
@@ -119,7 +119,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 16. Ambient Polish | 0/TBD | Deferred to backlog | - |
 | 17. Sound | 0/TBD | Deferred to backlog | - |
 | **— v2.0 Dino Platform —** | | | |
-| 18. Dino Abstraction | 0/1 | Plan written ✎ | - |
+| 18. Dino Abstraction | 1/1 | Complete   | 2026-05-29 |
 | 19. Dino Picker + Explore | 0/1 | Plan written ✎ | - |
 | 20. Dino Mascots | 0/1 | Plan written ✎ (has human art step) | - |
 | 21. Cross-Thread Memory | 0/1 | Plan written ✎ | - |
@@ -374,7 +374,7 @@ Plans:
   5. A session records which dino it belongs to and the active dino is recoverable
   6. PROJECT.md / ROADMAP.md / GSD-CONTEXT.md no longer claim LangGraph or MemorySaver-only
 **Scope note:** In — backend registry, system-prompt injection, per-dino tool gating, shared types, doc correction. Out — UI picker (Phase 19), dino-specific mascots (Phase 20).
-**Plans:** TBD (run `/gsd-plan-phase 18`)
+**Plans:** 1/1 plans complete
 **UI hint:** no
 
 ### Phase 19: Dino Picker + Explore

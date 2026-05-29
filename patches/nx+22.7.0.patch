@@ -1,0 +1,17 @@
+diff --git a/node_modules/nx/dist/bin/nx.js b/node_modules/nx/dist/bin/nx.js
+index 1740d7d..0bb4654 100644
+--- a/node_modules/nx/dist/bin/nx.js
++++ b/node_modules/nx/dist/bin/nx.js
+@@ -109,10 +109,10 @@ async function main() {
+             warnIfUsingOutdatedGlobalInstall(GLOBAL_NX_VERSION, LOCAL_NX_VERSION);
+             if (localNx.includes('.nx')) {
+                 const nxWrapperPath = localNx.replace(/\.nx.*/, '.nx/') + 'nxw.js';
+-                await import(nxWrapperPath);
++                await import(require('url').pathToFileURL(nxWrapperPath).href);
+             }
+             else {
+-                await import(localNx);
++                await import(require('url').pathToFileURL(localNx).href);
+             }
+         }
+     }

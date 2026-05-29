@@ -4,6 +4,18 @@
   "private": true,
   "nx": {
     "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "cache": true,
+        "inputs": [
+          "default",
+          "^default"
+        ],
+        "options": {
+          "command": "node vitest.run.mjs",
+          "cwd": "apps/backend"
+        }
+      },
       "build": {
         "executor": "nx:run-commands",
         "options": {

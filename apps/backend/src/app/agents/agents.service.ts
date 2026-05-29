@@ -4,12 +4,38 @@ import {
   AIMessage,
   BaseMessage,
   HumanMessage,
+  SystemMessage,
   ToolMessage,
 } from '@langchain/core/messages';
 import { StreamEvent, ToolCallRecord } from '@org/shared-types';
 import { tools } from './tools';
+import { getDino } from './dinos';
 
 const MAX_TOOL_ITERATIONS = 5;
+
+/**
+ * Resolve which tool names are active for a request, applying two independent
+ * narrowing filters. A dino (if present) restricts to its allowed set; a
+ * client-supplied `enabledTools` narrows further. Neither can ever widen the
+ * set beyond `allToolNames`.
+ *
+ * - no dino + enabledTools undefined → all tools (current default behavior)
+ * - enabledTools === [] → no tools (the user unchecked everything)
+ */
+export function resolveActiveTools(
+  allToolNames: string[],
+  dinoToolNames: string[] | undefined,
+  enabledTools: string[] | undefined,
+): string[] {
+  let names = [...allToolNames];
+  if (dinoToolNames !== undefined) {
+    names = names.filter((n) => dinoToolNames.includes(n));
+  }
+  if (enabledTools !== undefined) {
+    names = names.filter((n) => enabledTools.includes(n));
+  }
+  return names;
+}
 
 @Injectable()
 export class AgentsService {
@@ -37,26 +63,40 @@ export class AgentsService {
     model = 'openai/gpt-oss-120b:free',
     signal: AbortSignal,
     enabledTools?: string[],
+    dinoId?: string,
   ): AsyncGenerator<StreamEvent, void, void> {
-    this.logger.log(`Streaming agent for thread ${threadId} with model ${model}`);
+    // When a dinoId is present the dino owns the model, system prompt, and the
+    // ceiling on which tools may be called — all resolved server-side. When it
+    // is absent we preserve the exact prior behavior (no system message, model
+    // from arg, enabledTools as the only filter).
+    const dino = dinoId ? getDino(dinoId) : undefined;
+    const effectiveModel = dino?.model ?? model;
+    this.logger.log(
+      `Streaming agent for thread ${threadId} with model ${effectiveModel}` +
+        (dino ? ` (dino: ${dino.id})` : ''),
+    );
 
-    // Caller may restrict the toolset. undefined = use all; [] = use none;
-    // non-empty array = filter by name. Empty array is meaningful: the user
-    // explicitly unchecked every tool in the popover.
-    const activeTools =
-      enabledTools === undefined
-        ? [...tools]
-        : tools.filter((t) => enabledTools.includes(t.name));
+    // Caller may restrict the toolset. The dino's toolNames are a hard ceiling;
+    // a client-supplied enabledTools can only narrow further (undefined = no
+    // client filter; [] = the user unchecked every tool in the popover).
+    const activeToolNames = resolveActiveTools(
+      tools.map((t) => t.name),
+      dino?.toolNames,
+      enabledTools,
+    );
+    const activeTools = tools.filter((t) => activeToolNames.includes(t.name));
 
     try {
       const llmBase = new ChatOpenAI({
-        model,
+        model: effectiveModel,
         apiKey: process.env['OPENROUTER_API_KEY'],
         configuration: { baseURL: 'https://openrouter.ai/api/v1' },
       });
       const llm = activeTools.length > 0 ? llmBase.bindTools(activeTools) : llmBase;
 
-      const conversation: BaseMessage[] = [new HumanMessage(message)];
+      const conversation: BaseMessage[] = dino
+        ? [new SystemMessage(dino.systemPrompt), new HumanMessage(message)]
+        : [new HumanMessage(message)];
       const toolCallRecords: ToolCallRecord[] = [];
 
       for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
@@ -129,11 +169,11 @@ export class AgentsService {
         return;
       }
       this.logger.error(
-        `Agent stream error for model ${model}: ${error instanceof Error ? error.message : String(error)}`,
+        `Agent stream error for model ${effectiveModel}: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error.stack : undefined,
       );
       if (this.isCapabilityError(error)) {
-        const modelSlug = model.replace(':free', '');
+        const modelSlug = effectiveModel.replace(':free', '');
         yield {
           type: 'error',
           message: 'This model is currently unavailable or has reached its usage limit.',

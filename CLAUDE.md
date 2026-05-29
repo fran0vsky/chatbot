@@ -27,15 +27,16 @@
 
 **SpinoChat**
 
-SpinoChat is a general-purpose AI chat app built as an Nx monorepo with an Angular frontend and NestJS backend. Users can ask the model anything and continue the conversation across multiple turns in the same session. The backend uses LangGraph to orchestrate LLM calls via OpenRouter. Tagline: "The AI that survived" — the Spinosaurus mascot anchors the brand identity.
+SpinoChat is a general-purpose AI chat app built as an Nx monorepo with an Angular frontend and NestJS backend. Users pick a **dino** — a registry entry bundling a fixed model + a personality system prompt + an allowed tool subset — and chat with it. The backend resolves the dino server-side (the system prompt and toolset are never sent by the client) and runs a manual agent loop over OpenRouter (LangGraph was dropped for full control of tool dispatch and streaming). Tagline: "The AI that survived" — the Spinosaurus mascot anchors the brand identity.
 
 **Core Value:** A user can open the app, type a message, get a real answer, and keep the conversation going — everything else is secondary.
 
 ### Constraints
 
-- **Tech stack:** Angular + NestJS + LangGraph — locked, no framework changes
+- **Tech stack:** Angular + NestJS + LangChain (manual agent loop, no LangGraph) — locked, no framework changes
 - **LLM provider:** OpenRouter (replaces Gemini) — user specified
-- **Conversation scope:** Per-session only — MemorySaver stays, no database needed for Task 1
+- **Dinos:** A dino's model, system prompt, and toolNames live only in the backend registry (single source of truth); the client selects a `dinoId` and can never widen the toolset
+- **Persistence:** Drizzle ORM + Postgres (`DATABASE_URL`); the agent loop itself is stateless per request
 - **Styling:** Tailwind CSS only — no inline styles, per project conventions
 - **Components:** Angular standalone components with OnPush change detection — per project conventions
 <!-- GSD:project-end -->
