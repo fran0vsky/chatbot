@@ -82,6 +82,19 @@ export const dinoSkills = pgTable(
   }),
 );
 
+// Per-dino Elo-style arena rating. One row per dinoId.
+// Degrades gracefully: if the table does not exist (no DB), ArenaService
+// falls back to registry defaults and no-ops on writes.
+export const dinoRatings = pgTable('dino_ratings', {
+  dinoId: text('dino_id').primaryKey(),
+  rating: integer('rating').notNull().default(1000),
+  wins: integer('wins').notNull().default(0),
+  losses: integer('losses').notNull().default(0),
+  draws: integer('draws').notNull().default(0),
+  games: integer('games').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Message = typeof messages.$inferSelect;
@@ -90,3 +103,5 @@ export type UserMemory = typeof userMemories.$inferSelect;
 export type NewUserMemory = typeof userMemories.$inferInsert;
 export type DinoSkill = typeof dinoSkills.$inferSelect;
 export type NewDinoSkill = typeof dinoSkills.$inferInsert;
+export type DinoRatingRow = typeof dinoRatings.$inferSelect;
+export type NewDinoRatingRow = typeof dinoRatings.$inferInsert;
