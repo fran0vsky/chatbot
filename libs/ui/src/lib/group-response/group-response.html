@@ -1,0 +1,48 @@
+<div class="flex flex-col rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/80 dark:bg-jungle-night-surface/80 backdrop-blur-sm overflow-hidden shadow-md">
+
+  <!-- Dino header: mascot + name + species -->
+  <div class="flex items-center gap-2.5 px-4 py-3 border-b border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40">
+    <app-mascot [dinoId]="dino.id" size="sm" class="flex-shrink-0 w-8 h-8" />
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</p>
+      <p class="text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ dino.species }}</p>
+    </div>
+
+    <!-- Status badge -->
+    <div class="ml-auto flex-shrink-0">
+      @if (status === 'streaming') {
+        <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide font-medium text-jungle-accent dark:text-jungle-night-accent">
+          <span class="w-1.5 h-1.5 rounded-full bg-jungle-accent dark:bg-jungle-night-accent animate-pulse"></span>
+          Live
+        </span>
+      } @else if (status === 'done') {
+        <span class="text-[10px] uppercase tracking-wide font-medium text-jungle-ink-muted dark:text-jungle-night-muted">Done</span>
+      } @else if (status === 'error') {
+        <span class="text-[10px] uppercase tracking-wide font-medium text-red-400">Error</span>
+      }
+    </div>
+  </div>
+
+  <!-- Response body -->
+  <div class="flex-1 px-4 py-3 min-h-[6rem] text-sm text-jungle-ink dark:text-jungle-night-text font-body leading-relaxed">
+    @if (status === 'idle') {
+      <!-- Waiting for stream to start -->
+      <app-typing-indicator />
+    } @else if (status === 'streaming' && text.length === 0) {
+      <!-- Stream started but no tokens yet -->
+      <app-typing-indicator />
+    } @else if (status === 'error') {
+      <div class="flex items-start gap-2 text-red-400">
+        <svg class="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.515 2.625H3.72c-1.345 0-2.188-1.458-1.515-2.625L8.485 2.495zM10 6a1 1 0 011 1v3a1 1 0 11-2 0V7a1 1 0 011-1zm0 7a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+        </svg>
+        <span>{{ error ?? 'This dino encountered an error.' }}</span>
+      </div>
+    } @else {
+      <!-- Streaming or done: render markdown body -->
+      <div class="markdown-bubble break-words">
+        <markdown [data]="text"></markdown>
+      </div>
+    }
+  </div>
+</div>
