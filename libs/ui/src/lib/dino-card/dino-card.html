@@ -1,0 +1,44 @@
+<button
+  type="button"
+  (click)="selected.emit(dino)"
+  [attr.aria-pressed]="active"
+  class="group flex w-full flex-col gap-3 text-left p-5 rounded-2xl bg-jungle-surface/70 dark:bg-jungle-night-surface/70 backdrop-blur-sm border border-jungle-border/40 dark:border-jungle-night-border/40 hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+  [class.ring-2]="active"
+  [class.ring-jungle-accent]="active"
+  [class.dark:ring-jungle-night-accent]="active"
+>
+  <div class="flex items-start gap-3">
+    <div class="flex-shrink-0">
+      <app-mascot size="sm" />
+    </div>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="font-title text-lg text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</h3>
+        @if (active) {
+          <span class="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-jungle-accent/20 dark:bg-jungle-night-accent/20 text-jungle-accent dark:text-jungle-night-accent flex-shrink-0">Active</span>
+        }
+      </div>
+      <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted">{{ dino.species }}</p>
+      <p class="mt-1 text-sm text-jungle-ink/90 dark:text-jungle-night-text/90 italic">{{ dino.persona }}</p>
+    </div>
+  </div>
+
+  <p class="text-sm text-jungle-ink/80 dark:text-jungle-night-text/80 line-clamp-3">{{ dino.blurb }}</p>
+
+  <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted">
+    <span class="font-medium text-jungle-ink/80 dark:text-jungle-night-text/80">Specialty:</span>
+    {{ dino.specialty }}
+  </p>
+
+  @if (dino.toolNames.length > 0) {
+    <div class="flex flex-wrap gap-1.5">
+      @for (tool of dino.toolNames; track tool) {
+        <span class="text-[11px] px-2 py-0.5 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 text-jungle-ink-muted dark:text-jungle-night-muted border border-jungle-border/30 dark:border-jungle-night-border/40">
+          {{ tool }}
+        </span>
+      }
+    </div>
+  } @else {
+    <span class="text-[11px] text-jungle-ink-muted/70 dark:text-jungle-night-muted/70 italic">No tools — pure conversation</span>
+  }
+</button>

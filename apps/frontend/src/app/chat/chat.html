@@ -77,33 +77,18 @@
   <!-- Center chat column -->
   <div class="relative z-10 flex flex-col flex-1 min-w-0">
     @if (activeView() === 'explore') {
-      <!-- ───────── Explore: model gallery ───────── -->
+      <!-- ───────── Explore: dino gallery ───────── -->
       <main class="flex-1 overflow-y-auto px-6 py-10">
-        <div class="max-w-4xl mx-auto">
-          <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-2">Explore models</h1>
+        <div class="max-w-5xl mx-auto">
+          <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-2">Explore dinos</h1>
           <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted mb-8">
-            Pick a free model to chat with. Each one has different strengths — try them out and see which fits your task.
+            Each dino has its own voice, specialty, and toolset. Pick one to start chatting.
           </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @for (m of models; track m.id) {
-              <button
-                type="button"
-                (click)="pickModelFromExplore(m.id)"
-                class="text-left p-5 rounded-2xl bg-jungle-surface/70 dark:bg-jungle-night-surface/70 backdrop-blur-sm border border-jungle-border/40 dark:border-jungle-night-border/40 hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
-              >
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="font-medium text-jungle-ink dark:text-jungle-night-text">{{ m.label }}</h3>
-                  @if (selectedModel === m.id) {
-                    <span class="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-jungle-accent/20 dark:bg-jungle-night-accent/20 text-jungle-accent dark:text-jungle-night-accent">Active</span>
-                  }
-                </div>
-                <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted font-mono break-all">{{ m.id }}</p>
-                <p class="mt-3 text-sm text-jungle-ink/80 dark:text-jungle-night-text/80">
-                  Free OpenRouter model. Click to use it for your next message.
-                </p>
-              </button>
-            }
-          </div>
+          <app-dino-picker
+            [dinos]="dinos()"
+            [activeDinoId]="activeDinoId()"
+            (dinoSelected)="pickDino($event)"
+          />
         </div>
       </main>
     } @else if (activeView() === 'knowledge') {
@@ -162,6 +147,18 @@
       </main>
     } @else {
     <main class="flex-1 overflow-hidden relative flex flex-col">
+      @if (activeDino(); as dino) {
+        <!-- Active dino header (PICK-04) -->
+        <header class="flex items-center gap-3 px-4 py-2 border-b border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-bg/50 dark:bg-jungle-night/50 backdrop-blur-sm relative z-10 flex-shrink-0">
+          <div class="flex-shrink-0">
+            <app-mascot size="sm" />
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</p>
+            <p class="text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ dino.species }} · {{ dino.specialty }}</p>
+          </div>
+        </header>
+      }
       @if (messages.length <= 1 && !isLoading && !isStreaming()) {
         <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
           <div class="mx-auto text-center">
@@ -196,9 +193,6 @@
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
             />
-            <div class="flex items-center justify-center px-1 pt-2">
-              <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
-            </div>
           </div>
         </div>
       } @else {
@@ -276,13 +270,10 @@
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
             />
-            <div class="flex items-center justify-center px-1 pt-2">
-              <app-model-selector [models]="models" [selectedModel]="selectedModel" [disabled]="isLoading" (modelChange)="selectedModel = $event" />
-            </div>
           </div>
         </div>
       }
-      <p class="relative z-10 text-center text-[11px] text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 pb-2">
+      <p class="relative z-10 mt-auto flex-shrink-0 text-center text-[11px] text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 pt-1 pb-2">
         Spino can make mistakes. Consider checking important information.
       </p>
     </main>
@@ -295,4 +286,47 @@
     [isDayMode]="isDayMode"
     (themeToggled)="toggleTheme()"
   />
+
+  <!-- Dino picker overlay — shown when starting a new chat (PICK-01) -->
+  @if (pickerOpen()) {
+    <!-- Backdrop (click-to-dismiss; decorative, mirrors the mobile sidebar backdrop) -->
+    <div
+      class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+      (click)="closePicker()"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="fixed inset-0 z-[61] flex items-center justify-center p-4 pointer-events-none"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Choose a dino"
+    >
+      <div
+        class="pointer-events-auto w-full max-w-5xl max-h-[85vh] overflow-y-auto rounded-3xl bg-jungle-bg dark:bg-jungle-night border border-jungle-border/40 dark:border-jungle-night-border/40 shadow-2xl p-6"
+      >
+        <div class="flex items-start justify-between mb-5">
+          <div>
+            <h2 class="font-title text-2xl text-jungle-accent dark:text-jungle-night-accent">Choose a dino</h2>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">Pick who you want to chat with.</p>
+          </div>
+          <button
+            type="button"
+            (click)="closePicker()"
+            aria-label="Close picker"
+            class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <app-dino-picker
+          [dinos]="dinos()"
+          [activeDinoId]="activeDinoId()"
+          (dinoSelected)="pickDino($event)"
+        />
+      </div>
+    </div>
+  }
 </div>

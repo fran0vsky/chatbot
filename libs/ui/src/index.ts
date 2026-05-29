@@ -3,6 +3,8 @@ export { ThemeToggle } from './lib/theme-toggle/theme-toggle.js';
 export { NewButton } from './lib/new-button/new-button.js';
 export { ModelSelector } from './lib/model-selector/model-selector.js';
 export type { ChatModel } from './lib/model-selector/model-selector.js';
+export { DinoCard } from './lib/dino-card/dino-card.js';
+export { DinoPicker } from './lib/dino-picker/dino-picker.js';
 export { MessageBubble } from './lib/message-bubble/message-bubble.js';
 export { Mascot } from './lib/mascot/mascot.js';
 export { MascotPanel } from './lib/mascot-panel/mascot-panel.js';

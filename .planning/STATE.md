@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
 status: executing
-last_updated: "2026-05-29T12:41:00.000Z"
+last_updated: "2026-05-29T13:30:00.000Z"
 last_activity: 2026-05-29
 progress:
   total_phases: 0
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 0
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 18 — dino abstraction (complete); next is Phase 19 (dino picker / Explore)
+**Current focus:** Phase 19 — dino picker / Explore (complete, pending manual UX check); next is Phase 20 (dino mascots)
 
 ## Current Position
 
-Phase: 18 — Dino Abstraction
-Plan: 18-01 (complete)
-Status: Phase 18 complete — lint + test (23) + build green
-Last activity: 2026-05-29 — Phase 18 executed; backend is dino-aware, GET /api/dinos live
+Phase: 19 — Dino Picker / Explore
+Plan: 19-01 (complete)
+Status: Phase 19 complete — frontend build + lint green; dino picker, Explore gallery, active-dino header, footer pin shipped; ModelSelector removed. Task 5 (manual live-app UX check) deferred to user. Frontend unit-test runner is environment-broken (pre-existing).
+Last activity: 2026-05-29 — Phase 19 executed; choosing a dino replaces choosing a model end to end
 
 ## Performance Metrics
 

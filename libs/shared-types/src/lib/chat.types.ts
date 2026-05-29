@@ -44,6 +44,8 @@ export interface ConversationSession {
   messages: ChatMessage[];
   createdAt: number;
   pinned?: boolean;
+  /** The dino bound to this session; sent as dinoId on every message. */
+  dinoId?: string;
 }
 
 export interface StreamTokenEvent {

@@ -6,12 +6,14 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
-import { ChatMessage, ConversationSession, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
-import { HistoryPanel, InputComposer, MascotPanel, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
+import { ChatMessage, ConversationSession, DinoSummary, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
+import { DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, ToolCallBubble } from '@chatbot/ui';
 import { ChatService } from './chat.service';
+import { DinoService } from './dino.service';
 import { HistoryService } from './history.service';
 
 const PLACEHOLDER_EXAMPLES = [
@@ -47,7 +49,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [HistoryPanel, InputComposer, MascotPanel, MessageBubble, ModelSelector, ReasoningBlock, ToolCallBubble],
+  imports: [DinoPicker, HistoryPanel, InputComposer, Mascot, MascotPanel, MessageBubble, ReasoningBlock, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -55,11 +57,11 @@ interface KnowledgeFile {
 export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
   private readonly historyService = inject(HistoryService);
+  private readonly dinoService = inject(DinoService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
   isLoading = false;
-  selectedModel = 'openai/gpt-oss-120b:free';
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
   isDayMode = false;
   historyOpen = false;
@@ -81,20 +83,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly streamingToolCalls = signal<ToolCallRecord[]>([]);
   readonly isStreaming = signal(false);
 
-  // Curated free OpenRouter models verified responsive at last check.
-  // DEFERRED (retry when OpenRouter load drops or BYOK is added):
-  //   - meta-llama/llama-3.3-70b-instruct:free      (heavy load)
-  //   - meta-llama/llama-3.2-3b-instruct:free       (heavy load)
-  //   - nousresearch/hermes-3-llama-3.1-405b:free   (heavy load)
-  //   - deepseek/deepseek-v4-flash:free             (heavy load, has reasoning)
-  //   - google/gemma-4-31b-it:free                  (heavy load)
-  //   - qwen/qwen3-next-80b-a3b-instruct:free       (heavy load)
-  readonly models = [
-    { id: 'openai/gpt-oss-120b:free', label: 'GPT-OSS 120B (free, reasoning)' },
-    { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', label: 'Nemotron 3 Nano (free, reasoning)' },
-    { id: 'openai/gpt-oss-20b:free', label: 'GPT-OSS 20B (free, lighter)' },
-    { id: 'z-ai/glm-4.5-air:free', label: 'GLM 4.5 Air (free)' },
-  ] as const;
+  // The dino roster (model + persona + toolset) is owned by the backend; the
+  // client only holds the safe DinoSummary projection and sends a dinoId.
+  readonly dinos = this.dinoService.dinos;
+  readonly activeDinoId = signal<string | undefined>(undefined);
+  readonly activeDino = computed<DinoSummary | undefined>(() =>
+    this.dinoService.getById(this.activeDinoId()),
+  );
+  /** When true, the dino picker overlay is shown (e.g. starting a new chat). */
+  readonly pickerOpen = signal(false);
 
   // Tool catalog must mirror the names registered in
   // apps/backend/src/app/agents/tools/index.ts. Backend filters by name.
@@ -149,9 +146,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.closeMobileSidebar();
   }
 
-  pickModelFromExplore(modelId: string): void {
-    this.selectedModel = modelId;
+  /** Choosing a dino (from the picker or Explore) starts a fresh chat bound to it. */
+  pickDino(dino: DinoSummary): void {
+    this.saveCurrentSession();
+    this.activeDinoId.set(dino.id);
+    this.pickerOpen.set(false);
+    this.startNewChat();
     this.activeView.set('chats');
+  }
+
+  closePicker(): void {
+    this.pickerOpen.set(false);
+    this.cdr.markForCheck();
   }
 
   onKnowledgeFilesSelected(event: Event): void {
@@ -251,6 +257,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const saved = localStorage.getItem('desert-theme') as 'day' | 'night' | null;
     this.applyTheme(saved === 'day' ? 'day' : 'night');
+    this.dinoService.loadDinos();
     this.sessions = this.historyService.loadSessions();
     this.placeholderTimer = setInterval(() => {
       this.placeholderIndex = (this.placeholderIndex + 1) % PLACEHOLDER_EXAMPLES.length;
@@ -297,6 +304,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       title: this.sessionTitle || 'Untitled',
       messages: [...this.messages],
       createdAt: this.sessionCreatedAt || Date.now(),
+      dinoId: this.activeDinoId(),
     });
     this.cdr.detectChanges();
     this.scrollToBottom();
@@ -330,6 +338,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.messages = session.messages;
     this.sessionTitle = session.title;
     this.sessionCreatedAt = session.createdAt;
+    this.activeDinoId.set(session.dinoId);
     this.chatService.setThread(session.id);
     this.historyOpen = false;
     this.cdr.detectChanges();
@@ -361,7 +370,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   newChat(): void {
     this.saveCurrentSession();
-    this.startNewChat();
+    // Starting a new chat presents the dino picker first (PICK-01).
+    this.pickerOpen.set(true);
+    this.cdr.markForCheck();
   }
 
   private startNewChat(): void {
@@ -380,6 +391,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       title: this.sessionTitle || 'Untitled',
       messages: [...this.messages],
       createdAt: this.sessionCreatedAt || Date.now(),
+      dinoId: this.activeDinoId(),
     });
   }
 
@@ -454,7 +466,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     try {
       for await (const event of this.chatService.streamMessage(
         augmented,
-        this.selectedModel,
+        this.activeDinoId(),
         controller.signal,
         this.enabledToolNames(),
       )) {
@@ -590,6 +602,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       title: this.sessionTitle,
       messages: [...this.messages],
       createdAt: this.sessionCreatedAt,
+      dinoId: this.activeDinoId(),
     });
     this.cdr.detectChanges();
     this.scrollToBottom();

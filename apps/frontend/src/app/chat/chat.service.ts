@@ -35,11 +35,12 @@ export class ChatService {
 
   async *streamMessage(
     message: string,
-    model: string | undefined,
+    dinoId: string | undefined,
     signal: AbortSignal,
     enabledTools?: string[],
   ): AsyncGenerator<StreamEvent, void, void> {
-    const body: ChatRequest = { message, threadId: this.threadId, model, enabledTools };
+    // The backend resolves model + system prompt + allowed tools from the dino.
+    const body: ChatRequest = { message, threadId: this.threadId, dinoId, enabledTools };
 
     let response: Response;
     try {

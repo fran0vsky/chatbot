@@ -1,0 +1,15 @@
+@if (dinos.length > 0) {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    @for (dino of dinos; track dino.id) {
+      <app-dino-card
+        [dino]="dino"
+        [active]="dino.id === activeDinoId"
+        (selected)="dinoSelected.emit($event)"
+      />
+    }
+  </div>
+} @else {
+  <div class="text-center py-12 text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">
+    No dinos available right now. Check your connection and try again.
+  </div>
+}

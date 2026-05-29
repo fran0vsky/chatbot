@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Milestone goal:** Pivot SpinoChat from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos"). A dino = fixed model + system prompt + tool subset. Foundation ships first (dino abstraction → picker/Explore → pixel-art mascots), then memory & learning, multi-dino experiences, multimodal input, and ngrx-driven voice control. Riskiest clusters (Multimodal, Voice) come last as clean cut points.
 
 - [x] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected (completed 2026-05-29)
-- [ ] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned
+- [x] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned (completed 2026-05-29)
 - [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat
 - [ ] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads
 - [ ] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 17. Sound | 0/TBD | Deferred to backlog | - |
 | **— v2.0 Dino Platform —** | | | |
 | 18. Dino Abstraction | 1/1 | Complete   | 2026-05-29 |
-| 19. Dino Picker + Explore | 0/1 | Plan written ✎ | - |
+| 19. Dino Picker + Explore | 1/1 | Complete   | 2026-05-29 |
 | 20. Dino Mascots | 0/1 | Plan written ✎ (has human art step) | - |
 | 21. Cross-Thread Memory | 0/1 | Plan written ✎ | - |
 | 22. Teach-a-Skill | 0/1 | Plan written ✎ | - |
@@ -389,7 +389,7 @@ Plans:
   4. The active dino's name (and mascot slot) appears in the chat header
   5. The footer is pinned to the bottom of the viewport at all sizes
 **Scope note:** In — picker UI, Explore page, header, dropdown removal, footer fix. Mascots use the existing Spino placeholder until Phase 20 supplies per-dino art.
-**Plans:** TBD (run `/gsd-plan-phase 19`)
+**Plans:** 1/1 plans complete
 **UI hint:** yes
 
 ### Phase 20: Dino Mascots

@@ -1,7 +1,9 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ChatComponent } from './chat';
 import { ChatService } from './chat.service';
+import { DinoService } from './dino.service';
 import { HistoryService } from './history.service';
 import { StreamEvent } from '@org/shared-types';
 
@@ -9,10 +11,15 @@ type ChatComponentPrivate = {
   handleStreamEvent(event: StreamEvent): void;
 };
 
+// eslint-disable-next-line require-yield
+async function* emptyStream(): AsyncGenerator<StreamEvent, void, void> {
+  return;
+}
+
 function buildChatService(): Partial<ChatService> {
   return {
     currentThreadId: 'test-thread',
-    streamMessage: vi.fn().mockReturnValue((async function* () {})()),
+    streamMessage: vi.fn().mockReturnValue(emptyStream()),
     resetThread: vi.fn(),
     setThread: vi.fn(),
   };
@@ -22,6 +29,15 @@ function buildHistoryService(): Partial<HistoryService> {
   return {
     loadSessions: vi.fn().mockReturnValue([]),
     upsertSession: vi.fn().mockReturnValue([]),
+  };
+}
+
+function buildDinoService(): Partial<DinoService> {
+  return {
+    dinos: signal([]),
+    loaded: signal(false),
+    loadDinos: vi.fn(),
+    getById: vi.fn().mockReturnValue(undefined),
   };
 }
 
@@ -35,6 +51,7 @@ describe('ChatComponent reasoning handling', () => {
         provideNoopAnimations(),
         { provide: ChatService, useValue: buildChatService() },
         { provide: HistoryService, useValue: buildHistoryService() },
+        { provide: DinoService, useValue: buildDinoService() },
       ],
     }).compileComponents();
 
