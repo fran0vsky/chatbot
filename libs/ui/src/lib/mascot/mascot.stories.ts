@@ -10,6 +10,13 @@ const meta: Meta<Mascot> = {
       control: 'inline-radio',
       options: ['sm', 'hero'],
     },
+    dinoId: {
+      control: 'text',
+    },
+    theme: {
+      control: 'inline-radio',
+      options: [undefined, 'day', 'night'],
+    },
   },
 };
 export default meta;
@@ -21,4 +28,14 @@ export const Small: Story = {
 
 export const Hero: Story = {
   args: { size: 'hero' },
+};
+
+// Per-dino mascots. Until the art is generated + run through the pipeline these
+// fall back to the generic Spino, but they demonstrate the dinoId + theme API.
+export const DinoDay: Story = {
+  args: { size: 'hero', dinoId: 'rexford', theme: 'day' },
+};
+
+export const DinoNight: Story = {
+  args: { size: 'hero', dinoId: 'veloce', theme: 'night' },
 };

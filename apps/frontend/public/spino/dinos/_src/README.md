@@ -1,0 +1,39 @@
+# Per-dino mascot source art
+
+Drop one **stacked dual-mascot PNG per dino** in this folder, named `{id}-dual.png`,
+then run the pipeline. The split + optimize scripts turn each source into the
+day/night assets the app loads.
+
+## Roster (ids must match the backend dino registry)
+
+`apps/backend/src/app/agents/dinos/dinos.ts` is the source of truth.
+
+| id        | species        | day palette          | night palette          |
+|-----------|----------------|----------------------|------------------------|
+| `rexford` | Tyrannosaurus  | warm / sunlit green  | deep teal / blue       |
+| `veloce`  | Velociraptor   | warm / sunlit        | cooler night tones     |
+| `glyphos` | Stegosaurus    | warm / sunlit        | cooler night tones     |
+| `nimbus`  | Pteranodon     | warm / sunlit        | cooler night tones     |
+
+## Art spec (match `apps/frontend/public/spino/dual-mascot.png`)
+
+- Pixel-art, same resolution/scale and rendering style as `dual-mascot.png` (study it first).
+- One PNG per dino in the SAME stacked dual format: **day palette on top, night palette on bottom**, on a **solid black background** (black is keyed to transparent by the splitter).
+- Distinct, readable species silhouette at small (~48px) sizes.
+- Day = warm/sunlit, night = cooler (echo the Spino green→teal treatment) so the cast feels cohesive.
+
+## Pipeline
+
+```bash
+# Split one dino's source into dinos/{id}-day.png + dinos/{id}-night.png
+node scripts/split-mascot.js rexford
+
+# Or split every _src/*-dual.png at once
+node scripts/split-mascot.js --all
+
+# Then resize/optimize all assets (incl. the new dino PNGs)
+node scripts/optimize-spino-assets.js
+```
+
+Until a dino's assets exist, the `<app-mascot>` component falls back to the
+generic Spino so the UI still renders cleanly.
