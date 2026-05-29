@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: executing
-last_updated: "2026-05-29T21:45:00.000Z"
-last_activity: 2026-05-29
+status: complete
+stopped_at: Phase 23 Plan 01 complete
+last_updated: "2026-05-29T21:27:44Z"
+last_activity: 2026-05-29 -- Phase 23 Plan 01 executed (groupchat fan-out)
 progress:
-  total_phases: 0
-  completed_phases: 4
-  total_plans: 0
-  completed_plans: 4
-  percent: 0
+  total_phases: 11
+  completed_phases: 10
+  total_plans: 31
+  completed_plans: 33
+  percent: 100
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phases 21 + 22 (memory + teach-a-skill) code-complete and verified. Both have a live smoke test (Task 5 each) pending human run with DATABASE_URL + OPENROUTER_API_KEY. Next candidate: Phase 23 — Dino Groupchat (or Phase 20 real mascot art).
+**Current focus:** Phase 23 — dino-groupchat
 
 ## Current Position
 
-Phase: 22 — Teach-a-Skill (complete; live teach-once smoke test pending human run)
-Plan: 22-01 (Tasks 1–4 done + verified; Task 5 manual smoke test deferred to human)
-Status: dino_skills table (userId × dinoId) + MemoryService getSkills/addSkill/deleteSkill (null-safe) + SkillsController (GET/POST/DELETE skills, DELETE memories) + shared DinoSkill/LearnedItems. Agent loop assembles base prompt → skills block (standing instructions) → memories block. Frontend: SkillService, "Teach {dino}" header button + overlay (title/instruction + save), presentational SkillManager (skills + memories w/ delete) + stories, exported from @chatbot/ui. userId logic refactored into exported loadUserId()/USER_ID_KEY in chat.service (shared with SkillService). Verified: lint (@org/backend, @org/shared-types, frontend) green; `nx build @chatbot/ui` + `nx build frontend` green (frontend specs unrunnable on this box); backend Vitest 35/35 via vitest.run.mjs (5 new skill tests).
-Last activity: 2026-05-29 — Phases 21 + 22 implemented + verified in one session
+Phase: 23 (dino-groupchat) — COMPLETE
+Plan: 1 of 1 — COMPLETE
+Status: Phase 23 complete; all phases done
+Last activity: 2026-05-29 -- Phase 23 Plan 01 executed (groupchat fan-out)
 
 ## Performance Metrics
 
@@ -67,11 +68,15 @@ Recent decisions affecting current work:
 - Phase 2: Per-request model selection via Map<modelId, CompiledGraph> — one MemorySaver shared across all graphs preserves thread history across model switches (D-09, D-10)
 - Phase 2: Unknown model IDs fall back silently to gpt-4o-mini (D-11)
 - Phase 2: Frontend uses plain class properties (not signals) — OnPush + ChangeDetectorRef pattern, consistent with existing isLoading field
+- Phase 23: Groupchat v1 is single-turn per send; multi-turn group history deferred
+- Phase 23: Cap of 4 dinos enforced client-side in GroupchatService.MAX_DINOS (DoS mitigation T-23-01)
+- Phase 23: Groupchat reuses existing ChatService.streamMessage with per-dino AbortControllers (no backend change needed)
 
 ### Pending Todos
 
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
 - **Phase 22 Task 5 — teach-once smoke test (human):** with DB + key and `dino_skills` pushed: teach rexford "Always answer in British English." → new chat with rexford applies it without re-teaching → manager delete stops it → veloce unaffected. See 22-01-SUMMARY.md.
+- **Phase 23 Task 4 — groupchat smoke test (human):** serve app with live API key; enter Group chat; select 3 dinos; send "Explain recursion in one line."; confirm 3 attributed panels stream in parallel; kill network for one model and confirm only that panel errors. See 23-01-SUMMARY.md.
 - **DB migration:** push the two new tables before the smoke tests — `user_memories` (Phase 21) and `dino_skills` (Phase 22) — via `npx nx run @org/backend:... drizzle-kit push` (or the project's drizzle push script) against `DATABASE_URL`.
 - **Commit all changes (Phases 1–4)** — run `pnpm nx build frontend` first to verify, then commit with message: `feat(phase-4): desert theme — day/night toggle, snake mascot, bubble restyling, cactus scrollbar`
 - Human one-time setup (Plan 03 Task 2): GCP project + APIs, Artifact Registry repo, Secret Manager `openrouter-api-key`, Cloud Run service `chatbot-backend`, Workload Identity Federation, Firebase project + Hosting, 8 GitHub Actions variables + 2 secrets. Full checklist in `README.md` `## Deployment`.
@@ -103,6 +108,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-25T14:55:12.158Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-jungle-atmosphere/13-CONTEXT.md
+Last session: 2026-05-29T21:27:44Z
+Stopped at: Phase 23 Plan 01 complete (Tasks 1–3 committed; Task 4 is manual UAT)
+Resume file: .planning/phases/23-dino-groupchat/23-01-SUMMARY.md
