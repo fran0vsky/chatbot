@@ -69,8 +69,8 @@
 
 ### Frontend State (NgRx)
 
-- [ ] **NGX-01**: Frontend application state (active dino, theme, chat session, message list) is managed via NgRx with typed actions and selectors
-- [ ] **NGX-02**: A whitelisted catalogue of dispatchable app actions exists (change theme, new chat, switch chat, read/listen last message, send message) for the assistant layer to call
+- [x] **NGX-01**: Frontend application state (active dino, theme, chat session, message list) is managed via NgRx with typed actions and selectors
+- [x] **NGX-02**: A whitelisted catalogue of dispatchable app actions exists (change theme, new chat, switch chat, read/listen last message, send message) for the assistant layer to call
 
 ### Voice I/O
 

@@ -45,7 +45,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 24: Dino Arena + Leaderboard** - Blind split-screen compare, vote → Elo-style scoring, Leaderboard tab (code complete 2026-05-29; Task 5 smoke test pending human UAT)
 - [ ] **Phase 25: Multimodal Input** - Screenshot paste, vision dino on a free OpenRouter vision model, OCR
 - [ ] **Phase 26: Image Generation** - Artist dino generates images inline, downloadable
-- [ ] **Phase 27: NgRx State Refactor** - Move app state to NgRx; expose a whitelisted dispatchable action catalogue
+- [x] **Phase 27: NgRx State Refactor** - Move app state to NgRx; expose a whitelisted dispatchable action catalogue (completed 2026-05-30)
 - [ ] **Phase 28: Voice I/O + SSML** - Two-way voice (TTS with SSML) + speech-to-text input, with a free/browser fallback
 - [ ] **Phase 29: Voice Dino Assistant** - Voice commands fire whitelisted app actions; clarifies when ambiguous; refuses out-of-scope actions; finds & switches past chats
 
@@ -128,7 +128,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 24. Arena + Leaderboard | 1/1 | Complete    | 2026-05-29 |
 | 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
 | 26. Image Generation | 0/TBD | Needs research spike (free image provider) | - |
-| 27. NgRx State Refactor | 0/1 | Plan written ✎ | - |
+| 27. NgRx State Refactor | 1/1 | Complete   | 2026-05-30 |
 | 28. Voice I/O + SSML | 0/TBD | Needs research spike (TTS/SSML provider) | - |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 
@@ -497,7 +497,7 @@ Plans:
   2. A documented whitelist of dispatchable actions exists (change theme, new chat, switch chat, read/listen last message, send message)
   3. No regression: all existing flows work through the store
 **Scope note:** In — store, actions, selectors, effects for existing flows; action whitelist. Out — voice (Phase 28), assistant (Phase 29). This is a refactor, not a feature — guard against regressions.
-**Plans:** TBD (run `/gsd-plan-phase 27`)
+**Plans:** 1/1 plans complete
 **UI hint:** no
 
 ### Phase 28: Voice I/O + SSML

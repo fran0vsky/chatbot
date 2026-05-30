@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: ready_to_plan
-stopped_at: Phase 24 complete (1/1) — ready to discuss Phase 27
-last_updated: 2026-05-29T22:54:46.459Z
-last_activity: 2026-05-29 -- Phase 24 Plan 01 Tasks 1-4 complete
+status: executing
+stopped_at: Phase 27 Plan 01 Tasks 1–6 complete; Task 7 (manual regression sweep) pending
+last_updated: "2026-05-30T10:30:00.000Z"
+last_activity: 2026-05-30 -- Phase 27 Plan 01 Tasks 1–6 executed (NgRx refactor + action catalogue)
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 42
+  completed_plans: 32
   percent: 82
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 27 — ngrx state refactor
+**Current focus:** Phase 27 — ngrx-state-refactor
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-29
+Phase: 27 (ngrx-state-refactor) — EXECUTING
+Plan: 1 of 1
+Status: Plan 27-01 Tasks 1–6 done (NgRx store + slices + ChatComponent refactor + action catalogue); Task 7 manual regression sweep pending
+Last activity: 2026-05-30 -- Phase 27 Plan 01 Tasks 1–6 executed
 
 ## Performance Metrics
 
@@ -75,12 +75,18 @@ Recent decisions affecting current work:
 - Phase 24: Elo K_FACTOR=24 (moderate volatility for small roster); skip/tie treated as draw (Sa=Sb=0.5)
 - Phase 24: Arena phase state machine (idle/streaming/voted) drives blind identity reveal
 - Phase 24: ui lib @nx/enforce-module-boundaries errors are pre-existing workspace config issues affecting all ui components — not introduced by this plan
+- Phase 27: Classic @ngrx/store + effects (not SignalStore) — Phase 29 voice assistant needs a named, enumerable action surface (NGX-02)
+- Phase 27: Migrated only ui/dino/session slices; streaming/knowledge/skill/arena/groupchat stay component signals (bounded refactor)
+- Phase 27: activeSessionId tracks ChatService.currentThreadId (ChatService stays thread authority; store syncs via setActiveSessionId)
+- Phase 27: ACTION_CATALOGUE + dispatchCatalogued (zod-validated) is the ONLY assistant dispatch surface; destructive intents absent by construction (AST-03)
+- Phase 27: NgRx pinned to 21.1.0; zod 4.4.3; installed via `npm install --legacy-peer-deps`
 
 ### Pending Todos
 
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
 - **Phase 22 Task 5 — teach-once smoke test (human):** with DB + key and `dino_skills` pushed: teach rexford "Always answer in British English." → new chat with rexford applies it without re-teaching → manager delete stops it → veloce unaffected. See 22-01-SUMMARY.md.
 - **Phase 23 Task 4 — groupchat smoke test (human):** serve app with live API key; enter Group chat; select 3 dinos; send "Explain recursion in one line."; confirm 3 attributed panels stream in parallel; kill network for one model and confirm only that panel errors. See 23-01-SUMMARY.md.
+- **Phase 27 Task 7 — NgRx regression sweep (human):** serve the app and exercise EVERY flow (send/stream, stop, regenerate, edit-and-resend, theme toggle + reload persistence, new chat, switch/delete/rename/pin session, dino picker, Explore, groupchat, arena, leaderboard). Confirm no behavior change vs pre-refactor + open Redux DevTools to confirm actions fire. See 27-01-SUMMARY.md. **Env note:** `nx test frontend` currently crashes with a pre-existing TS `referencedFiles` bug (reproduces on pre-NgRx baseline too) — see phase deferred-items.md.
 - **Phase 24 Task 5 — arena + leaderboard smoke test (human):** push `dino_ratings` table (`drizzle-kit push`), serve app; navigate Arena → enter prompt → two anonymous panels stream → vote → both revealed + ratings updated → Leaderboard tab reflects results; repeat with DATABASE_URL unset → no crash, ratings stay at 1000. See 24-01-SUMMARY.md.
 - **DB migration:** push the two new tables before the smoke tests — `user_memories` (Phase 21) and `dino_skills` (Phase 22) — via `npx nx run @org/backend:... drizzle-kit push` (or the project's drizzle push script) against `DATABASE_URL`.
 - **Commit all changes (Phases 1–4)** — run `pnpm nx build frontend` first to verify, then commit with message: `feat(phase-4): desert theme — day/night toggle, snake mascot, bubble restyling, cactus scrollbar`
@@ -113,6 +119,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-29T22:15:45Z
+Last session: 2026-05-30T08:25:36.835Z
 Stopped at: Phase 24 Plan 01 complete (Tasks 1–4 committed; Task 5 is manual UAT)
-Resume file: .planning/phases/24-arena-leaderboard/24-01-SUMMARY.md
+Resume file: None
