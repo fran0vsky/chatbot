@@ -81,6 +81,9 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@ngrx/effects": "^21.1.0",
+    "@ngrx/store": "^21.1.0",
+    "@ngrx/store-devtools": "^21.1.0",
     "axios": "^1.6.0",
     "drizzle-orm": "^0.45.2",
     "langchain": "^1.4.0",
@@ -89,6 +92,7 @@
     "pg": "^8.21.0",
     "prismjs": "^1.30.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "zod": "^4.4.3"
   }
 }

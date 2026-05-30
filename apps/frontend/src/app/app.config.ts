@@ -5,7 +5,13 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { appRoutes } from './app.routes';
+import { reducers } from './store/reducers';
+import { appEffects } from './store/effects';
+import { environment } from '../environments/environment';
 
 // Prism.js core + language components for fenced code block highlighting.
 import 'prismjs';
@@ -22,5 +28,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(appRoutes),
     provideHttpClient(),
     provideMarkdown(),
+    provideStore(reducers),
+    provideEffects(appEffects),
+    // Redux DevTools — dev builds only (disabled in production).
+    ...(environment.production
+      ? []
+      : [provideStoreDevtools({ maxAge: 50, connectInZone: true })]),
   ],
 };
