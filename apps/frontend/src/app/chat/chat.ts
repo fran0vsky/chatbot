@@ -14,7 +14,6 @@ import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSumma
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
-import { DinoService } from './dino.service';
 import { GroupchatService } from './groupchat.service';
 import { SkillService } from './skill.service';
 import * as DinoActions from '../store/dino/dino.actions';
@@ -79,7 +78,6 @@ interface KnowledgeFile {
 })
 export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
-  private readonly dinoService = inject(DinoService);
   private readonly skillService = inject(SkillService);
   readonly groupchatService = inject(GroupchatService);
   readonly arenaService = inject(ArenaService);
@@ -205,8 +203,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   /** Retrieve a dino by id for template iteration over groupchat entries. */
-  groupDinoById(id: string): ReturnType<DinoService['getById']> {
-    return this.dinoService.getById(id);
+  groupDinoById(id: string): DinoSummary | undefined {
+    return this.dinos().find((d) => d.id === id);
   }
 
   // ─────────────────────────── Arena methods ────────────────────────────────
@@ -237,7 +235,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   /** Look up a dino by id for template use (used in arena reveal). */
   dinoById(id: string): DinoSummary | undefined {
-    return this.dinoService.getById(id);
+    return this.dinos().find((d) => d.id === id);
   }
 
   /** Cast LeaderboardRow[] for the Leaderboard component input. */
