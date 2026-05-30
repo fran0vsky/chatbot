@@ -32,8 +32,9 @@ findings:
   info: 3
   total: 8
   critical_resolved: 1
-status: issues_found
-resolution_note: "CR-01 fixed in commit fe75507 (dinoById/groupDinoById now resolve from store roster). WR-01..WR-04 + info findings remain open for user disposition."
+  warning_resolved: 4
+status: resolved
+resolution_note: "CR-01 fixed in fe75507 (dino lookups resolve from store roster). WR-01..WR-04 fixed in bf1c9a2 (shared session-list ops, read_last_message no-op marker, selectLastAssistantMessage shallow copy, required dispatchCatalogued params). Info findings left as-is. Verified: lint + build green, catalogue spec 9/9 via direct vitest."
 ---
 
 # Phase 27: Code Review Report
