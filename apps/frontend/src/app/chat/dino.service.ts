@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { DinoSummary } from '@org/shared-types';
 import { environment } from '../../environments/environment';
 
@@ -13,6 +14,14 @@ export class DinoService {
   private readonly http = inject(HttpClient);
   readonly dinos = signal<DinoSummary[]>([]);
   readonly loaded = signal(false);
+
+  /**
+   * The HTTP boundary used by the dino NgRx effect. Kept here so all dino
+   * roster requests funnel through DinoService (frontend HTTP-in-services rule).
+   */
+  fetchDinos(): Observable<DinoSummary[]> {
+    return this.http.get<DinoSummary[]>(`${environment.apiUrl}/api/dinos`);
+  }
 
   loadDinos(): void {
     this.http.get<DinoSummary[]>(`${environment.apiUrl}/api/dinos`).subscribe({
