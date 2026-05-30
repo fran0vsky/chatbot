@@ -6,18 +6,38 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
-  computed,
   inject,
   signal,
 } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
 import { GroupchatService } from './groupchat.service';
-import { HistoryService } from './history.service';
 import { SkillService } from './skill.service';
+import * as DinoActions from '../store/dino/dino.actions';
+import * as SessionActions from '../store/session/session.actions';
+import * as UiActions from '../store/ui/ui.actions';
+import { ActiveView } from '../store/ui/ui.actions';
+import { WELCOME_MESSAGE } from '../store/session/session.reducer';
+import {
+  selectActiveView,
+  selectHistoryOpen,
+  selectIsDayMode,
+  selectMobileSidebarOpen,
+  selectPickerOpen,
+} from '../store/ui/ui.selectors';
+import {
+  selectActiveDino,
+  selectActiveDinoId,
+  selectRoster,
+} from '../store/dino/dino.selectors';
+import {
+  selectMessages,
+  selectSessions,
+} from '../store/session/session.selectors';
 
 const PLACEHOLDER_EXAMPLES = [
   'Explain quantum computing in simple terms...',
@@ -59,41 +79,49 @@ interface KnowledgeFile {
 })
 export class ChatComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
-  private readonly historyService = inject(HistoryService);
   private readonly dinoService = inject(DinoService);
   private readonly skillService = inject(SkillService);
   readonly groupchatService = inject(GroupchatService);
   readonly arenaService = inject(ArenaService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly store = inject(Store);
 
-  messages: ChatMessage[] = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
+  // ─── Migrated store-driven state (read via selectors, mutate via dispatch) ───
+  /** Active message list — store-driven. Mutated only via dispatched actions. */
+  readonly messages = this.store.selectSignal(selectMessages);
+  readonly sessions = this.store.selectSignal(selectSessions);
+  readonly isDayMode = this.store.selectSignal(selectIsDayMode);
+  readonly historyOpen = this.store.selectSignal(selectHistoryOpen);
+  readonly mobileSidebarOpen = this.store.selectSignal(selectMobileSidebarOpen);
+  readonly activeView = this.store.selectSignal(selectActiveView);
+  readonly pickerOpen = this.store.selectSignal(selectPickerOpen);
+  readonly dinos = this.store.selectSignal(selectRoster);
+  readonly activeDinoId = this.store.selectSignal(selectActiveDinoId);
+  readonly activeDino = this.store.selectSignal(selectActiveDino);
+
   isLoading = false;
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
-  isDayMode = false;
-  historyOpen = false;
-  sessions: ConversationSession[] = [];
 
   private sessionTitle = '';
   private sessionCreatedAt = 0;
   private currentAbort: AbortController | null = null;
   private streamingToolCallIds: string[] = [];
 
-  readonly mobileSidebarOpen = signal(false);
-  readonly activeView = signal<'chats' | 'explore' | 'knowledge' | 'groupchat' | 'arena' | 'leaderboard'>('chats');
-
-  // Arena state
+  // Arena state (transient selection — out of NgRx scope, kept as signals)
   readonly arenaPrompt = signal('');
   readonly arenaLeaderboard = this.arenaService.leaderboard;
   /** Expose arena panels for the template. */
   readonly arenaPanels = this.arenaService.panels;
   readonly arenaPhase = this.arenaService.phase;
 
-  // Groupchat: set of selected dino IDs
+  // Groupchat: set of selected dino IDs (transient selection — out of NgRx scope)
   readonly selectedGroupDinoIds = signal<string[]>([]);
   readonly groupchatEntries = this.groupchatService.entries;
   /** Expose cap for template use (static → instance bridge). */
   readonly groupchatMaxDinos = GroupchatService.MAX_DINOS;
   readonly knowledgeFiles = signal<KnowledgeFile[]>([]);
+
+  // Transient STREAMING state — intentionally NOT migrated (documented boundary).
   readonly streamingText = signal('');
   readonly streamingReasoning = signal('');
   readonly reasoningCollapsed = signal(false);
@@ -101,16 +129,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly streamingError = signal<string | null>(null);
   readonly streamingToolCalls = signal<ToolCallRecord[]>([]);
   readonly isStreaming = signal(false);
-
-  // The dino roster (model + persona + toolset) is owned by the backend; the
-  // client only holds the safe DinoSummary projection and sends a dinoId.
-  readonly dinos = this.dinoService.dinos;
-  readonly activeDinoId = signal<string | undefined>(undefined);
-  readonly activeDino = computed<DinoSummary | undefined>(() =>
-    this.dinoService.getById(this.activeDinoId()),
-  );
-  /** When true, the dino picker overlay is shown (e.g. starting a new chat). */
-  readonly pickerOpen = signal(false);
 
   // Tool catalog must mirror the names registered in
   // apps/backend/src/app/agents/tools/index.ts. Backend filters by name.
@@ -153,16 +171,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   toggleMobileSidebar(): void {
-    this.mobileSidebarOpen.update((v) => !v);
+    this.store.dispatch(UiActions.toggleMobileSidebar());
   }
 
   closeMobileSidebar(): void {
-    this.mobileSidebarOpen.set(false);
+    this.store.dispatch(UiActions.closeMobileSidebar());
   }
 
-  setActiveView(view: 'chats' | 'explore' | 'knowledge' | 'groupchat' | 'arena' | 'leaderboard'): void {
-    this.activeView.set(view);
-    this.closeMobileSidebar();
+  setActiveView(view: ActiveView): void {
+    this.store.dispatch(UiActions.setActiveView({ view }));
     if (view === 'leaderboard') {
       this.arenaService.loadLeaderboard().then(() => this.cdr.markForCheck());
     }
@@ -231,14 +248,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   /** Choosing a dino (from the picker or Explore) starts a fresh chat bound to it. */
   pickDino(dino: DinoSummary): void {
     this.saveCurrentSession();
-    this.activeDinoId.set(dino.id);
-    this.pickerOpen.set(false);
+    this.store.dispatch(DinoActions.setActiveDino({ dinoId: dino.id }));
+    this.store.dispatch(UiActions.closePicker());
     this.startNewChat();
-    this.activeView.set('chats');
+    this.store.dispatch(UiActions.setActiveView({ view: 'chats' }));
   }
 
   closePicker(): void {
-    this.pickerOpen.set(false);
+    this.store.dispatch(UiActions.closePicker());
     this.cdr.markForCheck();
   }
 
@@ -396,16 +413,17 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   showDateDivider(index: number): boolean {
-    const msg = this.messages[index];
+    const msgs = this.messages();
+    const msg = msgs[index];
     if (!msg?.createdAt) return false;
     if (index === 0) return true;
-    const prev = this.messages[index - 1];
+    const prev = msgs[index - 1];
     if (!prev?.createdAt) return true;
     return new Date(msg.createdAt).toDateString() !== new Date(prev.createdAt).toDateString();
   }
 
   dateDividerLabel(index: number): string {
-    const ts = this.messages[index]?.createdAt;
+    const ts = this.messages()[index]?.createdAt;
     if (!ts) return '';
     const date = new Date(ts);
     const today = new Date();
@@ -426,10 +444,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const saved = localStorage.getItem('desert-theme') as 'day' | 'night' | null;
-    this.applyTheme(saved === 'day' ? 'day' : 'night');
-    this.dinoService.loadDinos();
-    this.sessions = this.historyService.loadSessions();
+    // Theme hydration + DOM application now flows through the UI effect.
+    this.store.dispatch(UiActions.initUi());
+    this.store.dispatch(DinoActions.loadDinos());
+    this.store.dispatch(SessionActions.loadSessions());
+    // Seed activeSessionId with the current ChatService thread id.
+    this.store.dispatch(
+      SessionActions.setActiveSessionId({ id: this.chatService.currentThreadId }),
+    );
     this.placeholderTimer = setInterval(() => {
       this.placeholderIndex = (this.placeholderIndex + 1) % PLACEHOLDER_EXAMPLES.length;
       this.placeholder = PLACEHOLDER_EXAMPLES[this.placeholderIndex];
@@ -450,74 +472,65 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.currentAbort = null;
     const partial = this.streamingText();
     for (const call of this.streamingToolCalls()) {
-      this.messages.push({
-        text: '',
-        role: 'tool',
-        toolName: call.name,
-        toolArgs: call.args,
-        toolResult: call.result,
-        createdAt: Date.now(),
-      });
+      this.store.dispatch(
+        SessionActions.appendMessage({
+          message: {
+            text: '',
+            role: 'tool',
+            toolName: call.name,
+            toolArgs: call.args,
+            toolResult: call.result,
+            createdAt: Date.now(),
+          },
+        }),
+      );
     }
     if (partial.length > 0) {
       const partialReasoning = this.streamingReasoning();
-      this.messages.push({
-        text: partial,
-        role: 'assistant',
-        createdAt: Date.now(),
-        ...(partialReasoning.length > 0 ? { reasoning: partialReasoning } : {}),
-      });
+      this.store.dispatch(
+        SessionActions.appendMessage({
+          message: {
+            text: partial,
+            role: 'assistant',
+            createdAt: Date.now(),
+            ...(partialReasoning.length > 0 ? { reasoning: partialReasoning } : {}),
+          },
+        }),
+      );
     }
     this.clearStreaming();
     this.isLoading = false;
-    this.sessions = this.historyService.upsertSession({
-      id: this.chatService.currentThreadId,
-      title: this.sessionTitle || 'Untitled',
-      messages: [...this.messages],
-      createdAt: this.sessionCreatedAt || Date.now(),
-      dinoId: this.activeDinoId(),
-    });
+    this.persistActiveSession(this.sessionTitle || 'Untitled', this.sessionCreatedAt || Date.now());
     this.cdr.detectChanges();
     this.scrollToBottom();
   }
 
-  private applyTheme(mode: 'day' | 'night'): void {
-    this.isDayMode = mode === 'day';
-    document.documentElement.classList.remove('day-mode', 'night-mode');
-    document.documentElement.classList.add(mode === 'day' ? 'day-mode' : 'night-mode');
-    this.cdr.markForCheck();
-  }
-
   toggleTheme(): void {
-    const next = this.isDayMode ? 'night' : 'day';
-    localStorage.setItem('desert-theme', next);
-    this.applyTheme(next);
+    this.store.dispatch(UiActions.toggleTheme());
   }
 
   toggleHistory(): void {
-    this.historyOpen = !this.historyOpen;
-    this.cdr.markForCheck();
+    this.store.dispatch(UiActions.toggleHistory());
   }
 
   closeHistory(): void {
-    this.historyOpen = false;
-    this.cdr.markForCheck();
+    this.store.dispatch(UiActions.closeHistory());
   }
 
   switchToSession(session: ConversationSession): void {
     this.saveCurrentSession();
-    this.messages = session.messages;
     this.sessionTitle = session.title;
     this.sessionCreatedAt = session.createdAt;
-    this.activeDinoId.set(session.dinoId);
+    this.store.dispatch(DinoActions.setActiveDino({ dinoId: session.dinoId }));
     this.chatService.setThread(session.id);
-    this.historyOpen = false;
+    this.store.dispatch(SessionActions.switchSession({ session }));
+    this.store.dispatch(UiActions.closeHistory());
     this.cdr.detectChanges();
   }
 
   deleteSession(id: string): void {
     const wasActive = this.chatService.currentThreadId === id;
-    this.sessions = this.historyService.deleteSession(id);
+    this.store.dispatch(SessionActions.deleteSession({ id }));
     if (wasActive) {
       this.startNewChat();
     }
@@ -527,7 +540,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   renameSession(id: string, title: string): void {
     const trimmed = title.trim();
     if (trimmed.length === 0) return;
-    this.sessions = this.historyService.updateTitle(id, trimmed);
+    this.store.dispatch(SessionActions.renameSession({ id, title: trimmed }));
     if (this.chatService.currentThreadId === id) {
       this.sessionTitle = trimmed;
     }
@@ -535,35 +548,49 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   togglePinSession(id: string): void {
-    this.sessions = this.historyService.togglePin(id);
+    this.store.dispatch(SessionActions.togglePin({ id }));
     this.cdr.markForCheck();
   }
 
   newChat(): void {
     this.saveCurrentSession();
     // Starting a new chat presents the dino picker first (PICK-01).
-    this.pickerOpen.set(true);
+    this.store.dispatch(UiActions.openPicker());
     this.cdr.markForCheck();
   }
 
   private startNewChat(): void {
-    this.messages = [{ text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?', role: 'assistant', createdAt: Date.now() }];
     this.sessionTitle = '';
     this.sessionCreatedAt = 0;
     this.chatService.resetThread();
-    this.historyOpen = false;
+    this.store.dispatch(
+      SessionActions.newChat({
+        sessionId: this.chatService.currentThreadId,
+        messages: [{ ...WELCOME_MESSAGE, createdAt: Date.now() }],
+      }),
+    );
+    this.store.dispatch(UiActions.closeHistory());
     this.cdr.detectChanges();
   }
 
   private saveCurrentSession(): void {
-    if (!this.messages.some((m) => m.role === 'user')) return;
-    this.sessions = this.historyService.upsertSession({
-      id: this.chatService.currentThreadId,
-      title: this.sessionTitle || 'Untitled',
-      messages: [...this.messages],
-      createdAt: this.sessionCreatedAt || Date.now(),
-      dinoId: this.activeDinoId(),
-    });
+    if (!this.messages().some((m) => m.role === 'user')) return;
+    this.persistActiveSession(this.sessionTitle || 'Untitled', this.sessionCreatedAt || Date.now());
+  }
+
+  /** Dispatch an upsert of the active session (store + HistoryService persistence). */
+  private persistActiveSession(title: string, createdAt: number): void {
+    this.store.dispatch(
+      SessionActions.upsertActiveSession({
+        session: {
+          id: this.chatService.currentThreadId,
+          title,
+          messages: [...this.messages()],
+          createdAt,
+          dinoId: this.activeDinoId(),
+        },
+      }),
+    );
   }
 
   onSend(text: string): void {
@@ -574,36 +601,51 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.sessionCreatedAt = Date.now();
     }
 
-    this.messages.push({ text, role: 'user', createdAt: Date.now() });
+    this.store.dispatch(
+      SessionActions.appendMessage({
+        message: { text, role: 'user', createdAt: Date.now() },
+      }),
+    );
     this.beginRequest();
     this.dispatchRequest(text);
   }
 
   onRegenerate(index: number): void {
     if (this.isLoading || this.isStreaming()) return;
-    if (index <= 0 || index >= this.messages.length) return;
-    const target = this.messages[index];
+    const msgs = this.messages();
+    if (index <= 0 || index >= msgs.length) return;
+    const target = msgs[index];
     if (target.role !== 'assistant') return;
-    const prevUser = this.messages[index - 1];
+    const prevUser = msgs[index - 1];
     if (!prevUser || prevUser.role !== 'user') return;
 
-    this.messages = this.messages.slice(0, index);
+    this.store.dispatch(
+      SessionActions.setMessages({ messages: msgs.slice(0, index) }),
+    );
     this.beginRequest();
     this.dispatchRequest(prevUser.text);
   }
 
   onEditAndResend(index: number, newText: string): void {
     if (this.isLoading || this.isStreaming()) return;
-    const target = this.messages[index];
+    const msgs = this.messages();
+    const target = msgs[index];
     if (!target || target.role !== 'user') return;
 
     this.saveCurrentSession();
 
-    const truncated = this.messages.slice(0, index);
+    const truncated = msgs.slice(0, index);
     this.chatService.resetThread();
+    this.store.dispatch(
+      SessionActions.setActiveSessionId({ id: this.chatService.currentThreadId }),
+    );
     this.sessionTitle = newText.length > 50 ? newText.slice(0, 50) + '…' : newText;
     this.sessionCreatedAt = Date.now();
-    this.messages = [...truncated, { text: newText, role: 'user', createdAt: Date.now() }];
+    this.store.dispatch(
+      SessionActions.setMessages({
+        messages: [...truncated, { text: newText, role: 'user', createdAt: Date.now() }],
+      }),
+    );
     this.beginRequest();
     this.dispatchRequest(newText);
   }
@@ -621,10 +663,10 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   // Recent prior turns (user/assistant only) sent so the backend has within-thread
   // context. The current turn's user message is already the last entry in
-  // this.messages, so it is excluded here; the backend receives it as `message`.
+  // the message list, so it is excluded here; the backend receives it as `message`.
   private buildHistory(): ChatHistoryItem[] {
     const HISTORY_CAP = 20;
-    return this.messages
+    return this.messages()
       .slice(0, -1)
       .filter((m): m is ChatMessage & { role: 'user' | 'assistant' } =>
         (m.role === 'user' || m.role === 'assistant') && m.text.trim().length > 0,
@@ -724,14 +766,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     reasoningDurationMs?: number,
   ): void {
     for (const call of toolCalls) {
-      this.messages.push({
-        text: '',
-        role: 'tool',
-        toolName: call.name,
-        toolArgs: call.args,
-        toolResult: call.result,
-        createdAt: Date.now(),
-      });
+      this.store.dispatch(
+        SessionActions.appendMessage({
+          message: {
+            text: '',
+            role: 'tool',
+            toolName: call.name,
+            toolArgs: call.args,
+            toolResult: call.result,
+            createdAt: Date.now(),
+          },
+        }),
+      );
     }
     const assistantMsg: ChatMessage = {
       text: response,
@@ -740,7 +786,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       ...(reasoning ? { reasoning } : {}),
       ...(reasoningDurationMs !== undefined ? { reasoningDurationMs } : {}),
     };
-    this.messages.push(assistantMsg);
+    this.store.dispatch(SessionActions.appendMessage({ message: assistantMsg }));
     this.clearStreaming();
     this.finishRequest();
   }
@@ -749,22 +795,34 @@ export class ChatComponent implements OnInit, OnDestroy {
     const partial = this.streamingText();
     if (partial.length > 0) {
       for (const call of this.streamingToolCalls()) {
-        this.messages.push({
-          text: '',
-          role: 'tool',
-          toolName: call.name,
-          toolArgs: call.args,
-          toolResult: call.result,
-          createdAt: Date.now(),
-        });
+        this.store.dispatch(
+          SessionActions.appendMessage({
+            message: {
+              text: '',
+              role: 'tool',
+              toolName: call.name,
+              toolArgs: call.args,
+              toolResult: call.result,
+              createdAt: Date.now(),
+            },
+          }),
+        );
       }
       const footer = link
         ? `\n\n_Response interrupted: ${message}_ ([details](${link}))`
         : `\n\n_Response interrupted: ${message}_`;
-      this.messages.push({ text: partial + footer, role: 'assistant', createdAt: Date.now() });
+      this.store.dispatch(
+        SessionActions.appendMessage({
+          message: { text: partial + footer, role: 'assistant', createdAt: Date.now() },
+        }),
+      );
     } else {
       const linkPart = link ? `\n\n[View model on OpenRouter](${link})` : '';
-      this.messages.push({ text: message + linkPart, role: 'error', createdAt: Date.now() });
+      this.store.dispatch(
+        SessionActions.appendMessage({
+          message: { text: message + linkPart, role: 'error', createdAt: Date.now() },
+        }),
+      );
     }
     this.clearStreaming();
     this.finishRequest();
@@ -783,13 +841,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private finishRequest(): void {
     this.isLoading = false;
-    this.sessions = this.historyService.upsertSession({
-      id: this.chatService.currentThreadId,
-      title: this.sessionTitle,
-      messages: [...this.messages],
-      createdAt: this.sessionCreatedAt,
-      dinoId: this.activeDinoId(),
-    });
+    this.persistActiveSession(this.sessionTitle, this.sessionCreatedAt);
     this.cdr.detectChanges();
     this.scrollToBottom();
   }

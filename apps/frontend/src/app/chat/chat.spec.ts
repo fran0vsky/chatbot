@@ -1,11 +1,16 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { of } from 'rxjs';
 import { ChatComponent } from './chat';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
 import { HistoryService } from './history.service';
 import { StreamEvent } from '@org/shared-types';
+import { reducers } from '../store/reducers';
+import { appEffects } from '../store/effects';
 
 type ChatComponentPrivate = {
   handleStreamEvent(event: StreamEvent): void;
@@ -29,6 +34,9 @@ function buildHistoryService(): Partial<HistoryService> {
   return {
     loadSessions: vi.fn().mockReturnValue([]),
     upsertSession: vi.fn().mockReturnValue([]),
+    deleteSession: vi.fn().mockReturnValue([]),
+    updateTitle: vi.fn().mockReturnValue([]),
+    togglePin: vi.fn().mockReturnValue([]),
   };
 }
 
@@ -37,6 +45,7 @@ function buildDinoService(): Partial<DinoService> {
     dinos: signal([]),
     loaded: signal(false),
     loadDinos: vi.fn(),
+    fetchDinos: vi.fn().mockReturnValue(of([])),
     getById: vi.fn().mockReturnValue(undefined),
   };
 }
@@ -49,6 +58,8 @@ describe('ChatComponent reasoning handling', () => {
       imports: [ChatComponent],
       providers: [
         provideNoopAnimations(),
+        provideStore(reducers),
+        provideEffects(appEffects),
         { provide: ChatService, useValue: buildChatService() },
         { provide: HistoryService, useValue: buildHistoryService() },
         { provide: DinoService, useValue: buildDinoService() },
@@ -89,14 +100,16 @@ describe('ChatComponent reasoning handling', () => {
       reasoning: 'my reasoning',
       reasoningDurationMs: 1500,
     });
-    const last = component.messages[component.messages.length - 1];
+    const msgs = component.messages();
+    const last = msgs[msgs.length - 1];
     expect(last.reasoning).toBe('my reasoning');
     expect(last.reasoningDurationMs).toBe(1500);
   });
 
   it('omits reasoning/durationMs keys when done has no reasoning', () => {
     dispatch({ type: 'done', response: 'answer', toolCalls: [] });
-    const last = component.messages[component.messages.length - 1];
+    const msgs = component.messages();
+    const last = msgs[msgs.length - 1];
     expect('reasoning' in last).toBe(false);
     expect('reasoningDurationMs' in last).toBe(false);
   });

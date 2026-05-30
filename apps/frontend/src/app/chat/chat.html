@@ -41,7 +41,7 @@
 
   <!-- Left sidebar (SPINO nav + session history) -->
   <app-history-panel
-    [sessions]="sessions"
+    [sessions]="sessions()"
     [activeSessionId]="activeSessionId"
     [mobileOpen]="mobileSidebarOpen()"
     [activeView]="activeView()"
@@ -59,10 +59,10 @@
     type="button"
     (click)="toggleTheme()"
     class="absolute top-3 right-4 z-30 p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent bg-jungle-bg/40 dark:bg-jungle-night/40 backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
-    [attr.aria-label]="isDayMode ? 'Switch to night mode' : 'Switch to day mode'"
-    [title]="isDayMode ? 'Night mode' : 'Day mode'"
+    [attr.aria-label]="isDayMode() ? 'Switch to night mode' : 'Switch to day mode'"
+    [title]="isDayMode() ? 'Night mode' : 'Day mode'"
   >
-    @if (isDayMode) {
+    @if (isDayMode()) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
       </svg>
@@ -408,15 +408,15 @@
           </button>
         </header>
       }
-      @if (messages.length <= 1 && !isLoading && !isStreaming()) {
+      @if (messages().length <= 1 && !isLoading && !isStreaming()) {
         <div class="flex-1 flex flex-col justify-center px-4 pb-12 gap-6 relative z-10">
           <div class="mx-auto text-center">
             <h1 class="font-title text-4xl text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">SpinoChat</h1>
             <p class="mt-2 text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">The AI that survived.</p>
           </div>
           <div class="mx-auto w-full max-w-2xl">
-            @if (messages.length === 1) {
-              <app-message-bubble [message]="messages[0]" [animate]="false" />
+            @if (messages().length === 1) {
+              <app-message-bubble [message]="messages()[0]" [animate]="false" />
             }
           </div>
           <div class="mx-auto w-full max-w-2xl grid grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
@@ -447,7 +447,7 @@
       } @else {
         <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
           <div class="max-w-2xl mx-auto w-full space-y-5">
-            @for (m of messages; track $index; let i = $index) {
+            @for (m of messages(); track $index; let i = $index) {
               @if (showDateDivider(i)) {
                 <div class="flex items-center justify-center my-2">
                   <span class="text-[11px] uppercase tracking-wider px-3 py-1 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 text-jungle-ink-muted dark:text-jungle-night-muted backdrop-blur-sm border border-jungle-border/30 dark:border-jungle-night-border/40">
@@ -462,7 +462,7 @@
                   [message]="m"
                   [animate]="i >= 1"
                   [canEdit]="m.role === 'user' && !isLoading"
-                  [canRegenerate]="m.role === 'assistant' && i === messages.length - 1 && i > 0 && !isLoading"
+                  [canRegenerate]="m.role === 'assistant' && i === messages().length - 1 && i > 0 && !isLoading"
                   (regenerate)="onRegenerate(i)"
                   (editSubmit)="onEditAndResend(i, $event)"
                 />
@@ -532,7 +532,7 @@
   <!-- Right mascot panel (desktop only) -->
   <app-mascot-panel
     [status]="(isLoading || isStreaming()) ? 'thinking' : 'idle'"
-    [isDayMode]="isDayMode"
+    [isDayMode]="isDayMode()"
     (themeToggled)="toggleTheme()"
   />
 
