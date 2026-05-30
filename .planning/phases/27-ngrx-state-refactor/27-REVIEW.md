@@ -31,7 +31,9 @@ findings:
   warning: 4
   info: 3
   total: 8
+  critical_resolved: 1
 status: issues_found
+resolution_note: "CR-01 fixed in commit fe75507 (dinoById/groupDinoById now resolve from store roster). WR-01..WR-04 + info findings remain open for user disposition."
 ---
 
 # Phase 27: Code Review Report
