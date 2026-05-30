@@ -21,6 +21,14 @@ const sendMessageAction = (text: string): Action & { text: string } => ({
   text,
 });
 
+// read_last_message is a pure READ intent: the assistant resolves the message
+// via selectLastAssistantMessage. The catalogue emits a no-op marker (no
+// reducer handles it) so the intent never mutates UI state — dispatching a
+// real navigation action here would be an observable side effect (WR-02).
+const readLastMessageAction = (): Action => ({
+  type: '[Assistant] Read Last Message Requested',
+});
+
 const changeThemeSchema = z.object({
   theme: z.enum(['day', 'night', 'toggle']),
 });
@@ -72,12 +80,9 @@ export const ACTION_CATALOGUE = {
   }),
   read_last_message: entry({
     description:
-      "Resolve the last assistant message (handled by the assistant via selectLastAssistantMessage); dispatches a no-op marker.",
+      'Resolve the last assistant message (handled by the assistant via selectLastAssistantMessage); dispatches a no-op marker.',
     params: readLastMessageSchema,
-    // No state mutation — the assistant reads selectLastAssistantMessage. We
-    // emit a harmless re-affirm of the active view so the catalogue always
-    // produces a valid Action.
-    create: () => UiActions.setActiveView({ view: 'chats' }),
+    create: () => readLastMessageAction(),
   }),
   send_message: entry({
     description: 'Send a chat message on the user behalf.',
@@ -114,7 +119,7 @@ export type DispatchResult =
 export function dispatchCatalogued(
   store: Store,
   name: string,
-  params: unknown = {},
+  params: unknown,
 ): DispatchResult {
   if (!Object.prototype.hasOwnProperty.call(ACTION_CATALOGUE, name)) {
     return { ok: false, error: `Unknown action: ${name}` };

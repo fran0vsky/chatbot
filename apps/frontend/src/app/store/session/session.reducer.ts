@@ -1,6 +1,12 @@
 import { createReducer, on } from '@ngrx/store';
 import { ChatMessage, ConversationSession } from '@org/shared-types';
 import * as SessionActions from './session.actions';
+import {
+  removeFromList,
+  renameInList,
+  togglePinInList,
+  upsertInList,
+} from './session-list.ops';
 
 export const WELCOME_MESSAGE: ChatMessage = {
   text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?',
@@ -20,20 +26,6 @@ export const initialSessionState: SessionState = {
   messages: [{ ...WELCOME_MESSAGE, createdAt: Date.now() }],
 };
 
-/** Mirror of HistoryService.upsertSession's list logic (replace-or-prepend). */
-function upsertInList(
-  sessions: ConversationSession[],
-  session: ConversationSession,
-): ConversationSession[] {
-  const idx = sessions.findIndex((s) => s.id === session.id);
-  if (idx >= 0) {
-    const next = sessions.slice();
-    next[idx] = { ...next[idx], ...session };
-    return next;
-  }
-  return [session, ...sessions];
-}
-
 export const sessionReducer = createReducer(
   initialSessionState,
   on(SessionActions.loadSessionsSuccess, (state, { sessions }) => ({
@@ -52,17 +44,15 @@ export const sessionReducer = createReducer(
   })),
   on(SessionActions.deleteSession, (state, { id }) => ({
     ...state,
-    sessions: state.sessions.filter((s) => s.id !== id),
+    sessions: removeFromList(state.sessions, id),
   })),
   on(SessionActions.renameSession, (state, { id, title }) => ({
     ...state,
-    sessions: state.sessions.map((s) => (s.id === id ? { ...s, title } : s)),
+    sessions: renameInList(state.sessions, id, title),
   })),
   on(SessionActions.togglePin, (state, { id }) => ({
     ...state,
-    sessions: state.sessions.map((s) =>
-      s.id === id ? { ...s, pinned: !s.pinned } : s,
-    ),
+    sessions: togglePinInList(state.sessions, id),
   })),
   on(SessionActions.appendMessage, (state, { message }) => ({
     ...state,

@@ -1,5 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ConversationSession } from '@org/shared-types';
+import {
+  removeFromList,
+  renameInList,
+  togglePinInList,
+  upsertInList,
+} from '../store/session/session-list.ops';
 
 const STORAGE_KEY = 'desert-chat-history';
 
@@ -15,40 +21,26 @@ export class HistoryService {
   }
 
   upsertSession(session: ConversationSession): ConversationSession[] {
-    const sessions = this.loadSessions();
-    const idx = sessions.findIndex((s) => s.id === session.id);
-    if (idx >= 0) {
-      sessions[idx] = { ...sessions[idx], ...session };
-    } else {
-      sessions.unshift(session);
-    }
+    const sessions = upsertInList(this.loadSessions(), session);
     this.persist(sessions);
     return sessions;
   }
 
   deleteSession(id: string): ConversationSession[] {
-    const sessions = this.loadSessions().filter((s) => s.id !== id);
+    const sessions = removeFromList(this.loadSessions(), id);
     this.persist(sessions);
     return sessions;
   }
 
   updateTitle(id: string, title: string): ConversationSession[] {
-    const sessions = this.loadSessions();
-    const idx = sessions.findIndex((s) => s.id === id);
-    if (idx >= 0) {
-      sessions[idx] = { ...sessions[idx], title };
-      this.persist(sessions);
-    }
+    const sessions = renameInList(this.loadSessions(), id, title);
+    this.persist(sessions);
     return sessions;
   }
 
   togglePin(id: string): ConversationSession[] {
-    const sessions = this.loadSessions();
-    const idx = sessions.findIndex((s) => s.id === id);
-    if (idx >= 0) {
-      sessions[idx] = { ...sessions[idx], pinned: !sessions[idx].pinned };
-      this.persist(sessions);
-    }
+    const sessions = togglePinInList(this.loadSessions(), id);
+    this.persist(sessions);
     return sessions;
   }
 

@@ -106,6 +106,18 @@ describe('ACTION_CATALOGUE', () => {
       expect(store.dispatched).toHaveLength(0);
     });
 
+    it('read_last_message dispatches a no-op marker, not a UI navigation (WR-02)', () => {
+      const store = buildStore();
+      const result = dispatchCatalogued(store, 'read_last_message', {});
+      expect(result.ok).toBe(true);
+      expect(store.dispatched).toHaveLength(1);
+      expect(store.dispatched[0].type).toBe(
+        '[Assistant] Read Last Message Requested',
+      );
+      // Must NOT trigger navigation / sidebar side effects.
+      expect(store.dispatched[0].type).not.toBe('[UI] Set Active View');
+    });
+
     it('maps change_theme toggle to the toggle action', () => {
       const store = buildStore();
       const result = dispatchCatalogued(store, 'change_theme', {

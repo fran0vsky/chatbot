@@ -28,7 +28,9 @@ export const selectLastAssistantMessage = createSelector(
   selectMessages,
   (messages) => {
     for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'assistant') return messages[i];
+      // Return a shallow copy so consumers (the Phase 29 assistant) cannot
+      // mutate store state through the returned reference (WR-03).
+      if (messages[i].role === 'assistant') return { ...messages[i] };
     }
     return undefined;
   },
