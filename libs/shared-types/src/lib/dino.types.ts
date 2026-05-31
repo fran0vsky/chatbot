@@ -1,5 +1,27 @@
 export type DinoId = string;
 
+/**
+ * Per-dino voice character. Drives SpeechSynthesisUtterance properties
+ * via the SsmlHint mapping in the frontend (VOX-02).
+ */
+export interface VoiceProfile {
+  /**
+   * Speech rate.
+   * Range: 0.1–10. Default: 1.0.
+   */
+  rate?: number;
+  /**
+   * Speech pitch.
+   * Range: 0–2. Default: 1.0.
+   */
+  pitch?: number;
+  /**
+   * Preferred system-voice name or URI (e.g. "Google UK English Male").
+   * When absent or not installed, falls back to the system default voice.
+   */
+  preferredVoice?: string;
+}
+
 /** Full dino definition — backend-only (contains the system prompt). */
 export interface Dino {
   id: DinoId;
@@ -21,6 +43,8 @@ export interface Dino {
   toolNames: string[];
   /** Optional brand accent (hex) for UI theming of the dino */
   accent?: string;
+  /** Optional voice character for TTS read-aloud (VOX-01/02). */
+  voiceProfile?: VoiceProfile;
 }
 
 /** Frontend-safe projection — omits the raw system prompt. */
