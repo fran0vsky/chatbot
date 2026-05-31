@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
 | 26. Image Generation | 0/TBD | Needs research spike (free image provider) | - |
 | 27. NgRx State Refactor | 1/1 | Complete   | 2026-05-30 |
-| 28. Voice I/O + SSML | 0/TBD | Needs research spike (TTS/SSML provider) | - |
+| 28. Voice I/O + SSML | 1/2 | In Progress|  |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 
 ### Phase 4: Dark Theme and Visual Polish
@@ -511,7 +511,7 @@ Plans:
   3. The user can dictate a message by voice (speech-to-text)
   4. A free/browser fallback exists so voice works without a paid provider
 **Scope note:** In — TTS + SSML, STT, provider/cost decision (browser SpeechSynthesis fallback vs. Azure/ElevenLabs for real SSML). Out — voice commands that control the app (Phase 29).
-**Plans:** 28-01 (read-aloud: VOX-01/02), 28-02 (dictation: VOX-03)
+**Plans:** 1/2 plans executed
 **UI hint:** yes
 
 ### Phase 29: Voice Dino Assistant

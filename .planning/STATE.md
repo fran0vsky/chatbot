@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: completed
+status: executing
 stopped_at: Phase 28 context gathered
-last_updated: "2026-05-31T21:34:03.828Z"
-last_activity: 2026-05-30 -- Phase 27 Plan 01 Tasks 1–6 executed
+last_updated: "2026-05-31T21:53:25.638Z"
+last_activity: 2026-05-31
 progress:
   total_phases: 11
   completed_phases: 9
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 27 — ngrx-state-refactor
+**Current focus:** Phase 28 — voice-i-o-ssml
 
 ## Current Position
 
-Phase: 27 (ngrx-state-refactor) — EXECUTING
-Plan: 1 of 1
-Status: Plan 27-01 Tasks 1–6 done (NgRx store + slices + ChatComponent refactor + action catalogue); Task 7 manual regression sweep pending
-Last activity: 2026-05-30 -- Phase 27 Plan 01 Tasks 1–6 executed
+Phase: 28 (voice-i-o-ssml) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-05-31
 
 ## Performance Metrics
 
@@ -119,6 +119,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-31T21:34:03.822Z
+Last session: 2026-05-31T21:53:25.632Z
 Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-voice-i-o-ssml/28-CONTEXT.md
+Resume file: None
