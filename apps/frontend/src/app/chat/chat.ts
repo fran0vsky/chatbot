@@ -146,6 +146,32 @@ export class ChatComponent implements OnInit, OnDestroy {
    */
   readonly speakingMessageText = signal<string | null>(null);
 
+  /** Cached selector signal — created once in injection context to avoid per-emission leaks (CR-03). */
+  private readonly lastAssistantMessage = this.store.selectSignal(selectLastAssistantMessage);
+
+  constructor() {
+    // Voice effects are registered in the constructor (an injection context) rather
+    // than in event handlers or ngOnInit, which throw NG0203 (CR-01/CR-02).
+
+    // Clears speakingMessageText when TTS playback ends. Reads only speaking(), so it
+    // does not re-fire when onReadAloud sets speakingMessageText — avoids the start race.
+    effect(() => {
+      if (!this.voiceSynth.speaking()) {
+        this.speakingMessageText.set(null);
+      }
+    });
+
+    // VOX-03: Mirror voice transcript into the composer draft live. Transcript is
+    // untrusted: trimmed and capped. Never calls submit() — user reviews and sends (D-08).
+    effect(() => {
+      const raw = this.voiceRec.transcript();
+      if (raw && this.inputComposerRef) {
+        this.inputComposerRef.draft = raw.trim().slice(0, MAX_DRAFT_LENGTH);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   // Transient STREAMING state — intentionally NOT migrated (documented boundary).
   readonly streamingText = signal('');
   readonly streamingReasoning = signal('');
@@ -221,15 +247,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     const hint = this.buildSsmlHint(dino?.voiceProfile);
     this.speakingMessageText.set(text);
     this.voiceSynth.speak(text, hint);
-
-    // Clear the tracked text when speech ends (reactive on speaking signal).
-    // effect() in a constructor/init context — registered here via a local effect.
-    const stopEffect = effect(() => {
-      if (!this.voiceSynth.speaking()) {
-        this.speakingMessageText.set(null);
-        stopEffect.destroy();
-      }
-    });
+    // Note: speakingMessageText is cleared by the field-level speakingClearEffect
+    // when the service's speaking() signal drops. Creating an effect() here would
+    // throw NG0203 (event handlers are not an injection context) and also race the
+    // async utterance.onstart that flips speaking() to true.
   }
 
   /** Build SsmlHint from an optional VoiceProfile. Returns undefined when no profile. */
@@ -532,25 +553,15 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }, 3000);
 
-    // VOX-03: Mirror voice transcript into the composer draft live.
-    // The effect runs on every signal read of voiceRec.transcript().
-    // - Transcript is treated as untrusted: trimmed and capped to MAX_DRAFT_LENGTH.
-    // - Never calls submit() — the user reviews and sends manually (D-08).
-    effect(() => {
-      const raw = this.voiceRec.transcript();
-      if (raw && this.inputComposerRef) {
-        // Sanitize: trim whitespace + enforce max-length cap (T-28-03 / V5)
-        this.inputComposerRef.draft = raw.trim().slice(0, MAX_DRAFT_LENGTH);
-        this.cdr.markForCheck();
-      }
-    });
+    // VOX-03 transcript mirroring runs via the field-level transcriptMirrorEffect.
 
     // Phase 29 seam: when the voice assistant dispatches read_last_message,
-    // resolve the last assistant message and speak it.
+    // resolve the last assistant message and speak it. Reads the cached
+    // lastAssistantMessage signal (created once in injection context — CR-03).
     this.readLastMessageSub = this.actions$
       .pipe(ofType('[Assistant] Read Last Message Requested'))
       .subscribe(() => {
-        const msg = this.store.selectSignal(selectLastAssistantMessage)();
+        const msg = this.lastAssistantMessage();
         if (msg) {
           this.onReadAloud(msg.text);
         }
