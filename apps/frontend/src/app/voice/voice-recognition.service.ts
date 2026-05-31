@@ -42,7 +42,7 @@ export class VoiceRecognitionService {
 
   constructor() {
     // Feature-detect both the unprefixed and webkit-prefixed variants.
-    const win = window as Record<string, unknown>;
+    const win = window as unknown as Record<string, unknown>;
     const Rec = (win['SpeechRecognition'] ?? win['webkitSpeechRecognition']) as
       | (new () => SpeechRecognition)
       | undefined;
