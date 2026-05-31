@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: executing
-stopped_at: Phase 27 Plan 01 Tasks 1–6 complete; Task 7 (manual regression sweep) pending
-last_updated: "2026-05-30T10:30:00.000Z"
-last_activity: 2026-05-30 -- Phase 27 Plan 01 Tasks 1–6 executed (NgRx refactor + action catalogue)
+status: completed
+stopped_at: Phase 28 context gathered
+last_updated: "2026-05-31T21:34:03.828Z"
+last_activity: 2026-05-30 -- Phase 27 Plan 01 Tasks 1–6 executed
 progress:
   total_phases: 11
   completed_phases: 9
@@ -119,6 +119,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-30T08:25:36.835Z
-Stopped at: Phase 24 Plan 01 complete (Tasks 1–4 committed; Task 5 is manual UAT)
-Resume file: None
+Last session: 2026-05-31T21:34:03.822Z
+Stopped at: Phase 28 context gathered
+Resume file: .planning/phases/28-voice-i-o-ssml/28-CONTEXT.md
