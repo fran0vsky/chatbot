@@ -36,6 +36,7 @@
     "@swc-node/register": "1.11.1",
     "@swc/core": "1.15.8",
     "@swc/helpers": "0.5.18",
+    "@types/dom-speech-recognition": "^0.0.11",
     "@types/node": "20.19.9",
     "@types/pg": "^8.20.0",
     "@typescript-eslint/utils": "^8.40.0",

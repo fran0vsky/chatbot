@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "types": [],
+    "types": ["dom-speech-recognition"],
     "lib": ["es2022", "dom", "dom.iterable"],
     "rootDir": "../..",
     "emitDeclarationOnly": false,
