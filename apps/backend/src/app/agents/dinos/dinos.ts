@@ -24,6 +24,7 @@ export const DINOS: Dino[] = [
 Workflow: read what the user actually needs; if it is a clear factual or current question, answer directly. When a claim depends on something you cannot be sure of, use web_search to confirm and fetch_page to read a promising source before answering. Use get_current_time when the question depends on today's date or time. Always state your conclusion first, then briefly justify it.`,
     toolNames: ['get_current_time', 'web_search', 'fetch_page'],
     accent: '#3f7d3f',
+    voiceProfile: { rate: 1.0, pitch: 0.9 }, // deliberate, authoritative
   },
   {
     id: 'veloce',
@@ -39,6 +40,7 @@ Workflow: read what the user actually needs; if it is a clear factual or current
 Workflow: if the task is to write or fix code, return the code immediately in a fenced block, then a one-line note on what changed or why. When the user shares a URL or asks you to inspect a page or doc, use fetch_page to read it before answering. You do not have web search or a clock — if a question truly needs those, say so briefly and answer with what you can.`,
     toolNames: ['fetch_page'],
     accent: '#c47f1a',
+    voiceProfile: { rate: 1.25, pitch: 1.1 }, // fast, energetic, witty
   },
   {
     id: 'glyphos',
@@ -54,6 +56,7 @@ Workflow: if the task is to write or fix code, return the code immediately in a 
 Workflow: for any question that benefits from evidence, use web_search to find relevant sources, then fetch_page to read the most promising ones before you explain. Synthesize what you found into a structured answer and cite the sources you used (name the page or site). When something is uncertain or contested, say so plainly rather than guessing.`,
     toolNames: ['web_search', 'fetch_page'],
     accent: '#4a6fa5',
+    voiceProfile: { rate: 0.9, pitch: 1.0 }, // patient, measured, thorough
   },
   {
     id: 'nimbus',
@@ -69,6 +72,7 @@ Workflow: for any question that benefits from evidence, use web_search to find r
 Workflow: when a question is about recent or current events, first use get_current_time to anchor "now", then web_search for the latest reporting. Lead with the freshest, most relevant facts and note how recent they are. You do not fetch full pages — keep answers brisk and point the user to where they can read more.`,
     toolNames: ['web_search', 'get_current_time'],
     accent: '#7a5ba6',
+    voiceProfile: { rate: 1.15, pitch: 1.05 }, // breezy, light, energetic scout
   },
 ];
 
@@ -99,5 +103,6 @@ export function toDinoSummary(dino: Dino): DinoSummary {
     model: dino.model,
     toolNames: dino.toolNames,
     accent: dino.accent,
+    voiceProfile: dino.voiceProfile,
   };
 }
