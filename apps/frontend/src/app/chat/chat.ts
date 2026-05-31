@@ -6,11 +6,15 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo } from '@org/shared-types';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile } from '@org/shared-types';
+import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
+import { SsmlHint } from '../voice/tts-provider.js';
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
@@ -34,6 +38,7 @@ import {
   selectRoster,
 } from '../store/dino/dino.selectors';
 import {
+  selectLastAssistantMessage,
   selectMessages,
   selectSessions,
 } from '../store/session/session.selectors';
@@ -83,6 +88,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly arenaService = inject(ArenaService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly store = inject(Store);
+  /** TTS service — injected here so the template can reference voiceSynth.speaking() etc. */
+  readonly voiceSynth = inject(VoiceSynthesisService);
+  private readonly actions$ = inject(Actions);
 
   // ─── Migrated store-driven state (read via selectors, mutate via dispatch) ───
   /** Active message list — store-driven. Mutated only via dispatched actions. */
@@ -104,6 +112,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private sessionCreatedAt = 0;
   private currentAbort: AbortController | null = null;
   private streamingToolCallIds: string[] = [];
+  private readLastMessageSub?: { unsubscribe(): void };
 
   // Arena state (transient selection — out of NgRx scope, kept as signals)
   readonly arenaPrompt = signal('');
@@ -118,6 +127,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   /** Expose cap for template use (static → instance bridge). */
   readonly groupchatMaxDinos = GroupchatService.MAX_DINOS;
   readonly knowledgeFiles = signal<KnowledgeFile[]>([]);
+
+  /**
+   * Text of the message currently being read aloud.
+   * Used to set [speaking] on the active MessageBubble.
+   * Cleared when VoiceSynthesisService.speaking() drops to false.
+   */
+  readonly speakingMessageText = signal<string | null>(null);
 
   // Transient STREAMING state — intentionally NOT migrated (documented boundary).
   readonly streamingText = signal('');
@@ -166,6 +182,39 @@ export class ChatComponent implements OnInit, OnDestroy {
   usePrompt(text: string): void {
     if (this.isLoading || this.isStreaming()) return;
     this.onSend(text);
+  }
+
+  // ─────────────────── Voice TTS handlers (VOX-01/VOX-02) ──────────────────
+
+  /**
+   * Called when a MessageBubble emits (readAloud).
+   * Builds an SsmlHint from the active dino's voiceProfile and speaks the text.
+   * Clears speakingMessageText when the service's speaking signal drops.
+   */
+  onReadAloud(text: string): void {
+    const dino = this.activeDino();
+    const hint = this.buildSsmlHint(dino?.voiceProfile);
+    this.speakingMessageText.set(text);
+    this.voiceSynth.speak(text, hint);
+
+    // Clear the tracked text when speech ends (reactive on speaking signal).
+    // effect() in a constructor/init context — registered here via a local effect.
+    const stopEffect = effect(() => {
+      if (!this.voiceSynth.speaking()) {
+        this.speakingMessageText.set(null);
+        stopEffect.destroy();
+      }
+    });
+  }
+
+  /** Build SsmlHint from an optional VoiceProfile. Returns undefined when no profile. */
+  private buildSsmlHint(profile?: VoiceProfile): SsmlHint | undefined {
+    if (!profile) return undefined;
+    const hint: SsmlHint = {};
+    if (profile.rate !== undefined) hint.rate = profile.rate;
+    if (profile.pitch !== undefined) hint.pitch = profile.pitch;
+    if (profile.preferredVoice !== undefined) hint.preferredVoice = profile.preferredVoice;
+    return Object.keys(hint).length > 0 ? hint : undefined;
   }
 
   toggleMobileSidebar(): void {
@@ -455,6 +504,17 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.placeholder = PLACEHOLDER_EXAMPLES[this.placeholderIndex];
       this.cdr.markForCheck();
     }, 3000);
+
+    // Phase 29 seam: when the voice assistant dispatches read_last_message,
+    // resolve the last assistant message and speak it.
+    this.readLastMessageSub = this.actions$
+      .pipe(ofType('[Assistant] Read Last Message Requested'))
+      .subscribe(() => {
+        const msg = this.store.selectSignal(selectLastAssistantMessage)();
+        if (msg) {
+          this.onReadAloud(msg.text);
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -462,6 +522,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       clearInterval(this.placeholderTimer);
     }
     this.currentAbort?.abort();
+    this.readLastMessageSub?.unsubscribe();
+    // Stop any in-progress TTS when the component is destroyed.
+    this.voiceSynth.stop();
   }
 
   onStop(): void {
