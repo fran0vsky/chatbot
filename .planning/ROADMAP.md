@@ -511,7 +511,7 @@ Plans:
   3. The user can dictate a message by voice (speech-to-text)
   4. A free/browser fallback exists so voice works without a paid provider
 **Scope note:** In — TTS + SSML, STT, provider/cost decision (browser SpeechSynthesis fallback vs. Azure/ElevenLabs for real SSML). Out — voice commands that control the app (Phase 29).
-**Plans:** TBD (run `/gsd-plan-phase 28`)
+**Plans:** 28-01 (read-aloud: VOX-01/02), 28-02 (dictation: VOX-03)
 **UI hint:** yes
 
 ### Phase 29: Voice Dino Assistant
