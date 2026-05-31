@@ -29,8 +29,15 @@ export class MessageBubble {
   @Input() canRegenerate = false;
   @Input() canEdit = false;
 
+  /** Whether TTS is supported in this browser (hides button when false). */
+  @Input() ttsSupported = true;
+  /** Whether THIS bubble is currently being spoken aloud. */
+  @Input() speaking = false;
+
   @Output() regenerate = new EventEmitter<void>();
   @Output() editSubmit = new EventEmitter<string>();
+  /** Emits message.text when the user clicks the read-aloud button. */
+  @Output() readAloud = new EventEmitter<string>();
 
   copied = false;
   editing = false;
@@ -112,6 +119,10 @@ export class MessageBubble {
 
   onRegenerate(): void {
     this.regenerate.emit();
+  }
+
+  onReadAloud(): void {
+    this.readAloud.emit(this.message.text);
   }
 
   onMarkdownReady(): void {

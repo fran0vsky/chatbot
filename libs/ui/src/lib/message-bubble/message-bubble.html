@@ -133,6 +133,33 @@
             </svg>
           }
         </button>
+        @if (ttsSupported) {
+          <button
+            type="button"
+            (click)="onReadAloud()"
+            class="p-1.5 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+            [class.text-jungle-accent]="speaking"
+            [class.dark:text-jungle-night-accent]="speaking"
+            [class.text-jungle-ink-muted]="!speaking"
+            [class.dark:text-jungle-night-muted]="!speaking"
+            [class.hover:text-jungle-accent]="!speaking"
+            [class.dark:hover:text-jungle-night-accent]="!speaking"
+            [class.hover:bg-jungle-surface\/40]="!speaking"
+            [class.dark:hover:bg-jungle-night-surface\/40]="!speaking"
+            [attr.aria-label]="speaking ? 'Stop reading' : 'Read aloud'"
+            [attr.title]="speaking ? 'Stop reading' : 'Read aloud'"
+            [attr.aria-pressed]="speaking"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M10 3.5a.5.5 0 00-.832-.374l-4.5 3.75A.5.5 0 004.5 7H3a1 1 0 00-1 1v4a1 1 0 001 1h1.5a.5.5 0 00.332.124l4.5 3.75A.5.5 0 0010 16.5V3.5z" />
+              @if (speaking) {
+                <path d="M13.5 7a.5.5 0 01.5.5v5a.5.5 0 01-1 0v-5a.5.5 0 01.5-.5zM15.5 5.5a.5.5 0 01.5.5v8a.5.5 0 01-1 0V6a.5.5 0 01.5-.5z" />
+              } @else {
+                <path d="M13.536 6.121a.75.75 0 011.06-.061A5.5 5.5 0 0116.5 10a5.5 5.5 0 01-1.904 4.14.75.75 0 01-.999-1.12A4 4 0 0015 10a4 4 0 00-1.403-3.02.75.75 0 01-.061-1.06z" />
+              }
+            </svg>
+          </button>
+        }
         <button
           type="button"
           class="p-1.5 rounded-md text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
