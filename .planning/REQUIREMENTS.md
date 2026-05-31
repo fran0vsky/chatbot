@@ -76,7 +76,7 @@
 
 - [x] **VOX-01**: A dino can read its responses aloud via text-to-speech (two-way voice)
 - [x] **VOX-02**: Spoken output is driven by SSML for natural prosody/pauses
-- [ ] **VOX-03**: User can dictate input by voice (speech-to-text)
+- [x] **VOX-03**: User can dictate input by voice (speech-to-text)
 
 ### Voice Dino Assistant
 

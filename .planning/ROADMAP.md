@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
 | 26. Image Generation | 0/TBD | Needs research spike (free image provider) | - |
 | 27. NgRx State Refactor | 1/1 | Complete   | 2026-05-30 |
-| 28. Voice I/O + SSML | 1/2 | In Progress|  |
+| 28. Voice I/O + SSML | 2/2 | Complete (Task 5 manual pending) | 2026-06-01 |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 
 ### Phase 4: Dark Theme and Visual Polish

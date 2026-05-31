@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
 status: executing
-stopped_at: Phase 28 context gathered
-last_updated: "2026-05-31T21:53:25.638Z"
-last_activity: 2026-05-31
+stopped_at: Phase 28 Plan 02 complete (manual Task 5 pending human verification)
+last_updated: "2026-06-01T00:55:00.000Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 32
-  percent: 82
+  completed_plans: 33
+  percent: 84
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
 
 ## Current Position
 
-Phase: 28 (voice-i-o-ssml) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-05-31
+Phase: 28 (voice-i-o-ssml) — COMPLETE (automated tasks done; Task 5 manual smoke test pending human)
+Plan: 2 of 2 — DONE
+Status: Phase complete
+Last activity: 2026-06-01
 
 ## Performance Metrics
 
@@ -80,12 +80,16 @@ Recent decisions affecting current work:
 - Phase 27: activeSessionId tracks ChatService.currentThreadId (ChatService stays thread authority; store syncs via setActiveSessionId)
 - Phase 27: ACTION_CATALOGUE + dispatchCatalogued (zod-validated) is the ONLY assistant dispatch surface; destructive intents absent by construction (AST-03)
 - Phase 27: NgRx pinned to 21.1.0; zod 4.4.3; installed via `npm install --legacy-peer-deps`
+- Phase 28-01: VOX-01/02 read-aloud with VoiceSynthesisService + BrowserTtsAdapter; per-dino voiceProfile; Phase 29 seam wired via Actions$ ofType read_last_message
+- Phase 28-02: VOX-03 dictation; VoiceRecognitionService NgZone-wrapped signals; MAX_DRAFT_LENGTH=10_000 for transcript sanitization (T-28-03); mic hidden on unsupported browsers
 
 ### Pending Todos
 
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
 - **Phase 22 Task 5 — teach-once smoke test (human):** with DB + key and `dino_skills` pushed: teach rexford "Always answer in British English." → new chat with rexford applies it without re-teaching → manager delete stops it → veloce unaffected. See 22-01-SUMMARY.md.
 - **Phase 23 Task 4 — groupchat smoke test (human):** serve app with live API key; enter Group chat; select 3 dinos; send "Explain recursion in one line."; confirm 3 attributed panels stream in parallel; kill network for one model and confirm only that panel errors. See 23-01-SUMMARY.md.
+- **Phase 28-02 Task 5 — VOX-03 manual dictation smoke test (human):** serve app (`npx nx serve frontend`); in Chrome: click mic, grant permission, speak, confirm interim words fill draft live, confirm no auto-submit, confirm listening pulse ring, confirm long transcript is capped; in Firefox: confirm mic button is absent entirely. See 28-02-SUMMARY.md.
+- **Phase 28 Task 8 — TTS manual audio smoke test (human):** confirm audible speech per dino in Chrome, Stop halts, no SSML markup spoken literally. See 28-01-SUMMARY.md.
 - **Phase 27 Task 7 — NgRx regression sweep (human):** serve the app and exercise EVERY flow (send/stream, stop, regenerate, edit-and-resend, theme toggle + reload persistence, new chat, switch/delete/rename/pin session, dino picker, Explore, groupchat, arena, leaderboard). Confirm no behavior change vs pre-refactor + open Redux DevTools to confirm actions fire. See 27-01-SUMMARY.md. **Env note:** `nx test frontend` currently crashes with a pre-existing TS `referencedFiles` bug (reproduces on pre-NgRx baseline too) — see phase deferred-items.md.
 - **Phase 24 Task 5 — arena + leaderboard smoke test (human):** push `dino_ratings` table (`drizzle-kit push`), serve app; navigate Arena → enter prompt → two anonymous panels stream → vote → both revealed + ratings updated → Leaderboard tab reflects results; repeat with DATABASE_URL unset → no crash, ratings stay at 1000. See 24-01-SUMMARY.md.
 - **DB migration:** push the two new tables before the smoke tests — `user_memories` (Phase 21) and `dino_skills` (Phase 22) — via `npx nx run @org/backend:... drizzle-kit push` (or the project's drizzle push script) against `DATABASE_URL`.
@@ -119,6 +123,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-31T21:53:25.632Z
-Stopped at: Phase 28 context gathered
+Last session: 2026-06-01T00:55:00.000Z
+Stopped at: Phase 28 Plan 02 complete — Task 5 (manual Chrome/Firefox dictation smoke test) pending user
 Resume file: None
