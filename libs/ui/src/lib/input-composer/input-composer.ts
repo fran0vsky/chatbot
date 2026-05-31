@@ -24,9 +24,15 @@ export class InputComposer {
   @Input() loading = false;
   @Input() tools: readonly ToolInfo[] = [];
   @Input() enabledToolNames: string[] = [];
+  /** Whether the browser supports SpeechRecognition. When false, mic button is hidden. */
+  @Input() sttSupported = false;
+  /** Whether the mic is currently listening. Drives button visual state. */
+  @Input() listening = false;
   @Output() send = new EventEmitter<string>();
   @Output() stop = new EventEmitter<void>();
   @Output() toolToggled = new EventEmitter<{ name: string; enabled: boolean }>();
+  /** Emitted when the user clicks the mic button (toggle: start if idle, stop if listening). */
+  @Output() micToggle = new EventEmitter<void>();
 
   draft = '';
   atMaxHeight = false;

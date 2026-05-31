@@ -64,19 +64,39 @@
           <line x1="15" y1="9" x2="15.01" y2="9"/>
         </svg>
       </button>
-      <button
-        type="button"
-        class="flex items-center justify-center w-8 h-8 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
-        aria-label="Voice input"
-        title="Voice (coming soon)"
-      >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-          <line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
-      </button>
+      @if (sttSupported) {
+        <!-- Mic button: hidden entirely when SpeechRecognition is unsupported (e.g. Firefox) -->
+        <div class="relative flex items-center justify-center">
+          <!-- Pulse ring overlay — visible only while listening -->
+          @if (listening) {
+            <span
+              class="absolute inline-flex h-8 w-8 rounded-full bg-jungle-accent dark:bg-jungle-night-accent opacity-40 animate-ping"
+              aria-hidden="true"
+            ></span>
+          }
+          <button
+            type="button"
+            (click)="micToggle.emit()"
+            [attr.aria-pressed]="listening"
+            [attr.aria-label]="listening ? 'Stop dictation' : 'Start dictation'"
+            title="Voice input — audio is processed by your browser"
+            [class.text-jungle-accent]="listening"
+            [class.dark:text-jungle-night-accent]="listening"
+            [class.text-jungle-ink-muted]="!listening"
+            [class.dark:text-jungle-night-muted]="!listening"
+            [class.opacity-50]="disabled && !loading"
+            [class.cursor-not-allowed]="disabled && !loading"
+            class="relative flex items-center justify-center w-8 h-8 rounded-full hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      }
 
       <textarea
         #textareaRef
