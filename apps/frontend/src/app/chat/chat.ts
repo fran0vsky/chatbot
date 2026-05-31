@@ -14,6 +14,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile } from '@org/shared-types';
 import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
+import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { SsmlHint } from '../voice/tts-provider.js';
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ArenaService } from './arena.service';
@@ -42,6 +43,14 @@ import {
   selectMessages,
   selectSessions,
 } from '../store/session/session.selectors';
+
+/**
+ * Maximum character length for voice-dictated input.
+ * Treats the STT transcript as untrusted user input (RESEARCH.md Security Domain V5,
+ * plan T-28-03). Aligns with typed-input behaviour — the composer does not impose a
+ * hard limit on typed text, so we use a generous but bounded cap here.
+ */
+const MAX_DRAFT_LENGTH = 10_000;
 
 const PLACEHOLDER_EXAMPLES = [
   'Explain quantum computing in simple terms...',
@@ -90,6 +99,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   /** TTS service — injected here so the template can reference voiceSynth.speaking() etc. */
   readonly voiceSynth = inject(VoiceSynthesisService);
+  /** STT service (VOX-03) — drives mic button state and fills composer draft via transcript signal. */
+  readonly voiceRec = inject(VoiceRecognitionService);
   private readonly actions$ = inject(Actions);
 
   // ─── Migrated store-driven state (read via selectors, mutate via dispatch) ───
@@ -182,6 +193,20 @@ export class ChatComponent implements OnInit, OnDestroy {
   usePrompt(text: string): void {
     if (this.isLoading || this.isStreaming()) return;
     this.onSend(text);
+  }
+
+  // ─────────────────── Voice STT handlers (VOX-03) ────────────────────────
+
+  /**
+   * Toggle dictation: start if idle, stop if listening.
+   * Called when InputComposer emits (micToggle).
+   */
+  onMicToggle(): void {
+    if (this.voiceRec.listening()) {
+      this.voiceRec.stop();
+    } else {
+      this.voiceRec.start();
+    }
   }
 
   // ─────────────────── Voice TTS handlers (VOX-01/VOX-02) ──────────────────
@@ -482,6 +507,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   @ViewChild('messageEnd') private messageEnd?: ElementRef<HTMLElement>;
+  /** Reference to the main chat InputComposer for filling draft from STT transcript. */
+  @ViewChild(InputComposer) private inputComposerRef?: InputComposer;
 
   private placeholderIndex = 0;
   private placeholderTimer: ReturnType<typeof setInterval> | null = null;
@@ -504,6 +531,19 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.placeholder = PLACEHOLDER_EXAMPLES[this.placeholderIndex];
       this.cdr.markForCheck();
     }, 3000);
+
+    // VOX-03: Mirror voice transcript into the composer draft live.
+    // The effect runs on every signal read of voiceRec.transcript().
+    // - Transcript is treated as untrusted: trimmed and capped to MAX_DRAFT_LENGTH.
+    // - Never calls submit() — the user reviews and sends manually (D-08).
+    effect(() => {
+      const raw = this.voiceRec.transcript();
+      if (raw && this.inputComposerRef) {
+        // Sanitize: trim whitespace + enforce max-length cap (T-28-03 / V5)
+        this.inputComposerRef.draft = raw.trim().slice(0, MAX_DRAFT_LENGTH);
+        this.cdr.markForCheck();
+      }
+    });
 
     // Phase 29 seam: when the voice assistant dispatches read_last_message,
     // resolve the last assistant message and speak it.

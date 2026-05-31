@@ -459,9 +459,12 @@
               [loading]="isLoading"
               [tools]="availableTools"
               [enabledToolNames]="enabledToolNames()"
+              [sttSupported]="voiceRec.supported()"
+              [listening]="voiceRec.listening()"
               (send)="onSend($event)"
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
+              (micToggle)="onMicToggle()"
             />
           </div>
         </div>
@@ -539,9 +542,12 @@
               [loading]="isLoading"
               [tools]="availableTools"
               [enabledToolNames]="enabledToolNames()"
+              [sttSupported]="voiceRec.supported()"
+              [listening]="voiceRec.listening()"
               (send)="onSend($event)"
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
+              (micToggle)="onMicToggle()"
             />
           </div>
         </div>
