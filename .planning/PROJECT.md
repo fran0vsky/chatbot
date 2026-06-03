@@ -1,15 +1,15 @@
-# SpinoChat
+# DinoAgents
 
 ## What This Is
 
-A general-purpose text chatbot with a distinctive prehistoric jungle aesthetic and a stylized Spinosaurus mascot ("Spino"). Built as an Nx monorepo with an Angular frontend and NestJS backend. Users can ask the model anything and continue the conversation across multiple turns in the same session. The backend uses LangGraph to orchestrate LLM calls via OpenRouter.
+A general-purpose text chatbot with a distinctive prehistoric jungle aesthetic and a stylized Spinosaurus mascot. Built as an Nx monorepo with an Angular frontend and NestJS backend. Users can ask the model anything and continue the conversation across multiple turns in the same session. The backend uses LangGraph to orchestrate LLM calls via OpenRouter.
 
 **Project context:** primarily a portfolio project. Public publication is a possibility but not a commitment — design and infra choices should be appropriate for a polished portfolio piece, not a production SaaS.
 
 ## Brand
 
-- **Product name:** SpinoChat
-- **Short form (UI / conversational):** Spino
+- **Product name:** DinoAgents
+- **Short form (UI / conversational):** DinoAgents
 - **Tagline:** "The AI that survived"
 - **Visual direction:** ancient intelligence meets modern AI — prehistoric jungle atmosphere with cinematic lighting, clean modern UI, restrained ambient motion
 - **Personality:** intelligent, calm, curious, slightly mysterious, friendly but not childish — Octocat-tier polish, not meme-energy
@@ -47,10 +47,10 @@ A user can open the app, type a message, get a real answer, and keep the convers
 - ✓ Shared type contracts `ChatRequest` / `ChatResponse` in `@org/shared-types` — existing
 - ✓ Angular SPA project wired with `HttpClient` and router — existing
 
-### Active (v1.1 — SpinoChat Brand Identity)
+### Active (v1.1 — DinoAgents Brand Identity)
 
 **Brand & identity:**
-- [ ] **BRAND-01**: Visible product name in UI is "SpinoChat" / "Spino" (header, page title, meta tags)
+- [ ] **BRAND-01**: Visible product name in UI is "DinoAgents" (header, page title, meta tags)
 - [ ] **BRAND-02**: Tagline "The AI that survived" appears at least once in landing-state copy
 
 **Visual identity:**
@@ -106,7 +106,7 @@ A user can open the app, type a message, get a real answer, and keep the convers
 | MemorySaver for conversation state | Per-session is sufficient; no persistence requirement | — Pending |
 | Bubble chat UI | Standard chat feel; user selected | — Pending |
 | Two-phase approach (chat first, model switching second) | Ship working chat before adding configurability | — Pending |
-| **v1.1 rebrand to SpinoChat** (2026-05-25) | Original "Chatbot" was placeholder; want a distinctive portfolio identity. Verified no AI-product trademark on "SpinoChat" (Spino Inc / Spinabot / Spinoco operate in adjacent space but don't own the chat name) | Active |
+| **v1.1 rebrand to DinoAgents** (2026-05-25 → 2026-06-04) | Original "Chatbot" was placeholder; shipped as SpinoChat then renamed DinoAgents for clearer positioning as a multi-agent platform | Active |
 | **Jungle / dinosaur theme** (2026-05-25) | Niche but underexplored in AI chatbot space (most use abstract, owl, fox, alligator). Differentiates the portfolio piece | Active |
 | **Rive for mascot animation** (2026-05-25) | State-driven animation needed (idle / thinking / reactive eyes). Industry standard (Duolingo uses for Duo). ~50KB dep accepted | Active |
 | **Portfolio-grade scope** (2026-05-25) | Trademark/domain/legal are deferred until/unless project is published. Code quality matches a portfolio piece, not a SaaS company | Active |

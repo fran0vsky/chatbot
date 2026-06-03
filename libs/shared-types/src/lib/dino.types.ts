@@ -41,6 +41,12 @@ export interface Dino {
   systemPrompt: string;
   /** Names of tools this dino may call (must exist in tools/index.ts) */
   toolNames: string[];
+  /**
+   * When true, this dino generates images instead of running the text agent loop.
+   * Its `model` must be an image-output model; the backend uses a dedicated
+   * image-generation path and emits a `StreamImageEvent` (IMG-01/02).
+   */
+  imageGen?: boolean;
   /** Optional brand accent (hex) for UI theming of the dino */
   accent?: string;
   /** Optional voice character for TTS read-aloud (VOX-01/02). */

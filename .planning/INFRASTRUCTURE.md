@@ -17,6 +17,26 @@
 | CI/CD | **GitHub Actions** with Workload Identity Federation | Already configured in `.github/workflows/ci.yml`. No service-account JSON keys in repo. |
 | Deploy trigger | Push to `main` | CI runs lint/test/e2e/build; on success, deploys backend (SSH+docker on VM) + frontend (rsync to GCS) + storybook (rsync to GCS). |
 
+## Dev vs prod database (added 2026-06-04)
+
+The Cloud SQL instance `spinochat-db` hosts **two** databases so local development never pollutes production:
+
+| Database | Used by | Connection |
+|---|---|---|
+| `spinochat` | **Production** (Cloud Run/VM) | Secret Manager `database-url` |
+| `spinochat_dev` | **Local dev** (`nx serve backend`) | local `.env` `DATABASE_URL` (ends `/spinochat_dev`) |
+
+Both share the same instance, user (`spinochat-app`), and authorized-network allowlist — only the database name differs. Schema is identical (pushed from `apps/backend/src/app/database/schema.ts`). To re-create/refresh the dev schema after a schema change:
+
+```powershell
+# from repo root; export DDL from schema.ts and apply to spinochat_dev
+$env:DATABASE_URL = (Get-Content .env | Select-String '^DATABASE_URL=').ToString().Substring('DATABASE_URL='.Length)
+cd apps/backend; npx drizzle-kit export --dialect=postgresql --schema=./src/app/database/schema.ts
+# pipe the printed DDL into the spinochat_dev database (psql or a node pg client)
+```
+
+> **Local SSL note:** `database.module.ts` strips `sslmode`/`uselibpqcompat` from the URL and sets `ssl: { rejectUnauthorized: false }` for public-IP connections (Cloud SQL's per-instance CA isn't in the local trust store). Unix-socket (`/cloudsql/`) connections in prod are left untouched.
+
 ## What's already in the repo
 
 | File | Purpose |

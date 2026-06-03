@@ -23,9 +23,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 10: Token Streaming (SSE)** - Word-by-word streamed responses
 - [x] **Phase 11: Reasoning / Thinking Display** - Stream and display reasoning tokens; auto-collapse on first content (code complete 2026-05-24)
 
-## v1.1 — SpinoChat Brand Identity (begins 2026-05-25)
+## v1.1 — DinoAgents Brand Identity (begins 2026-05-25)
 
-- [x] **Phase 12: SpinoChat Foundation** - Jungle palette (hex-only swap on existing `studio-*` tokens), Spinosaurus mascot integration, "Chatbot" → "SpinoChat / Spino" rename, tagline placement (completed 2026-05-25)
+- [x] **Phase 12: DinoAgents Foundation** - Jungle palette (hex-only swap on existing `studio-*` tokens), Spinosaurus mascot integration, "Chatbot" → "DinoAgents" rename, tagline placement (completed 2026-05-25)
 - [~] **Phase 13: Jungle Atmosphere** - DEFERRED to backlog at v2.0 start
 - [~] **Phase 14: Mascot Motion** - DEFERRED to backlog at v2.0 start (re-scoped to apply across all v2.0 dino mascots later)
 - [~] **Phase 15: Themed States** - DEFERRED to backlog at v2.0 start
@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ## v2.0 — Dino Platform (begins 2026-05-29)
 
-**Milestone goal:** Pivot SpinoChat from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos"). A dino = fixed model + system prompt + tool subset. Foundation ships first (dino abstraction → picker/Explore → pixel-art mascots), then memory & learning, multi-dino experiences, multimodal input, and ngrx-driven voice control. Riskiest clusters (Multimodal, Voice) come last as clean cut points.
+**Milestone goal:** Pivot DinoAgents from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos"). A dino = fixed model + system prompt + tool subset. Foundation ships first (dino abstraction → picker/Explore → pixel-art mascots), then memory & learning, multi-dino experiences, multimodal input, and ngrx-driven voice control. Riskiest clusters (Multimodal, Voice) come last as clean cut points.
 
 - [x] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected (completed 2026-05-29)
 - [x] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned (completed 2026-05-29)
@@ -43,8 +43,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills (completed 2026-05-29)
 - [x] **Phase 23: Dino Groupchat** - One prompt → multiple dinos respond in a single attributed view (code complete 2026-05-29)
 - [x] **Phase 24: Dino Arena + Leaderboard** - Blind split-screen compare, vote → Elo-style scoring, Leaderboard tab (code complete 2026-05-29; Task 5 smoke test pending human UAT)
-- [ ] **Phase 25: Multimodal Input** - Screenshot paste, vision dino on a free OpenRouter vision model, OCR
-- [ ] **Phase 26: Image Generation** - Artist dino generates images inline, downloadable
+- [x] **Phase 25: Multimodal Input** - Screenshot paste/attach, Iris (Troodon) vision dino on `nvidia/nemotron-nano-12b-v2-vl:free`, prompt-based OCR; vision-capable paid fallback (code complete 2026-06-04; human UAT pending)
+- [x] **Phase 26: Image Generation** - Vinci (Parasaurolophus) artist dino on `google/gemini-2.5-flash-image` (~$0.04/img — no free image model exists); inline render + download via dedicated image path (code complete 2026-06-04; human UAT pending)
 - [x] **Phase 27: NgRx State Refactor** - Move app state to NgRx; expose a whitelisted dispatchable action catalogue (completed 2026-05-30)
 - [ ] **Phase 28: Voice I/O + SSML** - Two-way voice (TTS with SSML) + speech-to-text input, with a free/browser fallback
 - [ ] **Phase 29: Voice Dino Assistant** - Voice commands fire whitelisted app actions; clarifies when ambiguous; refuses out-of-scope actions; finds & switches past chats
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 9. Tool Calling | 2/2 | Code complete | 2026-05-23 |
 | 10. Token Streaming | 3/3 | Complete | 2026-05-24 |
 | 11. Reasoning Display | 6/6 | Complete | 2026-05-24 |
-| 12. SpinoChat Foundation | 3/3 | Complete    | 2026-05-25 |
+| 12. DinoAgents Foundation | 3/3 | Complete    | 2026-05-25 |
 | 13. Jungle Atmosphere | 0/TBD | Deferred to backlog | - |
 | 14. Mascot Motion | 0/TBD | Deferred to backlog | - |
 | 15. Themed States | 0/TBD | Deferred to backlog | - |
@@ -255,17 +255,17 @@ Plans:
 
 ---
 
-## v1.1 Milestone: SpinoChat Brand Identity
+## v1.1 Milestone: DinoAgents Brand Identity
 
-**Milestone goal:** Transform the current generic "Chatbot" into "SpinoChat" — a portfolio-grade chatbot with a distinctive prehistoric jungle aesthetic, Spinosaurus mascot, and atmospheric theming. Backend behavior unchanged; this is a visual + identity milestone.
+**Milestone goal:** Transform the current generic "Chatbot" into "DinoAgents" — a portfolio-grade chatbot with a distinctive prehistoric jungle aesthetic, Spinosaurus mascot, and atmospheric theming. Backend behavior unchanged; this is a visual + identity milestone.
 
-### Phase 12: SpinoChat Foundation
-**Goal:** Rebrand the visible product to "SpinoChat / Spino", swap the Soft Studio palette for a jungle palette (day + night), and integrate the Spinosaurus mascot replacing the capybara placeholder.
+### Phase 12: DinoAgents Foundation
+**Goal:** Rebrand the visible product to "DinoAgents", swap the Soft Studio palette for a jungle palette (day + night), and integrate the Spinosaurus mascot replacing the capybara placeholder.
 **Mode:** mvp
 **Depends on:** v1.0 complete (Phase 11)
 **Requirements:** BRAND-01, BRAND-02, BRAND-03, PAL-01, PAL-02, PAL-03, PAL-04, MASC-01, MASC-02, MASC-05
 **Success Criteria** (what must be TRUE):
-  1. Header title, browser tab title, and meta description read "SpinoChat" / "Spino"
+  1. Header title, browser tab title, and meta description read "DinoAgents"
   2. Landing-state copy includes the tagline "The AI that survived"
   3. README.md and CLAUDE.md describe the project as "SpinoChat"
   4. Day-mode background and surface colors are jungle-themed greens/beiges (not cream/tan)
@@ -353,7 +353,7 @@ Plans:
 
 ## v2.0 Milestone: Dino Platform
 
-**Milestone goal:** Transform SpinoChat from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos") — each a fixed model + system prompt + tool subset — with cross-thread memory, teachable skills, groupchat, arena + leaderboard, multimodal input, and ngrx-driven voice control.
+**Milestone goal:** Transform DinoAgents from a single-model chatbot into a platform of distinct, characterful AI agents ("dinos") — each a fixed model + system prompt + tool subset — with cross-thread memory, teachable skills, groupchat, arena + leaderboard, multimodal input, and ngrx-driven voice control.
 
 **Execution order:** 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 26 → 27 → 28 → 29. The foundation (18–20) is sequential and unblocks most later work. Memory (21–22), multi-dino (23–24), multimodal (25–26), and voice (27–29) are clusters that can be re-ordered or trimmed after the foundation if scope tightens. Voice/multimodal are deliberately last (highest complexity / external-provider risk).
 

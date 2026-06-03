@@ -38,6 +38,7 @@ export class AgentsController {
         body.dinoId,
         body.userId,
         body.history,
+        body.imageDataUrl,
       )) {
         write(event);
       }

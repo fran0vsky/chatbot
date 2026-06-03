@@ -9,7 +9,7 @@ import {
 } from './session-list.ops';
 
 export const WELCOME_MESSAGE: ChatMessage = {
-  text: 'Welcome to SpinoChat — the AI that survived. What can I help you with?',
+  text: 'Welcome to DinoAgents — the AI that survived. What can I help you with?',
   role: 'assistant',
   createdAt: 0,
 };

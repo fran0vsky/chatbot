@@ -30,7 +30,7 @@ export const fetchPageTool = tool(
       }
       const res = await fetch(parsed.toString(), {
         headers: {
-          'User-Agent': 'SpinoChat/1.0 (+https://github.com/fran0vsky/chatbot)',
+          'User-Agent': 'DinoAgents/1.0 (+https://github.com/fran0vsky/chatbot)',
           Accept: 'text/html,application/xhtml+xml',
         },
         signal: AbortSignal.timeout(10_000),

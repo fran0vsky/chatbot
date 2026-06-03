@@ -24,6 +24,13 @@
       } @else {
         <div class="relative w-full">
           <div class="w-full rounded-2xl rounded-br-md px-4 py-2.5 bg-jungle-user-bubble dark:bg-jungle-night-user-bubble text-jungle-user-ink dark:text-jungle-night-text whitespace-pre-wrap break-words shadow-[0_4px_14px_-4px_rgba(0,0,0,0.35)] dark:shadow-[0_6px_20px_-4px_rgba(0,0,0,0.5)] font-body text-sm leading-relaxed">
+            @if (message.imageDataUrl) {
+              <img
+                [src]="message.imageDataUrl"
+                alt="Attached image"
+                class="mb-2 rounded-lg max-h-64 w-auto object-contain"
+              />
+            }
             {{ message.text }}
             <div class="flex items-center justify-end gap-1 mt-1 -mb-0.5 text-[10px] text-jungle-user-ink/60 dark:text-jungle-night-muted/80">
               <span>{{ timestamp }}</span>
@@ -83,6 +90,26 @@
           </app-reasoning-block>
         }
         <markdown [data]="message.text" (ready)="onMarkdownReady()"></markdown>
+        @if (message.imageDataUrl) {
+          <div class="mt-2">
+            <img
+              [src]="message.imageDataUrl"
+              alt="Generated image"
+              class="rounded-lg max-w-full w-auto max-h-96 object-contain border border-jungle-border/30 dark:border-jungle-night-border/40"
+            />
+            <a
+              [href]="message.imageDataUrl"
+              download="dinoagents-image.png"
+              class="mt-1.5 inline-flex items-center gap-1 text-xs text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors"
+            >
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M10 3a.75.75 0 01.75.75v6.69l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 111.06-1.06l2.22 2.22V3.75A.75.75 0 0110 3z"/>
+                <path d="M3.5 13a.75.75 0 01.75.75v1.5c0 .14.11.25.25.25h11a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 0115.5 17h-11A1.75 1.75 0 012.75 15.25v-1.5A.75.75 0 013.5 13z"/>
+              </svg>
+              Download
+            </a>
+          </div>
+        }
         <div class="flex items-center justify-end gap-1 mt-1.5 -mb-0.5 text-[10px] text-jungle-ink-muted/70 dark:text-jungle-night-muted/70">
           <span>{{ timestamp }}</span>
         </div>

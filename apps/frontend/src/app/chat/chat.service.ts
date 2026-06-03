@@ -58,6 +58,7 @@ export class ChatService {
     signal: AbortSignal,
     enabledTools?: string[],
     history?: ChatHistoryItem[],
+    imageDataUrl?: string,
   ): AsyncGenerator<StreamEvent, void, void> {
     // The backend resolves model + system prompt + allowed tools from the dino.
     // userId scopes cross-thread memory; history gives within-thread context.
@@ -68,6 +69,7 @@ export class ChatService {
       enabledTools,
       userId: this.userId,
       history,
+      imageDataUrl,
     };
 
     let response: Response;

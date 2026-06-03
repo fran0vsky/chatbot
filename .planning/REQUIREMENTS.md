@@ -1,9 +1,9 @@
-# Requirements: SpinoChat
+# Requirements: DinoAgents
 
 **Defined:** 2026-05-17
 **Core Value (v2.0):** A user can open the app, pick a characterful AI agent ("dino"), get a real answer, and keep the conversation going — the dino remembers them and can be summoned across modes (chat, groupchat, arena, voice).
 
-> **Milestone status:** v1.0 (Phases 1–11) complete. v1.1 SpinoChat Brand Identity (Phases 12–17) — Phase 12 shipped; Phases 13–17 **deferred to backlog** at v2.0 start (see "Deferred — v1.1 polish" below). **v2.0 "Dino Platform" is the active milestone.**
+> **Milestone status:** v1.0 (Phases 1–11) complete. v1.1 DinoAgents Brand Identity (Phases 12–17) — Phase 12 shipped; Phases 13–17 **deferred to backlog** at v2.0 start (see "Deferred — v1.1 polish" below). **v2.0 "Dino Platform" is the active milestone.**
 
 ---
 
@@ -57,15 +57,15 @@
 
 ### Multimodal Input
 
-- [ ] **VIS-01**: User can paste or attach a screenshot/image into the composer
-- [ ] **VIS-02**: A vision-capable dino accepts images and reasons about them, using a free OpenRouter vision model
-- [ ] **VIS-03**: User can extract (OCR) the text contained in a pasted screenshot
-- [ ] **VIS-04**: Free vision-model availability is verified and documented; the vision dino degrades gracefully if its model is unavailable
+- [x] **VIS-01**: User can paste or attach a screenshot/image into the composer (paste handler + attach button; client-side downscale to 1024px, 5 MB cap)
+- [x] **VIS-02**: A vision-capable dino accepts images and reasons about them — Iris (Troodon) on `nvidia/nemotron-nano-12b-v2-vl:free`
+- [x] **VIS-03**: User can extract (OCR) the text contained in a pasted screenshot (prompt-based; Iris's system prompt advertises exact transcription)
+- [x] **VIS-04**: Free vision-model viability verified (spike: nemotron-nano-12b-v2-vl + kimi-k2.6 confirmed) and documented; degrades gracefully via the hybrid failover to vision-capable `gpt-4o-mini`
 
 ### Image Generation
 
-- [ ] **IMG-01**: An "artist" dino can generate an image from a text prompt
-- [ ] **IMG-02**: Generated images render inline in the chat and can be downloaded
+- [x] **IMG-01**: An "artist" dino (Vinci) can generate an image from a text prompt — `google/gemini-2.5-flash-image` (no free image model exists on OpenRouter; ~$0.04/image, confirmed via spike)
+- [x] **IMG-02**: Generated images render inline in the chat (assistant bubble) and can be downloaded (download link on the image)
 
 ### Frontend State (NgRx)
 
@@ -122,12 +122,12 @@
 #### Model Switching
 - [x] **MODEL-01**: User can select from a list of models in the UI *(superseded in v2.0 — replaced by dino picker, see PICK-02)*
 
-### v1.1 — SpinoChat Brand Identity
+### v1.1 — DinoAgents Brand Identity
 
 #### Shipped (Phase 12)
-- [x] **BRAND-01**: Visible product naming reads "SpinoChat" / "Spino"
+- [x] **BRAND-01**: Visible product naming reads "DinoAgents"
 - [x] **BRAND-02**: Tagline "The AI that survived" on the landing/empty state
-- [x] **BRAND-03**: README.md and CLAUDE.md updated to "SpinoChat"
+- [x] **BRAND-03**: README.md and CLAUDE.md updated to "DinoAgents"
 - [x] **PAL-01**: Day-mode jungle palette
 - [x] **PAL-02**: Night-mode jungle/sunset palette
 - [x] **PAL-03**: Palettes pass pragmatic AA contrast
@@ -174,8 +174,8 @@
 | MEM-04..06 | Phase 22 | Pending |
 | GRP-01..02 | Phase 23 | Pending |
 | ARN-01..04 | Phase 24 | Pending |
-| VIS-01..04 | Phase 25 | Pending |
-| IMG-01..02 | Phase 26 | Pending |
+| VIS-01..04 | Phase 25 | Code complete (human UAT pending) |
+| IMG-01..02 | Phase 26 | Code complete (human UAT pending) |
 | NGX-01..02 | Phase 27 | Pending |
 | VOX-01..03 | Phase 28 | Pending |
 | AST-01..04 | Phase 29 | Pending |

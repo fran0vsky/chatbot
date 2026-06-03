@@ -25,9 +25,9 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**SpinoChat**
+**DinoAgents**
 
-SpinoChat is a general-purpose AI chat app built as an Nx monorepo with an Angular frontend and NestJS backend. Users pick a **dino** — a registry entry bundling a fixed model + a personality system prompt + an allowed tool subset — and chat with it. The backend resolves the dino server-side (the system prompt and toolset are never sent by the client) and runs a manual agent loop over OpenRouter (LangGraph was dropped for full control of tool dispatch and streaming). Tagline: "The AI that survived" — the Spinosaurus mascot anchors the brand identity.
+DinoAgents is a general-purpose AI chat app built as an Nx monorepo with an Angular frontend and NestJS backend. Users pick a **dino** — a registry entry bundling a fixed model + a personality system prompt + an allowed tool subset — and chat with it. The backend resolves the dino server-side (the system prompt and toolset are never sent by the client) and runs a manual agent loop over OpenRouter (LangGraph was dropped for full control of tool dispatch and streaming). Tagline: "The AI that survived" — the Spinosaurus mascot anchors the brand identity.
 
 **Core Value:** A user can open the app, type a message, get a real answer, and keep the conversation going — everything else is secondary.
 

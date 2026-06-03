@@ -2,6 +2,33 @@
   class="w-full bg-transparent"
   (submit)="$event.preventDefault(); submit()"
 >
+  @if (attachedImageDataUrl) {
+    <!-- Attachment preview (VIS-01): thumbnail with a remove button, shown until sent. -->
+    <div class="mb-2 ml-1 flex items-center gap-2">
+      <div class="relative">
+        <img
+          [src]="attachedImageDataUrl"
+          alt="Attached image preview"
+          class="h-16 w-16 rounded-lg object-cover border border-jungle-border/60 dark:border-jungle-night-border/60"
+        />
+        <button
+          type="button"
+          (click)="removeImage()"
+          class="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 rounded-full bg-jungle-ink dark:bg-jungle-night-text text-jungle-bg dark:text-jungle-night shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent"
+          aria-label="Remove attached image"
+          title="Remove"
+        >
+          <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+  @if (imageError) {
+    <p class="mb-2 ml-2 text-xs text-red-500 dark:text-red-400">{{ imageError }}</p>
+  }
+
   <div class="w-full rounded-full bg-jungle-surface/70 dark:bg-jungle-night-surface/70 backdrop-blur-md border border-jungle-border/40 dark:border-jungle-night-border/60 pl-3 pr-2 py-2 shadow-[0_8px_28px_-10px_rgba(0,0,0,0.4)] dark:shadow-[0_12px_36px_-8px_rgba(0,0,0,0.6)] transition-all focus-within:border-jungle-accent/60 dark:focus-within:border-jungle-night-accent/60 focus-within:ring-2 focus-within:ring-jungle-accent/20 dark:focus-within:ring-jungle-night-accent/20">
     <div class="flex items-center gap-1">
       <!-- Tools toggle (popover with checkboxes for each available tool) -->
@@ -98,6 +125,31 @@
         </div>
       }
 
+      @if (allowImage) {
+        <!-- Attach image (VIS-01). Hidden native input is triggered by the button. -->
+        <input
+          #imageInput
+          type="file"
+          accept="image/*"
+          class="hidden"
+          (change)="onImageSelected($event)"
+        />
+        <button
+          type="button"
+          (click)="openImagePicker()"
+          [disabled]="disabled && !loading"
+          class="flex items-center justify-center w-8 h-8 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Attach image"
+          title="Attach image (or paste a screenshot)"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+        </button>
+      }
+
       <textarea
         #textareaRef
         data-testid="message-input"
@@ -110,6 +162,7 @@
         name="draft"
         [disabled]="disabled && !loading"
         (keydown)="onKeydown($event)"
+        (paste)="onPaste($event)"
         (input)="autoResize(textareaRef)"
       ></textarea>
 
@@ -124,7 +177,7 @@
           <span class="sr-only">Stop</span>
         </button>
       } @else {
-        <button type="submit" [disabled]="disabled || draft.trim().length === 0"
+        <button type="submit" [disabled]="disabled || (draft.trim().length === 0 && !attachedImageDataUrl)"
           aria-label="Send message"
           title="Send"
           class="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-jungle-accent dark:bg-jungle-night-accent text-jungle-user-ink hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark active:scale-95 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:ring-offset-2 focus-visible:ring-offset-jungle-bg dark:focus-visible:ring-offset-jungle-night">

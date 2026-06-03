@@ -1,6 +1,6 @@
-# SpinoChat — The AI that survived
+# DinoAgents — The AI that survived
 
-SpinoChat is a general-purpose AI chat app built as an Nx monorepo (Angular frontend + NestJS backend, LangGraph orchestration over OpenRouter). Ask anything, keep the conversation going. The mascot is a Spinosaurus — the AI that survived.
+DinoAgents is a general-purpose AI chat app built as an Nx monorepo (Angular frontend + NestJS backend, LangGraph orchestration over OpenRouter). Ask anything, keep the conversation going. The mascot is a Spinosaurus — the AI that survived.
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 

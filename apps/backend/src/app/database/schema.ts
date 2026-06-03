@@ -1,4 +1,4 @@
-// Drizzle schema for SpinoChat persistence.
+// Drizzle schema for DinoAgents persistence.
 // Initial scope: conversation sessions + messages. Auth user table added later.
 
 import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, index } from 'drizzle-orm/pg-core';

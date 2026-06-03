@@ -3,22 +3,23 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
 status: executing
-stopped_at: Phase 28 Plan 02 complete (manual Task 5 pending human verification)
-last_updated: "2026-06-01T00:55:00.000Z"
-last_activity: 2026-06-01
+stopped_at: Phase 26 Plan 01 complete (image generation; human UAT pending)
+last_updated: "2026-06-04T00:00:00.000Z"
+last_activity: 2026-06-04
+# v2.0 phases 18–29 (12 total). Remaining: 20 (Dino Mascots), 29 (Voice Assistant).
 progress:
-  total_phases: 11
-  completed_phases: 9
+  total_phases: 12
+  completed_phases: 10
   total_plans: 31
-  completed_plans: 33
-  percent: 84
+  completed_plans: 35
+  percent: 83
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-25 — v1.1 SpinoChat rebrand)
+See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
 **Current focus:** Phase 28 — voice-i-o-ssml
