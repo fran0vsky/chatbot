@@ -53,7 +53,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone goal:** Harden DinoAgents for a public VM deployment and deepen the core chat experience — fix stale-state/composer bugs, make the web tools return real data, give each chat a working memory + context ring, reorganize the composer around an AI Memory Creator, rebuild groupchat as a real turn-based conversation, and serve the app over HTTPS.
 
-- [ ] **Phase 30: UX Reliability & Cleanup** - Loading/skeleton states (no stale messages on chat switch), long-text textarea fix, remove dino-picker "active" badge, remove Explore
+- [x] **Phase 30: UX Reliability & Cleanup** - Loading/skeleton states (no stale messages on chat switch), long-text textarea fix, remove dino-picker "active" badge, remove Explore (completed 2026-06-04)
 - [ ] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing
 - [ ] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning
 - [ ] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills
@@ -144,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 28. Voice I/O + SSML | 2/2 | Complete (Task 5 manual pending) | 2026-06-01 |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 | **— v2.1 Reliability, Depth & Hardening —** | | | |
-| 30. UX Reliability & Cleanup | 3/4 | In Progress|  |
+| 30. UX Reliability & Cleanup | 4/4 | Complete   | 2026-06-04 |
 | 31. Tool Reliability (Search + Cheerio) | 0/TBD | Planned | - |
 | 32. Working Memory + Context Ring | 0/TBD | Planned | - |
 | 33. Composer & Knowledge Reorg | 0/TBD | Planned | - |
@@ -571,7 +571,7 @@ Plans:
   3. The "active" badge is removed from the dino picker
   4. The Explore page is removed — route, nav entry, and links — with no dead navigation
 **Scope note:** In — loading states, textarea fix, two removals. Out — new features. Note: Explore removal supersedes the Explore integration mentioned in Phases 19–20.
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 **UI hint:** yes
 
 ### Phase 31: Tool Reliability — Web Search + Cheerio Fetch
