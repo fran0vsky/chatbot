@@ -7,6 +7,7 @@ const config: StorybookConfig = {
     name: '@storybook/angular',
     options: {
       tsConfig: '../tsconfig.lib.json',
+      angularBrowserTarget: 'ui:build',
     },
   },
   docs: {

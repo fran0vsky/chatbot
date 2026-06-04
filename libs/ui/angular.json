@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "projects": {
+    "ui": {
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "options": {
+            "tsConfig": "tsconfig.lib.json",
+            "styles": [".storybook/styles.scss"],
+            "assets": []
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "ui"
+}
