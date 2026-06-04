@@ -1,4 +1,5 @@
 import {
+  AfterViewChecked,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -66,7 +67,7 @@ function downscaleImage(file: File, maxDim: number): Promise<string> {
   templateUrl: './input-composer.html',
   imports: [FormsModule],
 })
-export class InputComposer {
+export class InputComposer implements AfterViewChecked {
   @Input() placeholder = 'Message';
   @Input() disabled = false;
   @Input() loading = false;
@@ -87,6 +88,8 @@ export class InputComposer {
   draft = '';
   atMaxHeight = false;
   toolsOpen = false;
+  /** Tracks the last draft value that was used for resize, to guard ngAfterViewChecked. */
+  private lastResizedDraft: string | undefined = undefined;
   /** Attached image as a (downscaled) data URL, shown as a thumbnail until sent. */
   attachedImageDataUrl: string | null = null;
   /** Transient message shown when an attachment is rejected. */
@@ -97,6 +100,19 @@ export class InputComposer {
   @ViewChild('textareaRef') private textareaRef?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('toolsPopover') private toolsPopoverRef?: ElementRef<HTMLDivElement>;
   @ViewChild('imageInput') private imageInputRef?: ElementRef<HTMLInputElement>;
+
+  /**
+   * Called every change-detection cycle. Re-runs autoResize only when `draft`
+   * has changed since the last resize — ensures programmatic fills (suggestion
+   * prompts, STT transcripts) size the textarea without requiring a keystroke.
+   * Guarded by `lastResizedDraft` to avoid unbounded work every tick.
+   */
+  ngAfterViewChecked(): void {
+    if (this.draft !== this.lastResizedDraft && this.textareaRef) {
+      this.lastResizedDraft = this.draft;
+      this.autoResize(this.textareaRef.nativeElement);
+    }
+  }
 
   toggleToolsPopover(): void {
     this.toolsOpen = !this.toolsOpen;
