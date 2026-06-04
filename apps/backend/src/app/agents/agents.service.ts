@@ -400,7 +400,7 @@ export class AgentsService {
     let prompt = basePrompt;
     if (skills.length > 0) {
       const block = skills.map((s) => `- ${s.title}: ${s.instruction}`).join('\n');
-      prompt += `\n\nSkills this user has taught you (follow these as standing instructions):\n${block}`;
+      prompt += `\n\n## MANDATORY STANDING INSTRUCTIONS\nThe user has configured the following behaviors. You MUST apply ALL of them in every single response, without exception, regardless of context:\n${block}`;
     }
     if (memories.length > 0) {
       const block = memories.map((m) => `- ${m}`).join('\n');

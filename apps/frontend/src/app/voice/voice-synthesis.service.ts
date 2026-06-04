@@ -67,7 +67,9 @@ export class VoiceSynthesisService implements TtsProvider {
     utterance.onend = () => this.speaking.set(false);
     utterance.onerror = () => this.speaking.set(false);
 
-    this.synth.speak(utterance);
+    // Chrome bug: cancel() + speak() in the same microtask tick silently drops
+    // the utterance. Deferring to the next macrotask lets the cancel settle first.
+    setTimeout(() => this.synth.speak(utterance), 0);
   }
 
   /**
