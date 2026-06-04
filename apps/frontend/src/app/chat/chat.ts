@@ -120,6 +120,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly activeDino = this.store.selectSignal(selectActiveDino);
 
   isLoading = false;
+  /** True for one animation frame during a session switch — covers the message swap so stale bubbles never paint. */
+  threadSwitching = false;
   placeholder: string = PLACEHOLDER_EXAMPLES[0];
 
   private sessionTitle = '';
@@ -669,6 +671,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   switchToSession(session: ConversationSession): void {
+    this.threadSwitching = true;
     this.saveCurrentSession();
     this.sessionTitle = session.title;
     this.sessionCreatedAt = session.createdAt;
@@ -676,7 +679,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.chatService.setThread(session.id);
     this.store.dispatch(SessionActions.switchSession({ session }));
     this.store.dispatch(UiActions.closeHistory());
-    this.cdr.detectChanges();
+    requestAnimationFrame(() => {
+      this.threadSwitching = false;
+      this.cdr.markForCheck();
+    });
   }
 
   deleteSession(id: string): void {
