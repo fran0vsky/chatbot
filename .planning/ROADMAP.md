@@ -144,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 28. Voice I/O + SSML | 2/2 | Complete (Task 5 manual pending) | 2026-06-01 |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 | **— v2.1 Reliability, Depth & Hardening —** | | | |
-| 30. UX Reliability & Cleanup | 1/4 | In Progress|  |
+| 30. UX Reliability & Cleanup | 2/4 | In Progress|  |
 | 31. Tool Reliability (Search + Cheerio) | 0/TBD | Planned | - |
 | 32. Working Memory + Context Ring | 0/TBD | Planned | - |
 | 33. Composer & Knowledge Reorg | 0/TBD | Planned | - |
@@ -571,7 +571,7 @@ Plans:
   3. The "active" badge is removed from the dino picker
   4. The Explore page is removed — route, nav entry, and links — with no dead navigation
 **Scope note:** In — loading states, textarea fix, two removals. Out — new features. Note: Explore removal supersedes the Explore integration mentioned in Phases 19–20.
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 **UI hint:** yes
 
 ### Phase 31: Tool Reliability — Web Search + Cheerio Fetch
