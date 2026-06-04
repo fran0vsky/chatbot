@@ -86,31 +86,6 @@
       </button>
       <button
         type="button"
-        (click)="viewChange.emit('explore')"
-        [class.bg-jungle-accent\/15]="activeView === 'explore'"
-        [class.dark:bg-jungle-night-accent\/15]="activeView === 'explore'"
-        class="w-full md:w-10 md:group-hover:w-full md:group-focus-within:w-full flex items-center px-3 py-2 rounded-lg text-sm text-jungle-ink dark:text-jungle-night-text hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 overflow-hidden transition-[width,background-color] duration-300"
-        [attr.aria-current]="activeView === 'explore' ? 'page' : null"
-      >
-        <svg
-          class="w-4 h-4 flex-shrink-0"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM7.5 8a2.5 2.5 0 115 0c0 .96-.57 1.79-1.5 2.16V11a1 1 0 11-2 0v-.5C8.07 10.13 7.5 9.30 7.5 8z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        <span
-          class="ml-2 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-200 md:delay-75"
-          >Explore</span
-        >
-      </button>
-      <button
-        type="button"
         (click)="viewChange.emit('knowledge')"
         [class.bg-jungle-accent\/15]="activeView === 'knowledge'"
         [class.dark:bg-jungle-night-accent\/15]="activeView === 'knowledge'"
