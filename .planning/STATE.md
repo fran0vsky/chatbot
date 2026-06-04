@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
 status: executing
-stopped_at: Phase 26 Plan 01 complete (image generation; human UAT pending)
+stopped_at: Phase 29 Plan 01 complete (voice dino assistant; human UAT pending)
 last_updated: "2026-06-04T00:00:00.000Z"
 last_activity: 2026-06-04
-# v2.0 phases 18–29 (12 total). Remaining: 20 (Dino Mascots), 29 (Voice Assistant).
+# v2.0 phases 18–29 (12 total). Remaining: 20 (Dino Mascots).
 progress:
   total_phases: 12
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 31
-  completed_plans: 35
-  percent: 83
+  completed_plans: 36
+  percent: 92
 ---
 
 # Project State

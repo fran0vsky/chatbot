@@ -85,6 +85,14 @@ export class VoiceRecognitionService {
   }
 
   /**
+   * Clear the transcript. The voice assistant calls this after consuming a
+   * command so the command text never leaks into the composer draft.
+   */
+  reset(): void {
+    this.transcript.set('');
+  }
+
+  /**
    * Process a SpeechRecognitionEvent: extract the latest result's transcript
    * and update the signal. When the result is final, drop `listening` to false.
    *

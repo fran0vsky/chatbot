@@ -80,10 +80,10 @@
 
 ### Voice Dino Assistant
 
-- [ ] **AST-01**: A voice "dino assistant" interprets voice commands and fires whitelisted NgRx app actions (change theme, new chat, read last message, switch to a previous chat, write a message)
-- [ ] **AST-02**: When a command is ambiguous, the assistant asks a clarifying question by voice instead of guessing
-- [ ] **AST-03**: For actions outside its whitelist (e.g. delete account), the assistant states it cannot perform them
-- [ ] **AST-04**: The assistant can locate and switch to a previous chat by querying past chats (by topic/recency)
+- [x] **AST-01**: A voice "dino assistant" interprets voice commands and fires whitelisted NgRx app actions — backend `/api/assistant/interpret` (gpt-4o-mini) → `dispatchCatalogued`; covers change theme, new chat, read last message, switch chat, send message, navigate, select dino
+- [x] **AST-02**: When a command is ambiguous, the assistant asks a clarifying question by voice (`kind: 'clarify'` → TTS)
+- [x] **AST-03**: For actions outside its whitelist (e.g. delete account), the assistant states it cannot — structurally enforced (absent from catalogue) + `kind: 'refuse'`
+- [x] **AST-04**: The assistant can locate and switch to a previous chat by topic/recency — sessions passed to the interpreter; resolves to a sessionId → `switch_chat`
 
 ### Platform / Hygiene
 
@@ -178,7 +178,7 @@
 | IMG-01..02 | Phase 26 | Code complete (human UAT pending) |
 | NGX-01..02 | Phase 27 | Pending |
 | VOX-01..03 | Phase 28 | Pending |
-| AST-01..04 | Phase 29 | Pending |
+| AST-01..04 | Phase 29 | Code complete (human UAT pending) |
 
 **Coverage (v2.0):**
 - v2.0 requirements: 42 total

@@ -568,6 +568,54 @@
     (themeToggled)="toggleTheme()"
   />
 
+  <!-- Voice Dino Assistant (Phase 29) — floating command button. Hidden when STT
+       is unsupported (Firefox). -->
+  @if (assistant.supported()) {
+    <div class="fixed bottom-6 right-6 z-[55] flex flex-col items-end gap-2">
+      @if (assistant.active() || assistant.lastSay() || assistant.lastTranscript()) {
+        <div class="max-w-xs rounded-2xl bg-jungle-surface/95 dark:bg-jungle-night-surface/95 backdrop-blur-md border border-jungle-border/50 dark:border-jungle-night-border/50 px-3 py-2 shadow-lg text-xs text-jungle-ink dark:text-jungle-night-text">
+          @if (assistant.state() === 'listening') {
+            <span class="italic text-jungle-ink-muted dark:text-jungle-night-muted">Listening… say a command</span>
+          } @else if (assistant.state() === 'thinking') {
+            <span class="italic text-jungle-ink-muted dark:text-jungle-night-muted">Thinking…</span>
+          } @else {
+            @if (assistant.lastTranscript()) {
+              <span class="block text-jungle-ink-muted dark:text-jungle-night-muted">“{{ assistant.lastTranscript() }}”</span>
+            }
+            @if (assistant.lastSay()) {
+              <span class="block mt-0.5">{{ assistant.lastSay() }}</span>
+            }
+          }
+        </div>
+      }
+      <button
+        type="button"
+        (click)="onAssistantToggle()"
+        [attr.aria-pressed]="assistant.active()"
+        [attr.aria-label]="assistant.active() ? 'Stop voice assistant' : 'Start voice assistant'"
+        title="Voice assistant — control the app by voice"
+        class="relative flex items-center justify-center w-14 h-14 rounded-full bg-jungle-accent dark:bg-jungle-night-accent text-jungle-user-ink shadow-[0_8px_24px_-6px_rgba(0,0,0,0.5)] hover:bg-jungle-accent-dark dark:hover:bg-jungle-night-accent-dark active:scale-95 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:ring-offset-2 focus-visible:ring-offset-jungle-bg dark:focus-visible:ring-offset-jungle-night"
+      >
+        @if (assistant.state() === 'listening') {
+          <span class="absolute inline-flex h-14 w-14 rounded-full bg-jungle-accent dark:bg-jungle-night-accent opacity-40 animate-ping" aria-hidden="true"></span>
+        }
+        @if (assistant.state() === 'thinking') {
+          <svg class="w-6 h-6 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+            <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"/>
+          </svg>
+        } @else {
+          <svg class="relative w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        }
+      </button>
+    </div>
+  }
+
   <!-- Dino picker overlay — shown when starting a new chat (PICK-01) -->
   @if (pickerOpen()) {
     <!-- Backdrop (click-to-dismiss; decorative, mirrors the mobile sidebar backdrop) -->

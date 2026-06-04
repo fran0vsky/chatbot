@@ -47,7 +47,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 26: Image Generation** - Vinci (Parasaurolophus) artist dino on `google/gemini-2.5-flash-image` (~$0.04/img — no free image model exists); inline render + download via dedicated image path (code complete 2026-06-04; human UAT pending)
 - [x] **Phase 27: NgRx State Refactor** - Move app state to NgRx; expose a whitelisted dispatchable action catalogue (completed 2026-05-30)
 - [ ] **Phase 28: Voice I/O + SSML** - Two-way voice (TTS with SSML) + speech-to-text input, with a free/browser fallback
-- [ ] **Phase 29: Voice Dino Assistant** - Voice commands fire whitelisted app actions; clarifies when ambiguous; refuses out-of-scope actions; finds & switches past chats
+- [x] **Phase 29: Voice Dino Assistant** - Voice commands → whitelisted NgRx actions via backend intent parser (gpt-4o-mini); clarify/refuse paths; finds & switches past chats by topic; floating assistant button (code complete 2026-06-04; human UAT pending)
 
 ## Phase Details
 

@@ -15,6 +15,7 @@ import { Store } from '@ngrx/store';
 import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile } from '@org/shared-types';
 import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
 import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
+import { AssistantService } from '../voice/assistant.service.js';
 import { SsmlHint } from '../voice/tts-provider.js';
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ArenaService } from './arena.service';
@@ -101,6 +102,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly voiceSynth = inject(VoiceSynthesisService);
   /** STT service (VOX-03) — drives mic button state and fills composer draft via transcript signal. */
   readonly voiceRec = inject(VoiceRecognitionService);
+  /** Voice Dino Assistant (Phase 29) — voice commands → whitelisted app actions. */
+  readonly assistant = inject(AssistantService);
   private readonly actions$ = inject(Actions);
 
   // ─── Migrated store-driven state (read via selectors, mutate via dispatch) ───
@@ -124,6 +127,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private currentAbort: AbortController | null = null;
   private streamingToolCallIds: string[] = [];
   private readLastMessageSub?: { unsubscribe(): void };
+  private sendMessageSub?: { unsubscribe(): void };
 
   // Arena state (transient selection — out of NgRx scope, kept as signals)
   readonly arenaPrompt = signal('');
@@ -163,7 +167,10 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     // VOX-03: Mirror voice transcript into the composer draft live. Transcript is
     // untrusted: trimmed and capped. Never calls submit() — user reviews and sends (D-08).
+    // When the voice assistant (Phase 29) owns the mic, skip mirroring so command
+    // speech never lands in the composer.
     effect(() => {
+      if (this.assistant.active()) return;
       const raw = this.voiceRec.transcript();
       if (raw && this.inputComposerRef) {
         this.inputComposerRef.draft = raw.trim().slice(0, MAX_DRAFT_LENGTH);
@@ -235,6 +242,26 @@ export class ChatComponent implements OnInit, OnDestroy {
     } else {
       this.voiceRec.start();
     }
+  }
+
+  // ─────────────────── Voice Dino Assistant (Phase 29) ─────────────────────
+
+  /**
+   * Toggle the voice assistant: start listening for a command, or cancel if
+   * already active. Supplies the live app context (past chats, dinos, current
+   * view) so the assistant can resolve "switch to my chat about X" (AST-04) and
+   * "talk to Rexford" to concrete ids.
+   */
+  onAssistantToggle(): void {
+    if (this.assistant.active()) {
+      this.assistant.cancel();
+      return;
+    }
+    this.assistant.start({
+      sessions: this.sessions().map((s) => ({ id: s.id, title: s.title })),
+      dinos: this.dinos().map((d) => ({ id: d.id, name: d.name })),
+      currentView: this.activeView(),
+    });
   }
 
   // ─────────────────── Voice TTS handlers (VOX-01/VOX-02) ──────────────────
@@ -568,6 +595,15 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.onReadAloud(msg.text);
         }
       });
+
+    // Phase 29 seam: when the assistant dispatches send_message, run it through
+    // the normal send pipeline (ChatComponent owns streaming). AST-01.
+    this.sendMessageSub = this.actions$
+      .pipe(ofType('[Assistant] Send Message Requested'))
+      .subscribe((action) => {
+        const text = (action as { text?: string }).text?.trim();
+        if (text) this.onSend(text);
+      });
   }
 
   ngOnDestroy(): void {
@@ -576,6 +612,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
     this.currentAbort?.abort();
     this.readLastMessageSub?.unsubscribe();
+    this.sendMessageSub?.unsubscribe();
     // Stop any in-progress TTS when the component is destroyed.
     this.voiceSynth.stop();
   }
