@@ -59,7 +59,6 @@ test.describe('ReasoningBlock UX', () => {
     const textarea = page.getByTestId('message-input');
     await expect(textarea).toBeVisible();
 
-    await page.locator('select[aria-label="Choose model"]').selectOption('openai/gpt-oss-120b:free');
     await textarea.fill('What is the answer to life?');
     await textarea.press('Enter');
 
@@ -107,7 +106,6 @@ test.describe('ReasoningBlock UX', () => {
     const textarea = page.getByTestId('message-input');
     await expect(textarea).toBeVisible();
 
-    await page.locator('select[aria-label="Choose model"]').selectOption('openai/gpt-oss-120b:free');
     await textarea.fill('First question');
     await textarea.press('Enter');
 

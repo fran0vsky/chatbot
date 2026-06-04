@@ -38,7 +38,7 @@ COPY --from=builder --chown=app:app /app/apps/backend/dist ./dist
 COPY --from=builder --chown=app:app /app/dist/apps/frontend/browser ./dist/frontend
 COPY --from=builder --chown=app:app /app/package*.json ./
 
-RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force && \
+RUN npm ci --omit=dev --ignore-scripts --legacy-peer-deps && npm cache clean --force && \
     chown -R app:app /app
 
 USER app
