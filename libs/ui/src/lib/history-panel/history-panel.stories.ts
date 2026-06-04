@@ -8,7 +8,7 @@ const meta: Meta<HistoryPanel> = {
   argTypes: {
     activeView: {
       control: 'inline-radio',
-      options: ['chats', 'explore', 'knowledge'],
+      options: ['chats', 'knowledge'],
     },
   },
 };
@@ -54,14 +54,6 @@ export const WithSessions: Story = {
     sessions: sampleSessions,
     activeSessionId: 's-2',
     activeView: 'chats',
-  },
-};
-
-export const ExploreActive: Story = {
-  args: {
-    sessions: sampleSessions,
-    activeSessionId: '',
-    activeView: 'explore',
   },
 };
 

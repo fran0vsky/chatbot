@@ -672,6 +672,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   switchToSession(session: ConversationSession): void {
     this.threadSwitching = true;
+    this.cdr.markForCheck();
     this.saveCurrentSession();
     this.sessionTitle = session.title;
     this.sessionCreatedAt = session.createdAt;
