@@ -38,16 +38,28 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 18: Dino Abstraction** - Backend dino registry (model + system prompt + tool subset), system-prompt injection, server-side tool gating, ≥4 dinos, typed contract, docs corrected (completed 2026-05-29)
 - [x] **Phase 19: Dino Picker + Explore** - New-chat dino picker, remove model dropdown, Explore page, active-dino in header, footer pinned (completed 2026-05-29)
-- [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat
+- [ ] **Phase 20: Dino Mascots** - Unique pixel-art mascot per dino (dual-mascot.png style), day/night via split pipeline, integrated in picker/Explore/chat + per-chat dino mascot icon in the history panel (v2.1 rider)
 - [x] **Phase 21: Cross-Thread Memory** - Per-(user × dino) memory store, retrieval + injection into the dino's context across threads (completed 2026-05-29)
 - [x] **Phase 22: Teach-a-Skill** - Dedicated training chat per dino, persistent learned skills auto-applied, manage learned memories/skills (completed 2026-05-29)
-- [x] **Phase 23: Dino Groupchat** - One prompt → multiple dinos respond in a single attributed view (code complete 2026-05-29)
+- [x] **Phase 23: Dino Groupchat** - One prompt → multiple dinos respond in a single attributed view (code complete 2026-05-29) — ⚠ SUPERSEDED by Phase 35 (v2.1)
 - [x] **Phase 24: Dino Arena + Leaderboard** - Blind split-screen compare, vote → Elo-style scoring, Leaderboard tab (code complete 2026-05-29; Task 5 smoke test pending human UAT)
 - [x] **Phase 25: Multimodal Input** - Screenshot paste/attach, Iris (Troodon) vision dino on `nvidia/nemotron-nano-12b-v2-vl:free`, prompt-based OCR; vision-capable paid fallback (code complete 2026-06-04; human UAT pending)
 - [x] **Phase 26: Image Generation** - Vinci (Parasaurolophus) artist dino on `google/gemini-2.5-flash-image` (~$0.04/img — no free image model exists); inline render + download via dedicated image path (code complete 2026-06-04; human UAT pending)
 - [x] **Phase 27: NgRx State Refactor** - Move app state to NgRx; expose a whitelisted dispatchable action catalogue (completed 2026-05-30)
 - [ ] **Phase 28: Voice I/O + SSML** - Two-way voice (TTS with SSML) + speech-to-text input, with a free/browser fallback
 - [x] **Phase 29: Voice Dino Assistant** - Voice commands → whitelisted NgRx actions via backend intent parser (gpt-4o-mini); clarify/refuse paths; finds & switches past chats by topic; floating assistant button (code complete 2026-06-04; human UAT pending)
+
+## v2.1 — Reliability, Depth & Production Hardening (begins 2026-06-04)
+
+**Milestone goal:** Harden DinoAgents for a public VM deployment and deepen the core chat experience — fix stale-state/composer bugs, make the web tools return real data, give each chat a working memory + context ring, reorganize the composer around an AI Memory Creator, rebuild groupchat as a real turn-based conversation, and serve the app over HTTPS.
+
+- [ ] **Phase 30: UX Reliability & Cleanup** - Loading/skeleton states (no stale messages on chat switch), long-text textarea fix, remove dino-picker "active" badge, remove Explore
+- [ ] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing
+- [ ] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning
+- [ ] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills
+- [ ] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory
+- [ ] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23)
+- [ ] **Phase 36: HTTPS / Let's Encrypt** - certbot + nginx on the VM, auto-renewing cert, HTTP→HTTPS redirect [independent infra track]
 
 ## Phase Details
 
@@ -124,13 +136,21 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 20. Dino Mascots | 0/1 | Plan written ✎ (has human art step) | - |
 | 21. Cross-Thread Memory | 1/1 | Complete   | 2026-05-29 |
 | 22. Teach-a-Skill | 1/1 | Complete   | 2026-05-29 |
-| 23. Dino Groupchat | 1/1 | Code complete | 2026-05-29 |
+| 23. Dino Groupchat | 1/1 | Code complete (superseded by 35) | 2026-05-29 |
 | 24. Arena + Leaderboard | 1/1 | Complete    | 2026-05-29 |
 | 25. Multimodal Input | 0/TBD | Needs research spike (free vision models) | - |
 | 26. Image Generation | 0/TBD | Needs research spike (free image provider) | - |
 | 27. NgRx State Refactor | 1/1 | Complete   | 2026-05-30 |
 | 28. Voice I/O + SSML | 2/2 | Complete (Task 5 manual pending) | 2026-06-01 |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
+| **— v2.1 Reliability, Depth & Hardening —** | | | |
+| 30. UX Reliability & Cleanup | 0/TBD | Planned | - |
+| 31. Tool Reliability (Search + Cheerio) | 0/TBD | Planned | - |
+| 32. Working Memory + Context Ring | 0/TBD | Planned | - |
+| 33. Composer & Knowledge Reorg | 0/TBD | Planned | - |
+| 34. AI Memory Creator | 0/TBD | Planned | - |
+| 35. Conversational Group Chat | 0/TBD | Planned (supersedes 23) | - |
+| 36. HTTPS / Let's Encrypt | 0/TBD | Planned (infra track) | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -402,7 +422,8 @@ Plans:
   2. Each mascot has day + night variants generated via `split-mascot.js` → optimize scripts
   3. Mascots render in the picker, Explore page, and assistant message bubbles bound to the active dino
   4. Mascots render crisply (integer-scaled, no artifacts), consistent with MASC-02
-**Scope note:** In — art generation per species, pipeline run, integration. Out — mascot motion/animation (deferred ex-Phase 14). Art creation is partly a human/asset task; this phase defines per-species art specs and wires the pipeline + integration.
+  5. Each chat row in the history panel shows the active dino's mascot icon (v2.1 rider)
+**Scope note:** In — art generation per species, pipeline run, integration, per-chat mascot icon in the history panel. Out — mascot motion/animation (deferred ex-Phase 14). Art creation is partly a human/asset task; this phase defines per-species art specs and wires the pipeline + integration.
 **Plans:** TBD (run `/gsd-plan-phase 20`)
 **UI hint:** yes
 
@@ -434,6 +455,7 @@ Plans:
 **UI hint:** yes
 
 ### Phase 23: Dino Groupchat
+**⚠ Superseded by Phase 35 (v2.1 — Conversational Group Chat).** The single-turn parallel fan-out is replaced by a turn-based orchestrator; no fallback retained.
 **Goal:** The user sends one prompt and several selected dinos answer in a single, attributed view.
 **Mode:** mvp
 **Depends on:** Phase 19
@@ -527,3 +549,111 @@ Plans:
 **Scope note:** In — intent → whitelisted action mapping, clarification loop, refusal path, past-chat lookup. The assistant's only powers are the Phase 27 whitelist — it cannot invent actions.
 **Plans:** TBD (run `/gsd-plan-phase 29`)
 **UI hint:** yes
+
+---
+
+## v2.1 Milestone: Reliability, Depth & Production Hardening
+
+**Milestone goal:** Harden DinoAgents for a public VM deployment and deepen the core chat experience. Fix stale-state and composer bugs, make the web tools return real data, give each conversation a working memory plus a context-usage ring, reorganize the composer around an AI-assisted Memory Creator, rebuild groupchat as a real turn-based conversation, and serve the app over HTTPS.
+
+**Execution order:** 30 → 31 → 32 → 33 → 34 → 35. Phase 36 (HTTPS) is an independent infra track that can run at any time / in parallel. Quick-win cleanups (30) and tool fixes (31) land first; the composer/memory cluster (33 → 34) is sequential; group chat (35) is the largest and last.
+
+**Deployment note:** The app is now served from a Compute Engine VM (not Cloud Run + Firebase Hosting). Phase 36 puts nginx + certbot in front of it. Infra resource names remain `spinochat-*` (do not rename without re-provisioning).
+
+### Phase 30: UX Reliability & Cleanup
+**Goal:** Eliminate stale-state flashes and remove dead UI so the app feels reliable.
+**Mode:** mvp
+**Depends on:** v2.0 (Phases 18–29)
+**Requirements:** REL-01, REL-02, REL-03, REL-04
+**Success Criteria** (what must be TRUE):
+  1. Switching to another chat never briefly shows the previous conversation's messages — a loading/skeleton state covers the transition until the target thread's messages are ready
+  2. Pasting/typing a very large amount of text no longer breaks the composer textarea layout (height caps and scrolls; no overflow past the pill)
+  3. The "active" badge is removed from the dino picker
+  4. The Explore page is removed — route, nav entry, and links — with no dead navigation
+**Scope note:** In — loading states, textarea fix, two removals. Out — new features. Note: Explore removal supersedes the Explore integration mentioned in Phases 19–20.
+**Plans:** TBD (run `/gsd-plan-phase 30`)
+**UI hint:** yes
+
+### Phase 31: Tool Reliability — Web Search + Cheerio Fetch
+**Goal:** The web tools return real, usable data instead of sparse or regex-mangled output.
+**Mode:** mvp
+**Depends on:** Phase 18 (tool gating)
+**Requirements:** TOOL-01, TOOL-02
+**Success Criteria** (what must be TRUE):
+  1. `web_search` returns relevant real results for a current-events query — the DuckDuckGo Instant Answer API is replaced with a real free-tier provider (Tavily / Brave / SearXNG, chosen + documented in-phase)
+  2. `fetch_page` uses Cheerio to extract clean main-content text (title, headings, body), replacing the regex `htmlToText` strip
+  3. Both tools degrade gracefully (clear error string) when the provider is unavailable or rate-limited
+**Scope note:** In — search-provider swap, Cheerio parsing, env var + `.env.example` for any API key. Out — new tools, MCP. Provider choice confirmed during the phase (free tier preferred; key in Secret Manager / `.env`).
+**Plans:** TBD (run `/gsd-plan-phase 31`)
+**UI hint:** no
+
+### Phase 32: Conversation Working Memory + Context Ring
+**Goal:** Each chat keeps a working memory so attachments and fetched data persist across turns, and the UI shows how full the context is.
+**Mode:** mvp
+**Depends on:** Phase 31 (fetch results), Phases 25–26 (multimodal attachments)
+**Requirements:** CTX-01, CTX-02, CTX-03
+**Success Criteria** (what must be TRUE):
+  1. An image attached earlier in a thread stays referenceable on later turns without re-attaching it (it persists in the thread's working context)
+  2. A page fetched by `fetch_page` (and other fetched/tool data) is reused on follow-up turns instead of being re-downloaded each message
+  3. A context-usage ring is visible in the chat, reflecting approximate context-window fill, with a visible warning as it nears the limit
+  4. No regression to single-turn chat beyond the intended reuse
+**Scope note:** In — per-thread working-memory store for images + fetched data, reuse on subsequent turns, context-ring UI + estimation. Out — vector/semantic retrieval (that's cross-thread memory, Phase 21). Token estimation may be approximate and documented.
+**Plans:** TBD (run `/gsd-plan-phase 32`)
+**UI hint:** yes
+
+### Phase 33: Composer & Knowledge Reorg
+**Goal:** Restructure the composer and skill management around a brain entry point, and make skills first-class (view + edit, not just delete).
+**Mode:** mvp
+**Depends on:** Phase 22 (teach-a-skill + skill store)
+**Requirements:** CMP-01, CMP-02, CMP-03, CMP-04, CMP-05
+**Success Criteria** (what must be TRUE):
+  1. A brain icon replaces the wrench in the composer; a dedicated, clearly-labeled tools button exposes the tool toggles
+  2. A `/teach` slash-command in the composer opens the teach flow; the teach modal is noticeably larger (wider + taller)
+  3. A saved skill can be edited in place in the skill manager (name / trigger / instruction), not only deleted
+  4. The Knowledge view lists the active dino's learned skills (each with edit + delete)
+  5. No regression: existing tool toggling and teach/save still work
+**Scope note:** In — composer icon/button reorg, `/teach` command, modal resize, skill edit UI + API, Knowledge skill list. Out — the AI suggestion engine (Phase 34). The brain icon's click target is wired here; its modal contents are built in Phase 34.
+**Plans:** TBD (run `/gsd-plan-phase 33`)
+**UI hint:** yes
+
+### Phase 34: AI Memory Creator
+**Goal:** Clicking the brain opens an AI-assisted creator that proposes what to remember from the current conversation and auto-fills an editable skill/memory form.
+**Mode:** mvp
+**Depends on:** Phase 33 (brain entry point), Phases 21–22 (memory + skill stores)
+**Requirements:** MEMC-01, MEMC-02, MEMC-03
+**Success Criteria** (what must be TRUE):
+  1. Clicking the brain opens a modal that shows a dino "thinking" state, then ≥3 suggested things-worth-remembering derived from the current conversation (Claude-style recommendations)
+  2. The user can pick a suggestion OR type natural text describing what to remember; submitting auto-fills the 3-field form — name / when-to-activate / instruction — fully editable before saving
+  3. Saving persists the item and it auto-applies in later chats with that dino; an item that overlaps an existing memory updates it rather than duplicating — without the user choosing "new vs update" (the creator reconciles the plus/minus input automatically)
+  4. No regression to the Phase 22 teach flow or existing stored skills/memories
+**Scope note:** In — suggestion generation from conversation, natural-text → form synthesis, create-or-update reconciliation, editable form. Out — cross-device sync (needs auth). The new-vs-update decision is made by the synthesizer, not surfaced as a toggle.
+**Plans:** TBD (run `/gsd-plan-phase 34`)
+**UI hint:** yes
+
+### Phase 35: Conversational Group Chat (supersedes Phase 23)
+**Goal:** Replace the parallel fan-out with a turn-based, real-chat group conversation where each dino decides whether and how to participate.
+**Mode:** mvp
+**Depends on:** Phase 19 (dino picker); reuses Phases 21–22 memory
+**Requirements:** GRP2-01, GRP2-02, GRP2-03, GRP2-04
+**Success Criteria** (what must be TRUE):
+  1. On each user message, every selected dino independently chooses to answer, react with an emoji, or stay silent — so a prompt may yield several replies, one reply, a reply + an emoji reaction, or none
+  2. Addressing a specific dino (e.g. @mention) forces that dino to respond; a non-addressed but competent dino may volunteer a reply or add to the addressed dino's answer
+  3. Dinos can respond to each other (bounded inter-dino turns), and the thread reads top-to-bottom like a real chat with clear per-dino attribution
+  4. Group conversations are saved in the history panel and reopen with full transcript (current groupchat is ephemeral)
+**Scope note:** In — turn-based orchestrator/router (per-dino speak/react/silent decision), directed-mention forcing, bounded inter-dino dialogue, emoji reactions, persisted group threads. Out — the old parallel fan-out (removed, no fallback). Loop bounds + cost caps designed and documented in-phase (build on the Phase 23 `MAX_DINOS=4` cap).
+**Plans:** TBD (run `/gsd-plan-phase 35`)
+**UI hint:** yes
+
+### Phase 36: HTTPS / Let's Encrypt
+**Goal:** Serve the app over HTTPS from the production VM with an auto-renewing certificate.
+**Mode:** mvp
+**Depends on:** none (independent infra track — can run anytime)
+**Requirements:** INFRA-01
+**Success Criteria** (what must be TRUE):
+  1. The public domain serves a valid Let's Encrypt certificate via an nginx reverse proxy in front of the app on the Compute Engine VM
+  2. Plain HTTP requests redirect to HTTPS
+  3. The certificate auto-renews (certbot timer/cron) and renewal is verified (dry-run)
+  4. Frontend → backend calls work over HTTPS with no mixed-content errors
+**Scope note:** In — nginx reverse proxy, certbot issuance + auto-renew, HTTP→HTTPS redirect, any API base-URL/CORS updates for the HTTPS origin. Out — CDN, multi-domain, infra-as-code rewrite. Reflects the move from Cloud Run + Firebase to a VM.
+**Plans:** TBD (run `/gsd-plan-phase 36`)
+**UI hint:** no

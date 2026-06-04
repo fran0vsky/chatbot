@@ -58,6 +58,14 @@ Last activity: 2026-06-01
 - Phase 9 added: Tool Calling (Function Calling) — LangGraph tool node + UI for tool calls; starter tools `get_current_time` and `web_search`
 - Phase 10 added: Token Streaming (SSE, word-by-word render)
 - Phase 11 added: Reasoning / Thinking Display
+- v2.1 milestone added (2026-06-04): Reliability, Depth & Production Hardening — from mentor feedback note
+- Phase 30 added: UX Reliability & Cleanup (loading/stale-state, textarea fix, remove active badge, remove Explore)
+- Phase 31 added: Tool Reliability — replace web_search provider + Cheerio fetch_page
+- Phase 32 added: Conversation Working Memory + Context Ring
+- Phase 33 added: Composer & Knowledge Reorg (brain icon, tools button, /teach, skill editing)
+- Phase 34 added: AI Memory Creator (conversation-derived suggestions → editable skill form)
+- Phase 35 added: Conversational Group Chat (turn-based orchestrator; supersedes Phase 23)
+- Phase 36 added: HTTPS / Let's Encrypt on the VM (nginx + certbot)
 
 ### Decisions
 
