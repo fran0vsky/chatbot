@@ -571,7 +571,7 @@ Plans:
   3. The "active" badge is removed from the dino picker
   4. The Explore page is removed — route, nav entry, and links — with no dead navigation
 **Scope note:** In — loading states, textarea fix, two removals. Out — new features. Note: Explore removal supersedes the Explore integration mentioned in Phases 19–20.
-**Plans:** TBD (run `/gsd-plan-phase 30`)
+**Plans:** 30-01 (REL-01 chat-switch skeleton), 30-02 (REL-02 composer textarea), 30-03 (REL-03 remove Active badge) — wave 1; 30-04 (REL-04 remove Explore, depends 30-01) — wave 2
 **UI hint:** yes
 
 ### Phase 31: Tool Reliability — Web Search + Cheerio Fetch
