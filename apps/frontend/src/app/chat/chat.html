@@ -470,6 +470,16 @@
           </div>
         </div>
       } @else {
+        @if (threadSwitching) {
+          <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
+            <div class="max-w-2xl mx-auto w-full space-y-5 animate-pulse">
+              <div class="h-10 rounded-2xl bg-jungle-surface/60 dark:bg-jungle-night-surface/60 w-3/4"></div>
+              <div class="h-10 rounded-2xl bg-jungle-surface/60 dark:bg-jungle-night-surface/60 w-1/2 ml-auto"></div>
+              <div class="h-10 rounded-2xl bg-jungle-surface/60 dark:bg-jungle-night-surface/60 w-5/6"></div>
+              <div class="h-10 rounded-2xl bg-jungle-surface/60 dark:bg-jungle-night-surface/60 w-2/3 ml-auto"></div>
+            </div>
+          </div>
+        } @else {
         <div class="flex-1 overflow-y-auto px-4 py-4 chat-scroll-area relative z-10">
           <div class="max-w-2xl mx-auto w-full space-y-5">
             @for (m of messages(); track $index; let i = $index) {
@@ -553,6 +563,7 @@
             />
           </div>
         </div>
+        } <!-- end @else (not threadSwitching) -->
       }
       <p class="relative z-10 mt-auto flex-shrink-0 text-center text-[11px] text-jungle-ink-muted/80 dark:text-jungle-night-muted/80 pt-1 pb-2">
         Spino can make mistakes. Consider checking important information.
