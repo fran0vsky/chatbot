@@ -97,22 +97,7 @@
 
   <!-- Center chat column -->
   <div class="relative z-10 flex flex-col flex-1 min-w-0">
-    @if (activeView() === 'explore') {
-      <!-- ───────── Explore: dino gallery ───────── -->
-      <main class="flex-1 overflow-y-auto px-6 py-10">
-        <div class="max-w-5xl mx-auto">
-          <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-2">Explore dinos</h1>
-          <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted mb-8">
-            Each dino has its own voice, specialty, and toolset. Pick one to start chatting.
-          </p>
-          <app-dino-picker
-            [dinos]="dinos()"
-            [activeDinoId]="activeDinoId()"
-            (dinoSelected)="pickDino($event)"
-          />
-        </div>
-      </main>
-    } @else if (activeView() === 'groupchat') {
+    @if (activeView() === 'groupchat') {
       <!-- ───────── Groupchat: multi-dino parallel responses ───────── -->
       <main class="flex-1 overflow-y-auto px-6 py-6">
         <div class="max-w-6xl mx-auto flex flex-col gap-6">
