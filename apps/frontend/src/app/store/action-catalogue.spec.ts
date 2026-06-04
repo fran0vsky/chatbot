@@ -25,7 +25,7 @@ const VALID_PARAMS: Record<AppActionName, unknown> = {
   switch_chat: { sessionId: 's-1' },
   read_last_message: {},
   send_message: { text: 'hello' },
-  set_active_view: { view: 'explore' },
+  set_active_view: { view: 'chats' },
   select_dino: { dinoId: 'rexford' },
 };
 

@@ -39,7 +39,6 @@ const sendMessageSchema = z.object({ text: z.string().min(1) });
 const setActiveViewSchema = z.object({
   view: z.enum([
     'chats',
-    'explore',
     'knowledge',
     'groupchat',
     'arena',
@@ -91,7 +90,7 @@ export const ACTION_CATALOGUE = {
   }),
   set_active_view: entry({
     description:
-      'Navigate to a top-level view (chats, explore, knowledge, groupchat, arena, leaderboard).',
+      'Navigate to a top-level view (chats, knowledge, groupchat, arena, leaderboard).',
     params: setActiveViewSchema,
     create: ({ view }) => UiActions.setActiveView({ view }),
   }),

@@ -3,7 +3,6 @@ import { createAction, props } from '@ngrx/store';
 export type Theme = 'day' | 'night';
 export type ActiveView =
   | 'chats'
-  | 'explore'
   | 'knowledge'
   | 'groupchat'
   | 'arena'
