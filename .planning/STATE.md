@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: ready_to_plan
-stopped_at: Phase 30 complete (4/4) — ready to discuss Phase 31
-last_updated: 2026-06-05T11:27:57.797Z
-last_activity: 2026-06-04
+status: planning
+stopped_at: Phase 31 context gathered
+last_updated: "2026-06-05T11:35:41.293Z"
+last_activity: 2026-06-05
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 52
+  completed_plans: 32
   percent: 82
 ---
 
@@ -131,6 +131,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-04T16:52:47.520Z
-Stopped at: Phase 28 Plan 02 complete — Task 5 (manual Chrome/Firefox dictation smoke test) pending user
-Resume file: None
+Last session: 2026-06-05T11:35:41.285Z
+Stopped at: Phase 31 context gathered
+Resume file: .planning/phases/31-tool-reliability-search-cheerio/31-CONTEXT.md
