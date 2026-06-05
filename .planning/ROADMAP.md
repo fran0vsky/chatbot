@@ -144,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 28. Voice I/O + SSML | 2/2 | Complete (Task 5 manual pending) | 2026-06-01 |
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 | **— v2.1 Reliability, Depth & Hardening —** | | | |
-| 30. UX Reliability & Cleanup | 4/4 | Complete   | 2026-06-04 |
+| 30. UX Reliability & Cleanup | 4/4 | Complete    | 2026-06-05 |
 | 31. Tool Reliability (Search + Cheerio) | 0/TBD | Planned | - |
 | 32. Working Memory + Context Ring | 0/TBD | Planned | - |
 | 33. Composer & Knowledge Reorg | 0/TBD | Planned | - |

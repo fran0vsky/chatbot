@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dino Platform
-status: verifying
-stopped_at: Phase 28 Plan 02 complete — Task 5 (manual Chrome/Firefox dictation smoke test) pending user
-last_updated: "2026-06-04T16:52:47.529Z"
+status: ready_to_plan
+stopped_at: Phase 30 complete (4/4) — ready to discuss Phase 31
+last_updated: 2026-06-05T11:27:57.797Z
 last_activity: 2026-06-04
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 32
+  completed_plans: 52
   percent: 82
 ---
 
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 30 — ux-reliability-cleanup
+**Current focus:** Phase 31 — tool reliability search cheerio
 
 ## Current Position
 
-Phase: 30 (ux-reliability-cleanup) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-06-04
+Phase: 31
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-05
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 13
 - Average duration: —
 - Total execution time: —
 
