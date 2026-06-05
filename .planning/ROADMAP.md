@@ -54,7 +54,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Milestone goal:** Harden DinoAgents for a public VM deployment and deepen the core chat experience — fix stale-state/composer bugs, make the web tools return real data, give each chat a working memory + context ring, reorganize the composer around an AI Memory Creator, rebuild groupchat as a real turn-based conversation, and serve the app over HTTPS.
 
 - [x] **Phase 30: UX Reliability & Cleanup** - Loading/skeleton states (no stale messages on chat switch), long-text textarea fix, remove dino-picker "active" badge, remove Explore (completed 2026-06-04)
-- [ ] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing
+- [x] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing (completed 2026-06-05)
 - [ ] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning
 - [ ] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills
 - [ ] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 29. Voice Dino Assistant | 0/TBD | Blocked on 27 + 28 | - |
 | **— v2.1 Reliability, Depth & Hardening —** | | | |
 | 30. UX Reliability & Cleanup | 4/4 | Complete    | 2026-06-05 |
-| 31. Tool Reliability (Search + Cheerio) | 1/2 | In Progress|  |
+| 31. Tool Reliability (Search + Cheerio) | 2/2 | Complete   | 2026-06-05 |
 | 32. Working Memory + Context Ring | 0/TBD | Planned | - |
 | 33. Composer & Knowledge Reorg | 0/TBD | Planned | - |
 | 34. AI Memory Creator | 0/TBD | Planned | - |
@@ -584,7 +584,7 @@ Plans:
   2. `fetch_page` uses Cheerio to extract clean main-content text (title, headings, body), replacing the regex `htmlToText` strip
   3. Both tools degrade gracefully (clear error string) when the provider is unavailable or rate-limited
 **Scope note:** In — search-provider swap, Cheerio parsing, env var + `.env.example` for any API key. Out — new tools, MCP. Provider choice confirmed during the phase (free tier preferred; key in Secret Manager / `.env`).
-**Plans:**1/2 plans executed
+**Plans:**2/2 plans complete
   - 31-01: web_search → Tavily (TOOL-01, Wave 1) — top-5 title+snippet+URL, 3 degradation strings, `TAVILY_API_KEY` + tests
   - 31-02: fetch_page → Cheerio (TOOL-02, Wave 1) — main-content extraction, byte/content-type hardening, soft-fallback + tests
 **UI hint:** no
