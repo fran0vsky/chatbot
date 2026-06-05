@@ -584,7 +584,9 @@ Plans:
   2. `fetch_page` uses Cheerio to extract clean main-content text (title, headings, body), replacing the regex `htmlToText` strip
   3. Both tools degrade gracefully (clear error string) when the provider is unavailable or rate-limited
 **Scope note:** In — search-provider swap, Cheerio parsing, env var + `.env.example` for any API key. Out — new tools, MCP. Provider choice confirmed during the phase (free tier preferred; key in Secret Manager / `.env`).
-**Plans:** TBD (run `/gsd-plan-phase 31`)
+**Plans:**
+  - 31-01: web_search → Tavily (TOOL-01, Wave 1) — top-5 title+snippet+URL, 3 degradation strings, `TAVILY_API_KEY` + tests
+  - 31-02: fetch_page → Cheerio (TOOL-02, Wave 1) — main-content extraction, byte/content-type hardening, soft-fallback + tests
 **UI hint:** no
 
 ### Phase 32: Conversation Working Memory + Context Ring
