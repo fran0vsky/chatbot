@@ -600,7 +600,7 @@ Plans:
   3. A context-usage ring is visible in the chat, reflecting approximate context-window fill, with a visible warning as it nears the limit
   4. No regression to single-turn chat beyond the intended reuse
 **Scope note:** In — per-thread working-memory store for images + fetched data, reuse on subsequent turns, context-ring UI + estimation. Out — vector/semantic retrieval (that's cross-thread memory, Phase 21). Token estimation may be approximate and documented.
-**Plans:** TBD (run `/gsd-plan-phase 32`)
+**Plans:** 32-01 (working-memory replay: images + tool results), 32-02 (context-usage ring)
 **UI hint:** yes
 
 ### Phase 33: Composer & Knowledge Reorg
