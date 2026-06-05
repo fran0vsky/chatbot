@@ -86,6 +86,7 @@
     "@ngrx/store": "^21.1.0",
     "@ngrx/store-devtools": "^21.1.0",
     "axios": "^1.6.0",
+    "cheerio": "^1.2.0",
     "drizzle-orm": "^0.45.2",
     "langchain": "^1.4.0",
     "marked": "^18.0.4",
