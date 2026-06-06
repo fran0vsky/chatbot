@@ -84,10 +84,40 @@ export class InputComposer implements AfterViewChecked {
   @Output() toolToggled = new EventEmitter<{ name: string; enabled: boolean }>();
   /** Emitted when the user clicks the mic button (toggle: start if idle, stop if listening). */
   @Output() micToggle = new EventEmitter<void>();
+  /** Emitted when the user opens the teach flow (brain button or /teach command).
+   *  Carries the optional trailing text to pre-fill the instruction field. */
+  @Output() teachOpen = new EventEmitter<string | undefined>();
 
   draft = '';
   atMaxHeight = false;
   toolsOpen = false;
+
+  /**
+   * True when the user is typing a leading slash command that matches /teach —
+   * i.e. the draft is `^/\w*$` and `/teach` starts with the typed prefix.
+   * Drives the command-menu autocomplete popover.
+   */
+  get commandMenuOpen(): boolean {
+    const trimmed = this.draft.trim();
+    return /^\/\w*$/.test(trimmed) && '/teach'.startsWith(trimmed);
+  }
+
+  /**
+   * Called when the user selects /teach from the command menu (or presses Enter
+   * while the menu is open). Parses any trailing text as a prefill instruction,
+   * emits `teachOpen`, and clears the draft.
+   */
+  chooseTeach(): void {
+    const match = this.draft.match(/^\/teach(?:\s+([\s\S]*))?$/);
+    const trailing = match?.[1];
+    this.teachOpen.emit(trailing?.trim() || undefined);
+    this.draft = '';
+    if (this.textareaRef) {
+      this.autoResize(this.textareaRef.nativeElement);
+    }
+    this.toolsOpen = false;
+    this.cdr.markForCheck();
+  }
   /** Tracks the last draft value that was used for resize, to guard ngAfterViewChecked. */
   private lastResizedDraft: string | undefined = undefined;
   /** Attached image as a (downscaled) data URL, shown as a thumbnail until sent. */
@@ -211,7 +241,12 @@ export class InputComposer implements AfterViewChecked {
   onKeydown(ev: KeyboardEvent): void {
     if (ev.key === 'Enter' && !ev.shiftKey) {
       ev.preventDefault();
-      this.submit();
+      // When the /teach command menu is open, Enter selects /teach instead of sending.
+      if (this.commandMenuOpen) {
+        this.chooseTeach();
+      } else {
+        this.submit();
+      }
     }
   }
 
