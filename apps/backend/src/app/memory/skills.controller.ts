@@ -7,6 +7,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Put,
   Query,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -18,6 +19,13 @@ interface CreateSkillBody {
   dinoId?: string;
   title?: string;
   instruction?: string;
+  whenToActivate?: string;
+}
+
+interface UpdateSkillBody {
+  title?: string;
+  instruction?: string;
+  whenToActivate?: string;
 }
 
 /**
@@ -47,15 +55,28 @@ export class SkillsController {
   @Post('skills')
   @HttpCode(201)
   async create(@Body() body: CreateSkillBody): Promise<DinoSkill> {
-    const { userId, dinoId, title, instruction } = body;
+    const { userId, dinoId, title, instruction, whenToActivate } = body;
     if (!userId || !dinoId || !title?.trim() || !instruction?.trim()) {
       throw new BadRequestException('userId, dinoId, title and instruction are required');
     }
-    const created = await this.memory.addSkill(userId, dinoId, title, instruction);
+    const created = await this.memory.addSkill(userId, dinoId, title, instruction, whenToActivate);
     if (!created) {
       throw new ServiceUnavailableException('Could not persist skill (database unavailable)');
     }
     return created;
+  }
+
+  @Put('skills/:id')
+  async update(@Param('id') id: string, @Body() body: UpdateSkillBody): Promise<DinoSkill> {
+    const { title, instruction, whenToActivate } = body;
+    if (!title?.trim() || !instruction?.trim()) {
+      throw new BadRequestException('title and instruction are required');
+    }
+    const updated = await this.memory.updateSkill(id, { title, instruction, whenToActivate });
+    if (!updated) {
+      throw new ServiceUnavailableException('Could not update skill (database unavailable)');
+    }
+    return updated;
   }
 
   @Delete('skills/:id')
