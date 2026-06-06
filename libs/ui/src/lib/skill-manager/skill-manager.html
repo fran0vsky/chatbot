@@ -11,17 +11,66 @@
     } @else {
       <ul class="space-y-2">
         @for (skill of skills; track skill.id) {
-          <li class="flex items-start justify-between gap-3 px-4 py-3 rounded-lg bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40">
-            <div class="min-w-0">
-              <p class="text-sm font-medium text-jungle-ink dark:text-jungle-night-text">{{ skill.title }}</p>
-              <p class="text-sm text-jungle-ink/80 dark:text-jungle-night-text/80">{{ skill.instruction }}</p>
-            </div>
-            <button
-              type="button"
-              (click)="skillDeleted.emit(skill.id)"
-              class="flex-shrink-0 text-xs text-jungle-ink-muted dark:text-jungle-night-muted hover:text-red-500 dark:hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded"
-              [attr.aria-label]="'Delete skill ' + skill.title"
-            >Delete</button>
+          <li class="px-4 py-3 rounded-lg bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40">
+            @if (editingId !== skill.id) {
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-jungle-ink dark:text-jungle-night-text">{{ skill.title }}</p>
+                  @if (skill.whenToActivate) {
+                    <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted mt-0.5">When: {{ skill.whenToActivate }}</p>
+                  }
+                  <p class="text-sm text-jungle-ink/80 dark:text-jungle-night-text/80 mt-1">{{ skill.instruction }}</p>
+                </div>
+                <div class="flex-shrink-0 flex gap-2">
+                  <button
+                    type="button"
+                    (click)="startEdit(skill)"
+                    class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent rounded"
+                    [attr.aria-label]="'Edit skill ' + skill.title"
+                  >Edit</button>
+                  <button
+                    type="button"
+                    (click)="skillDeleted.emit(skill.id)"
+                    class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted hover:text-red-500 dark:hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded"
+                    [attr.aria-label]="'Delete skill ' + skill.title"
+                  >Delete</button>
+                </div>
+              </div>
+            } @else {
+              <div class="space-y-2">
+                <input
+                  type="text"
+                  [(ngModel)]="editTitle"
+                  placeholder="Skill name"
+                  class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-border/60 dark:border-jungle-night-border/60 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                />
+                <input
+                  type="text"
+                  [(ngModel)]="editWhenToActivate"
+                  placeholder="When to activate (optional)"
+                  class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-border/60 dark:border-jungle-night-border/60 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                />
+                <textarea
+                  [(ngModel)]="editInstruction"
+                  rows="3"
+                  placeholder="Instruction"
+                  class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-border/60 dark:border-jungle-night-border/60 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+                ></textarea>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    (click)="saveEdit()"
+                    [disabled]="editTitle.trim().length === 0 || editInstruction.trim().length === 0"
+                    class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                  >Save</button>
+                  <button
+                    type="button"
+                    (click)="cancelEdit()"
+                    class="px-4 py-1.5 rounded-lg text-xs font-medium text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent rounded"
+                  >Cancel</button>
+                </div>
+              </div>
+            }
           </li>
         }
       </ul>
