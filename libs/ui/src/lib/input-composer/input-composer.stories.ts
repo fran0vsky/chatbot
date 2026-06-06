@@ -7,6 +7,10 @@ const meta: Meta<InputComposer> = {
   tags: ['autodocs'],
   argTypes: {
     send: { action: 'send' },
+    stop: { action: 'stop' },
+    toolToggled: { action: 'toolToggled' },
+    micToggle: { action: 'micToggle' },
+    teachOpen: { action: 'teachOpen' },
   },
 };
 export default meta;
@@ -30,5 +34,13 @@ export const Disabled: Story = {
   args: {
     placeholder: 'Message',
     disabled: true,
+  },
+};
+
+/** Shows the /teach command-menu autocomplete popover when typing a leading slash. */
+export const CommandMenu: Story = {
+  args: {
+    placeholder: 'Message',
+    disabled: false,
   },
 };
