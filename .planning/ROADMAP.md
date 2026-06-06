@@ -147,7 +147,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 30. UX Reliability & Cleanup | 4/4 | Complete    | 2026-06-05 |
 | 31. Tool Reliability (Search + Cheerio) | 2/2 | Complete   | 2026-06-05 |
 | 32. Working Memory + Context Ring | 0/TBD | Planned | - |
-| 33. Composer & Knowledge Reorg | 0/TBD | Planned | - |
+| 33. Composer & Knowledge Reorg | 1/3 | In Progress|  |
 | 34. AI Memory Creator | 0/TBD | Planned | - |
 | 35. Conversational Group Chat | 0/TBD | Planned (supersedes 23) | - |
 | 36. HTTPS / Let's Encrypt | 0/TBD | Planned (infra track) | - |
@@ -615,7 +615,7 @@ Plans:
   4. The Knowledge view lists the active dino's learned skills (each with edit + delete)
   5. No regression: existing tool toggling and teach/save still work
 **Scope note:** In — composer icon/button reorg, `/teach` command, modal resize, skill edit UI + API, Knowledge skill list. Out — the AI suggestion engine (Phase 34). The brain icon's click target is wired here; its modal contents are built in Phase 34.
-**Plans:** TBD (run `/gsd-plan-phase 33`)
+**Plans:** 1/3 plans executed
 **UI hint:** yes
 
 ### Phase 34: AI Memory Creator

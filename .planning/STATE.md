@@ -4,8 +4,8 @@ milestone: v2.0
 milestone_name: Dino Platform
 status: executing
 stopped_at: Phase 35 context gathered
-last_updated: "2026-06-05T22:19:09.735Z"
-last_activity: 2026-06-05 -- Phase 35 planning complete
+last_updated: "2026-06-06T20:41:55.373Z"
+last_activity: 2026-06-06
 progress:
   total_phases: 11
   completed_phases: 9
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 31 — tool-reliability-search-cheerio
+**Current focus:** Phase 33 — composer-knowledge-reorg
 
 ## Current Position
 
-Phase: 31 (tool-reliability-search-cheerio) — EXECUTING
-Plan: 2 of 2
+Phase: 33 (composer-knowledge-reorg) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-05 -- Phase 35 planning complete
+Last activity: 2026-06-06
 
 ## Performance Metrics
 
@@ -131,6 +131,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-05T22:05:13.589Z
+Last session: 2026-06-06T20:41:55.367Z
 Stopped at: Phase 35 context gathered
-Resume file: .planning/phases/35-conversational-group-chat/35-CONTEXT.md
+Resume file: None
