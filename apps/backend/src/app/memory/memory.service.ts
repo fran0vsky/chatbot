@@ -10,6 +10,8 @@ export interface SkillView {
   id: string;
   title: string;
   instruction: string;
+  /** Optional activation trigger. Empty/absent = always apply (CMP-05). */
+  whenToActivate?: string | null;
 }
 
 const DEFAULT_LIMIT = 20;
@@ -106,7 +108,12 @@ export class MemoryService {
     if (!db || !userId || !dinoId) return [];
     try {
       return await db
-        .select({ id: dinoSkills.id, title: dinoSkills.title, instruction: dinoSkills.instruction })
+        .select({
+          id: dinoSkills.id,
+          title: dinoSkills.title,
+          instruction: dinoSkills.instruction,
+          whenToActivate: dinoSkills.whenToActivate,
+        })
         .from(dinoSkills)
         .where(and(eq(dinoSkills.userId, userId), eq(dinoSkills.dinoId, dinoId)))
         .orderBy(desc(dinoSkills.createdAt));
@@ -122,19 +129,55 @@ export class MemoryService {
     dinoId: string,
     title: string,
     instruction: string,
+    whenToActivate?: string,
   ): Promise<SkillView | null> {
     const db = this.connection.db;
     const cleanTitle = title?.trim();
     const cleanInstruction = instruction?.trim();
     if (!db || !userId || !dinoId || !cleanTitle || !cleanInstruction) return null;
+    const cleanTrigger = whenToActivate?.trim() || null;
     try {
       const [row] = await db
         .insert(dinoSkills)
-        .values({ userId, dinoId, title: cleanTitle, instruction: cleanInstruction })
-        .returning({ id: dinoSkills.id, title: dinoSkills.title, instruction: dinoSkills.instruction });
+        .values({ userId, dinoId, title: cleanTitle, instruction: cleanInstruction, whenToActivate: cleanTrigger })
+        .returning({
+          id: dinoSkills.id,
+          title: dinoSkills.title,
+          instruction: dinoSkills.instruction,
+          whenToActivate: dinoSkills.whenToActivate,
+        });
       return row ?? null;
     } catch (err) {
       this.logger.error(`addSkill failed: ${err instanceof Error ? err.message : String(err)}`);
+      return null;
+    }
+  }
+
+  /** Update a skill's title / trigger / instruction by id. Returns the updated skill, or null when DB off / id missing / invalid input. */
+  async updateSkill(
+    id: string,
+    fields: { title?: string; whenToActivate?: string; instruction?: string },
+  ): Promise<SkillView | null> {
+    const db = this.connection.db;
+    if (!db || !id) return null;
+    const cleanTitle = fields.title?.trim();
+    const cleanInstruction = fields.instruction?.trim();
+    if (!cleanTitle || !cleanInstruction) return null;
+    const cleanTrigger = fields.whenToActivate?.trim() || null;
+    try {
+      const [row] = await db
+        .update(dinoSkills)
+        .set({ title: cleanTitle, instruction: cleanInstruction, whenToActivate: cleanTrigger })
+        .where(eq(dinoSkills.id, id))
+        .returning({
+          id: dinoSkills.id,
+          title: dinoSkills.title,
+          instruction: dinoSkills.instruction,
+          whenToActivate: dinoSkills.whenToActivate,
+        });
+      return row ?? null;
+    } catch (err) {
+      this.logger.error(`updateSkill failed: ${err instanceof Error ? err.message : String(err)}`);
       return null;
     }
   }
