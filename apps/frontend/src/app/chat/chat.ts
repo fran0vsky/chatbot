@@ -393,10 +393,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   readonly learnedSkills = signal<DinoSkill[]>([]);
   readonly learnedMemories = signal<{ id: string; content: string }[]>([]);
 
-  openSkillPanel(): void {
+  openSkillPanel(prefillInstruction?: string): void {
     const dinoId = this.activeDinoId();
     if (!dinoId) return;
     this.skillPanelOpen.set(true);
+    if (prefillInstruction) {
+      this.skillInstruction.set(prefillInstruction);
+    }
     this.refreshLearned(dinoId);
   }
 

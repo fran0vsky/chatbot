@@ -451,6 +451,7 @@
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
               (micToggle)="onMicToggle()"
+              (teachOpen)="openSkillPanel($event)"
             />
           </div>
         </div>
@@ -545,6 +546,7 @@
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
               (micToggle)="onMicToggle()"
+              (teachOpen)="openSkillPanel($event)"
             />
           </div>
         </div>
@@ -669,7 +671,7 @@
       [attr.aria-label]="'Teach ' + (activeDino()?.name ?? 'this dino') + ' a skill'"
     >
       <div
-        class="pointer-events-auto w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl bg-jungle-bg dark:bg-jungle-night border border-jungle-border/40 dark:border-jungle-night-border/40 shadow-2xl p-6"
+        class="pointer-events-auto w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-jungle-bg dark:bg-jungle-night border border-jungle-border/40 dark:border-jungle-night-border/40 shadow-2xl p-6"
       >
         <div class="flex items-start justify-between mb-5">
           <div>
