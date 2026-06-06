@@ -75,6 +75,7 @@ export const dinoSkills = pgTable(
     dinoId: text('dino_id').notNull(),
     title: text('title').notNull(),
     instruction: text('instruction').notNull(),
+    whenToActivate: text('when_to_activate'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
