@@ -24,13 +24,19 @@ export class SkillService {
   }
 
   /** Teach the dino a new skill; resolves to the persisted skill. */
-  addSkill(dinoId: string, title: string, instruction: string): Observable<DinoSkill> {
+  addSkill(dinoId: string, title: string, instruction: string, whenToActivate?: string): Observable<DinoSkill> {
     return this.http.post<DinoSkill>(`${this.base}/skills`, {
       userId: this.userId,
       dinoId,
       title,
       instruction,
+      ...(whenToActivate ? { whenToActivate } : {}),
     });
+  }
+
+  /** Update an existing skill's title, trigger and instruction. */
+  updateSkill(id: string, fields: { title: string; whenToActivate?: string; instruction: string }): Observable<DinoSkill> {
+    return this.http.put<DinoSkill>(`${this.base}/skills/${id}`, fields);
   }
 
   deleteSkill(id: string): Observable<void> {
