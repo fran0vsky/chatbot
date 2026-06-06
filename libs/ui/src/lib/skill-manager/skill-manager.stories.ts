@@ -3,7 +3,7 @@ import { DinoSkill } from '@org/shared-types';
 import { SkillManager } from './skill-manager';
 
 const skills: DinoSkill[] = [
-  { id: 's1', title: 'British English', instruction: 'Always answer in British English.' },
+  { id: 's1', title: 'British English', instruction: 'Always answer in British English.', whenToActivate: 'When the user asks a factual question' },
   { id: 's2', title: 'Cite sources', instruction: 'End factual answers with a short source list.' },
 ];
 
@@ -19,6 +19,7 @@ const meta: Meta<SkillManager> = {
   argTypes: {
     skillDeleted: { action: 'skillDeleted' },
     memoryDeleted: { action: 'memoryDeleted' },
+    skillEdited: { action: 'skillEdited' },
   },
 };
 export default meta;
