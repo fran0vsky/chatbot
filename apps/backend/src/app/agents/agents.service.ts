@@ -399,7 +399,13 @@ export class AgentsService {
   private buildSystemPrompt(basePrompt: string, skills: SkillView[], memories: string[]): string {
     let prompt = basePrompt;
     if (skills.length > 0) {
-      const block = skills.map((s) => `- ${s.title}: ${s.instruction}`).join('\n');
+      const block = skills
+        .map((s) =>
+          s.whenToActivate
+            ? `- ${s.title} (use when: ${s.whenToActivate}): ${s.instruction}`
+            : `- ${s.title}: ${s.instruction}`,
+        )
+        .join('\n');
       prompt += `\n\n## MANDATORY STANDING INSTRUCTIONS\nThe user has configured the following behaviors. You MUST apply ALL of them in every single response, without exception, regardless of context:\n${block}`;
     }
     if (memories.length > 0) {
