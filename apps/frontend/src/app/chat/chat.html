@@ -386,6 +386,20 @@
               </p>
             </div>
           }
+
+          <!-- Skills section (CMP-04): same data source as the teach modal -->
+          <div class="mt-10">
+            <h2 class="font-title text-xl text-jungle-accent dark:text-jungle-night-accent mb-2">Skills</h2>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted mb-4">
+              Skills you have taught this dino. Edit or delete them here.
+            </p>
+            <app-skill-manager
+              [skills]="learnedSkills()"
+              [memories]="[]"
+              (skillDeleted)="onSkillDeleted($event)"
+              (skillEdited)="onSkillEdited($event)"
+            />
+          </div>
         </div>
       </main>
     } @else {
@@ -727,6 +741,7 @@
           [memories]="learnedMemories()"
           (skillDeleted)="onSkillDeleted($event)"
           (memoryDeleted)="onMemoryDeleted($event)"
+          (skillEdited)="onSkillEdited($event)"
         />
       </div>
     </div>

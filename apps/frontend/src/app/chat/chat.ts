@@ -307,6 +307,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (view === 'leaderboard') {
       this.arenaService.loadLeaderboard().then(() => this.cdr.markForCheck());
     }
+    if (view === 'knowledge') {
+      const dinoId = this.activeDinoId();
+      if (dinoId) this.refreshLearned(dinoId);
+    }
   }
 
   /** Toggle a dino in/out of the groupchat selection (cap: GroupchatService.MAX_DINOS). */
@@ -459,6 +463,16 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.skillService.deleteSkill(id).subscribe({
       next: () => {
         this.learnedSkills.update((s) => s.filter((x) => x.id !== id));
+        this.cdr.markForCheck();
+      },
+      error: () => this.cdr.markForCheck(),
+    });
+  }
+
+  onSkillEdited(payload: { id: string; title: string; whenToActivate?: string; instruction: string }): void {
+    this.skillService.updateSkill(payload.id, { title: payload.title, whenToActivate: payload.whenToActivate, instruction: payload.instruction }).subscribe({
+      next: (updated) => {
+        this.learnedSkills.update((s) => s.map((x) => x.id === updated.id ? updated : x));
         this.cdr.markForCheck();
       },
       error: () => this.cdr.markForCheck(),
