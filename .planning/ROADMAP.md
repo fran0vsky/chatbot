@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 30: UX Reliability & Cleanup** - Loading/skeleton states (no stale messages on chat switch), long-text textarea fix, remove dino-picker "active" badge, remove Explore (completed 2026-06-04)
 - [x] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing (completed 2026-06-05)
 - [ ] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning
-- [ ] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills
+- [x] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills (completed 2026-06-06)
 - [ ] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory
 - [ ] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23)
 - [ ] **Phase 36: HTTPS / Let's Encrypt** - certbot + nginx on the VM, auto-renewing cert, HTTP→HTTPS redirect [independent infra track]
@@ -147,7 +147,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 30. UX Reliability & Cleanup | 4/4 | Complete    | 2026-06-05 |
 | 31. Tool Reliability (Search + Cheerio) | 2/2 | Complete   | 2026-06-05 |
 | 32. Working Memory + Context Ring | 0/TBD | Planned | - |
-| 33. Composer & Knowledge Reorg | 2/3 | In Progress|  |
+| 33. Composer & Knowledge Reorg | 3/3 | Complete   | 2026-06-06 |
 | 34. AI Memory Creator | 0/TBD | Planned | - |
 | 35. Conversational Group Chat | 0/TBD | Planned (supersedes 23) | - |
 | 36. HTTPS / Let's Encrypt | 0/TBD | Planned (infra track) | - |
@@ -615,7 +615,7 @@ Plans:
   4. The Knowledge view lists the active dino's learned skills (each with edit + delete)
   5. No regression: existing tool toggling and teach/save still work
 **Scope note:** In — composer icon/button reorg, `/teach` command, modal resize, skill edit UI + API, Knowledge skill list. Out — the AI suggestion engine (Phase 34). The brain icon's click target is wired here; its modal contents are built in Phase 34.
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 **UI hint:** yes
 
 ### Phase 34: AI Memory Creator
