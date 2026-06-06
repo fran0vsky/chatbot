@@ -61,6 +61,8 @@ export interface DinoSkill {
   id: string;
   title: string;
   instruction: string;
+  /** Optional activation trigger. Empty/absent = always apply (CMP-05). */
+  whenToActivate?: string;
 }
 
 /** Everything a dino has learned about a user: taught skills + auto-extracted memories. */
