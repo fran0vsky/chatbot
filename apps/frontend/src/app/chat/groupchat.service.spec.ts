@@ -1,159 +1,195 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { StreamEvent } from '@org/shared-types';
+import { GroupStreamEvent } from '@org/shared-types';
 import { ChatService } from './chat.service';
-import { GroupchatService, DinoStreamEntry } from './groupchat.service';
+import { GroupchatService, GroupViewMessage } from './groupchat.service';
 
-/** Build a fake async generator that yields the given events then returns. */
-async function* makeEvents(events: StreamEvent[]): AsyncGenerator<StreamEvent, void, void> {
+/** Build a fake async generator that yields the given group events then returns. */
+async function* makeEvents(
+  events: GroupStreamEvent[],
+): AsyncGenerator<GroupStreamEvent, void, void> {
   for (const e of events) {
     yield e;
   }
 }
 
-/** Helper to wait for signal propagation (micro-task + a small macro delay). */
+/** Wait for the streamGroup consumption micro-tasks + signal propagation. */
 function tick(ms = 20): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-describe('GroupchatService', () => {
+describe('GroupchatService (turn-based)', () => {
   let service: GroupchatService;
-  let chatService: jest.Mocked<Pick<ChatService, 'streamMessage' | 'setThread'>>;
+  let streamGroup: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    const streamMessageMock = jest.fn();
+    streamGroup = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
         GroupchatService,
-        {
-          provide: ChatService,
-          useValue: {
-            streamMessage: streamMessageMock,
-          },
-        },
+        { provide: ChatService, useValue: { streamGroup } },
       ],
     });
 
     service = TestBed.inject(GroupchatService);
-    chatService = TestBed.inject(ChatService) as unknown as typeof chatService;
-    (chatService as { streamMessage: jest.Mock }).streamMessage = streamMessageMock;
   });
 
   afterEach(() => {
     service.stopAll();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  it('initialises entries with idle status for each dinoId', async () => {
-    (chatService.streamMessage as jest.Mock).mockReturnValue(makeEvents([]));
+  function dino(list: GroupViewMessage[], dinoId: string): GroupViewMessage | undefined {
+    return list.find((m) => m.role === 'dino' && m.dinoId === dinoId);
+  }
+
+  it('lays out Round-1 answerers in plan order with finalized text + done status', async () => {
+    streamGroup.mockReturnValue(
+      makeEvents([
+        {
+          type: 'plan',
+          plan: {
+            round1: [
+              { dinoId: 'rex', action: 'answer', order: 1 },
+              { dinoId: 'philo', action: 'answer', order: 0 },
+            ],
+            round2: [],
+          },
+        },
+        { type: 'dino_token', dinoId: 'rex', text: 'Hello ' },
+        { type: 'dino_token', dinoId: 'rex', text: 'Rex.' },
+        { type: 'dino_done', dinoId: 'rex', response: 'Hello Rex.', messageId: 's-rex' },
+        { type: 'dino_token', dinoId: 'philo', text: 'Hi Philo.' },
+        { type: 'dino_done', dinoId: 'philo', response: 'Hi Philo.', messageId: 's-philo' },
+        { type: 'group_done' },
+      ]),
+    );
 
     service.send('hello', ['rex', 'philo']);
-    const entries = service.entries();
-    expect(entries).toHaveLength(2);
-    expect(entries.map((e: DinoStreamEntry) => e.dinoId)).toEqual(['rex', 'philo']);
-  });
+    await tick();
 
-  it('accumulates token events into per-dino text independently', async () => {
-    (chatService.streamMessage as jest.Mock)
-      .mockImplementationOnce(() =>
-        makeEvents([
-          { type: 'token', text: 'Hello ' } as StreamEvent,
-          { type: 'token', text: 'Rex.' } as StreamEvent,
-          { type: 'done', response: 'Hello Rex.', toolCalls: [] } as StreamEvent,
-        ]),
-      )
-      .mockImplementationOnce(() =>
-        makeEvents([
-          { type: 'token', text: 'Hi ' } as StreamEvent,
-          { type: 'token', text: 'Philo.' } as StreamEvent,
-          { type: 'done', response: 'Hi Philo.', toolCalls: [] } as StreamEvent,
-        ]),
-      );
+    const msgs = service.messages();
+    const dinoMsgs = msgs.filter((m) => m.role === 'dino');
+    // Plan order is philo (order 0) then rex (order 1).
+    expect(dinoMsgs.map((m) => m.dinoId)).toEqual(['philo', 'rex']);
 
-    service.send('hello', ['rex', 'philo']);
-    await tick(50);
-
-    const entries = service.entries();
-    const rex = entries.find((e: DinoStreamEntry) => e.dinoId === 'rex');
-    const philo = entries.find((e: DinoStreamEntry) => e.dinoId === 'philo');
-
+    const rex = dino(msgs, 'rex');
+    const philo = dino(msgs, 'philo');
     expect(rex?.text).toBe('Hello Rex.');
     expect(rex?.status).toBe('done');
+    expect(rex?.serverMessageId).toBe('s-rex');
     expect(philo?.text).toBe('Hi Philo.');
     expect(philo?.status).toBe('done');
   });
 
-  it('isolates a failing stream: one error does not affect others', async () => {
-    (chatService.streamMessage as jest.Mock)
-      .mockImplementationOnce(() =>
-        makeEvents([
-          { type: 'error', message: 'Model unavailable' } as StreamEvent,
-        ]),
-      )
-      .mockImplementationOnce(() =>
-        makeEvents([
-          { type: 'token', text: 'All good.' } as StreamEvent,
-          { type: 'done', response: 'All good.', toolCalls: [] } as StreamEvent,
-        ]),
-      );
+  it('attaches a reaction to the targeted message as a chip without adding a line', async () => {
+    // Capture the user message id created by send() so we can target it.
+    let userId = '';
+    streamGroup.mockImplementation(() => {
+      userId = service.messages()[0].id;
+      return makeEvents([
+        { type: 'reaction', dinoId: 'rex', emoji: '🔥', targetMessageId: userId },
+        { type: 'group_done' },
+      ]);
+    });
 
-    service.send('test', ['bad-dino', 'good-dino']);
-    await tick(50);
+    service.send('great point', ['rex']);
+    await tick();
 
-    const entries = service.entries();
-    const bad = entries.find((e: DinoStreamEntry) => e.dinoId === 'bad-dino');
-    const good = entries.find((e: DinoStreamEntry) => e.dinoId === 'good-dino');
-
-    expect(bad?.status).toBe('error');
-    expect(bad?.error).toBe('Model unavailable');
-    expect(good?.status).toBe('done');
-    expect(good?.text).toBe('All good.');
+    const msgs = service.messages();
+    // Only the single user message — no extra transcript line for the reaction.
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0].role).toBe('user');
+    expect(msgs[0].reactions).toEqual([{ dinoId: 'rex', emoji: '🔥' }]);
   });
 
-  it('caps dinoIds at MAX_DINOS (4)', () => {
-    (chatService.streamMessage as jest.Mock).mockReturnValue(makeEvents([]));
-
-    service.send('hi', ['a', 'b', 'c', 'd', 'e', 'f']);
-    expect(service.entries()).toHaveLength(GroupchatService.MAX_DINOS);
-  });
-
-  it('stopAll aborts all active streams and clears controllers', async () => {
-    let aborted = false;
-    async function* neverEnds(
-      _: string,
-      __: string | undefined,
-      signal: AbortSignal,
-    ): AsyncGenerator<StreamEvent, void, void> {
-      await new Promise<void>((res) => {
-        signal.addEventListener('abort', () => {
-          aborted = true;
-          res();
-        });
-      });
-      // Yield point required by lint — never reached in practice (stream ends via abort above).
-      yield { type: 'done', response: '', toolCalls: [] } as StreamEvent;
-    }
-
-    (chatService.streamMessage as jest.Mock).mockImplementation(
-      (_msg: string, _dino: string | undefined, signal: AbortSignal) => neverEnds(_msg, _dino, signal),
+  it('marks a dino message as error on dino_error', async () => {
+    streamGroup.mockReturnValue(
+      makeEvents([
+        {
+          type: 'plan',
+          plan: { round1: [{ dinoId: 'rex', action: 'answer', order: 0 }], round2: [] },
+        },
+        { type: 'dino_error', dinoId: 'rex', message: 'Model unavailable' },
+        { type: 'group_done' },
+      ]),
     );
 
-    service.send('hi', ['dino1']);
-    await tick(5);
-    service.stopAll();
-    await tick(10);
+    service.send('hi', ['rex']);
+    await tick();
 
-    expect(aborted).toBe(true);
+    const rex = dino(service.messages(), 'rex');
+    expect(rex?.status).toBe('error');
+    expect(rex?.error).toBe('Model unavailable');
   });
 
-  it('clears entries from a previous send when a new send is called', async () => {
-    (chatService.streamMessage as jest.Mock).mockReturnValue(makeEvents([]));
+  it('clears streaming on group_done', async () => {
+    streamGroup.mockReturnValue(makeEvents([{ type: 'group_done' }]));
 
-    service.send('first', ['a', 'b']);
-    expect(service.entries()).toHaveLength(2);
+    service.send('hi', ['rex']);
+    await tick();
 
-    service.send('second', ['x']);
-    expect(service.entries()).toHaveLength(1);
-    expect(service.entries()[0].dinoId).toBe('x');
+    expect(service.streaming()).toBe(false);
+  });
+
+  it('sends prior messages (capped) as history to streamGroup', async () => {
+    streamGroup.mockReturnValue(makeEvents([{ type: 'group_done' }]));
+
+    // First turn seeds the transcript with a user message.
+    service.send('first', ['rex']);
+    await tick();
+
+    streamGroup.mockClear();
+    streamGroup.mockReturnValue(makeEvents([{ type: 'group_done' }]));
+
+    service.send('second', ['rex']);
+    await tick();
+
+    const [message, participantDinoIds, history] = streamGroup.mock.calls[0];
+    expect(message).toBe('second');
+    expect(participantDinoIds).toEqual(['rex']);
+    // History includes the first user turn but NOT the just-added "second" turn.
+    expect(history.map((m: GroupViewMessage) => m.text)).toEqual(['first']);
+    expect(history.length).toBeLessThanOrEqual(20);
+  });
+
+  it('caps participants at MAX_DINOS', async () => {
+    streamGroup.mockReturnValue(makeEvents([{ type: 'group_done' }]));
+
+    service.send('hi', ['a', 'b', 'c', 'd', 'e', 'f']);
+    await tick();
+
+    const [, participantDinoIds] = streamGroup.mock.calls[0];
+    expect(participantDinoIds).toHaveLength(GroupchatService.MAX_DINOS);
+  });
+
+  it('stopAll aborts the in-flight stream and clears streaming', async () => {
+    let captured: AbortSignal | undefined;
+    async function* neverEnds(
+      _message: string,
+      _ids: string[],
+      _history: unknown,
+      signal: AbortSignal,
+    ): AsyncGenerator<GroupStreamEvent, void, void> {
+      captured = signal;
+      await new Promise<void>((res) => {
+        signal.addEventListener('abort', () => res());
+      });
+      yield { type: 'group_done' };
+    }
+    streamGroup.mockImplementation(
+      (m: string, ids: string[], h: unknown, s: AbortSignal) => neverEnds(m, ids, h, s),
+    );
+
+    service.send('hi', ['rex']);
+    await tick(5);
+    expect(service.streaming()).toBe(true);
+
+    service.stopAll();
+    await tick(5);
+
+    expect(captured?.aborted).toBe(true);
+    expect(service.streaming()).toBe(false);
   });
 });
