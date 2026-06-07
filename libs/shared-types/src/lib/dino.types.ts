@@ -1,3 +1,5 @@
+import { ChatHistoryItem } from './chat.types.js';
+
 export type DinoId = string;
 
 /**
@@ -69,4 +71,51 @@ export interface DinoSkill {
 export interface LearnedItems {
   skills: DinoSkill[];
   memories: { id: string; content: string }[];
+}
+
+// --- AI Memory Creator contracts (Phase 34) ---
+// The creator generates suggestions from the conversation, synthesizes a chosen
+// suggestion or free text into the 3-field skill shape, and saves with server-side
+// create-vs-update reconciliation. All operations run on the active dino's own model
+// (resolved server-side via dinoId) with the same paid fallback as the agent loop.
+
+/** The 3-field skill shape the creator form produces (maps 1:1 onto DinoSkill). */
+export interface SynthesizedSkill {
+  title: string;
+  whenToActivate?: string;
+  instruction: string;
+}
+
+/** Request to derive things-worth-remembering from the current conversation. */
+export interface SuggestSkillsRequest {
+  userId: string;
+  dinoId: string;
+  history: ChatHistoryItem[];
+}
+
+/** ≥3 short, distinct suggestions derived from the conversation (SC#1). */
+export interface SuggestSkillsResponse {
+  suggestions: string[];
+}
+
+/** Request to turn a chosen suggestion OR free natural text into the 3-field form. */
+export interface SynthesizeSkillRequest {
+  userId: string;
+  dinoId: string;
+  input: string;
+}
+
+/** Request to persist a created skill with server-side create-vs-update reconciliation. */
+export interface SaveCreatedSkillRequest {
+  userId: string;
+  dinoId: string;
+  title: string;
+  whenToActivate?: string;
+  instruction: string;
+}
+
+/** The persisted skill plus the server-decided action (never surfaced as a toggle). */
+export interface SaveCreatedSkillResponse {
+  skill: DinoSkill;
+  action: 'created' | 'updated';
 }
