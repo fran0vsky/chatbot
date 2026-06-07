@@ -1,5 +1,7 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
 import {
+  ChatMessage,
+  ConversationSession,
   GroupMessage,
   GroupReaction,
   GroupStreamEvent,
@@ -57,6 +59,20 @@ export class GroupchatService {
   private controller?: AbortController;
 
   /**
+   * Stable id for the current group thread. Created on the first `send` of a
+   * fresh session (or set by `loadSession` when reopening) and reused across
+   * turns so re-saving updates the same ConversationSession instead of
+   * duplicating it. Reset by `startNewSession`.
+   */
+  private groupSessionId?: string;
+
+  /** When the current group session was first created (stable across turns). */
+  private groupSessionCreatedAt = Date.now();
+
+  /** The participant roster for the current session (saved on the session). */
+  private participantDinoIds: string[] = [];
+
+  /**
    * Send one user message to the selected dinos and stream the group turn.
    * Aborts any prior in-flight turn first. Participants are capped at MAX_DINOS;
    * history is capped at HISTORY_CAP attributed turns.
@@ -69,6 +85,13 @@ export class GroupchatService {
 
     const cappedIds = participantDinoIds.slice(0, GroupchatService.MAX_DINOS);
     if (cappedIds.length === 0) return;
+
+    // Establish a stable session id + roster on the first send of a fresh thread.
+    if (!this.groupSessionId) {
+      this.groupSessionId = newUuid();
+      this.groupSessionCreatedAt = Date.now();
+    }
+    this.participantDinoIds = cappedIds;
 
     // History is the transcript BEFORE this turn's user message, capped.
     const history: GroupMessage[] = this._messages()
@@ -95,6 +118,84 @@ export class GroupchatService {
     this.controller?.abort();
     this.controller = undefined;
     this._streaming.set(false);
+  }
+
+  /**
+   * Build a persistable ConversationSession (D-08) from the current transcript:
+   * a single interleaved, attributed message list flagged `isGroup` and carrying
+   * the participant roster, under a stable id so re-saving updates in place.
+   */
+  toSession(title: string): ConversationSession {
+    if (!this.groupSessionId) {
+      this.groupSessionId = newUuid();
+      this.groupSessionCreatedAt = Date.now();
+    }
+    return {
+      id: this.groupSessionId,
+      title,
+      isGroup: true,
+      participantDinoIds: [...this.participantDinoIds],
+      messages: this._messages().map((m) => this.groupMessageToChatMessage(m)),
+      createdAt: this.groupSessionCreatedAt,
+    };
+  }
+
+  /**
+   * Reopen a persisted group thread (Success Criterion #4): adopt its stable id,
+   * restore the interleaved `messages` signal from the saved transcript, and
+   * return the saved roster so the component can restore the dino selection.
+   */
+  loadSession(session: ConversationSession): string[] {
+    this.stopAll();
+    this.groupSessionId = session.id;
+    this.groupSessionCreatedAt = session.createdAt;
+    this.participantDinoIds = session.participantDinoIds ?? [];
+    this._messages.set(session.messages.map((m) => this.chatMessageToGroupMessage(m)));
+    return [...this.participantDinoIds];
+  }
+
+  /** Reset to a fresh, empty group session (new stable id assigned on next send). */
+  startNewSession(): void {
+    this.stopAll();
+    this.groupSessionId = undefined;
+    this.groupSessionCreatedAt = Date.now();
+    this.participantDinoIds = [];
+    this._messages.set([]);
+  }
+
+  /**
+   * Map an in-transcript group message to a persistable ChatMessage:
+   * `'user'` → `'user'`; `'dino'` → `'assistant'` carrying its `dinoId`.
+   */
+  private groupMessageToChatMessage(m: GroupViewMessage): ChatMessage {
+    const base: ChatMessage = {
+      text: m.text,
+      role: m.role === 'user' ? 'user' : 'assistant',
+      createdAt: m.createdAt,
+    };
+    if (m.role === 'dino' && m.dinoId) base.dinoId = m.dinoId;
+    if (m.reactions && m.reactions.length > 0) base.reactions = m.reactions;
+    return base;
+  }
+
+  /**
+   * Map a persisted ChatMessage back to a settled group transcript message:
+   * `'assistant'` + `dinoId` → group `'dino'`; otherwise → `'user'`.
+   */
+  private chatMessageToGroupMessage(m: ChatMessage): GroupViewMessage {
+    const isDino = m.role === 'assistant';
+    const view: GroupViewMessage = {
+      id: newUuid(),
+      role: isDino ? 'dino' : 'user',
+      text: m.text,
+      createdAt: m.createdAt ?? Date.now(),
+    };
+    if (isDino) {
+      view.status = 'done';
+      if (m.dinoId) view.dinoId = m.dinoId;
+    }
+    if (m.reactions && m.reactions.length > 0) view.reactions = m.reactions;
+    return view;
   }
 
   /** Strip frontend-only view state before sending a message back as history. */
