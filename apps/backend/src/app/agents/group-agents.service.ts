@@ -241,7 +241,7 @@ export class GroupAgentsService {
       plan = allAnswerPlan(roster);
     }
 
-    return this.applyMentionForcing(plan, forcedIds);
+    return plan;
   }
 
   /** Override forced dinos to `answer` in Round 1, appending any that are absent. */
@@ -331,7 +331,10 @@ export class GroupAgentsService {
     }
 
     const forcedIds = this.parseMentions(message, roster);
-    const plan = await this.runOrchestrator(message, roster, transcript, forcedIds, signal);
+    const rawPlan = await this.runOrchestrator(message, roster, transcript, forcedIds, signal);
+    // @mention forcing is enforced by the engine (GRP2-02 / D-04) regardless of
+    // what the orchestrator returned: a forced dino is overridden to `answer`.
+    const plan = this.applyMentionForcing(rawPlan, forcedIds);
     yield { type: 'plan', plan };
     if (signal.aborted) return;
 
@@ -386,7 +389,11 @@ export class GroupAgentsService {
     }
 
     // --- Round 2: SEQUENTIAL so each replier sees the Round-1 answers (D-02) -
-    const round2 = [...plan.round2].sort((a, b) => a.order - b.order);
+    // Defensive clamp: parseOrchestratorPlan already caps round2, but enforce the
+    // ceiling here too so the cost bound holds regardless of how the plan arrived.
+    const round2 = [...plan.round2]
+      .sort((a, b) => a.order - b.order)
+      .slice(0, MAX_INTER_DINO_REPLIES);
     for (const decision of round2) {
       if (signal.aborted) return;
       if (decision.action === 'react' && decision.emoji) {
