@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: — Dino Platform
 status: executing
-stopped_at: Phase 34 complete (plan 02 frontend); HUMAN-UAT pending
-last_updated: "2026-06-07T14:55:00.000Z"
-last_activity: 2026-06-07 -- Phase 34 plan 02 (creator frontend) complete
+stopped_at: Completed 35-01-PLAN.md (backend group orchestrator engine)
+last_updated: "2026-06-07T15:05:00.000Z"
+last_activity: 2026-06-07 -- Phase 35 plan 01 (backend turn-based orchestrator) complete
 progress:
   total_phases: 11
-  completed_phases: 10
+  completed_phases: 9
   total_plans: 31
-  completed_plans: 34
+  completed_plans: 33
   percent: 85
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 34 — ai-memory-creator
+**Current focus:** Phase 35 — Conversational Group Chat
 
 ## Current Position
 
-Phase: 34 (ai-memory-creator) — COMPLETE (HUMAN-UAT pending)
-Plan: 2 of 2 complete
-Status: Both plans complete; SC#1–SC#3 await runtime HUMAN-UAT (Task 4)
-Last activity: 2026-06-07 -- Phase 34 plan 02 (creator frontend) complete
+Phase: 35 (Conversational Group Chat) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 35 (plan 01 backend engine complete)
+Last activity: 2026-06-07 -- Phase 35 plan 01 (backend turn-based orchestrator) complete
 
 ## Performance Metrics
 
@@ -91,6 +91,7 @@ Recent decisions affecting current work:
 - Phase 28-01: VOX-01/02 read-aloud with VoiceSynthesisService + BrowserTtsAdapter; per-dino voiceProfile; Phase 29 seam wired via Actions$ ofType read_last_message
 - Phase 28-02: VOX-03 dictation; VoiceRecognitionService NgZone-wrapped signals; MAX_DRAFT_LENGTH=10_000 for transcript sanitization (T-28-03); mic hidden on unsupported browsers
 - Phase 34-02: Memory Creator frontend = brain button rewired to openCreator() (auto-fires suggest on overlay open); pick-suggestion + free-text converge on one private synthesizeInto() step (D-05); saveCreated delegates create-vs-update to the backend with NO component branching/toggle (D-07); creator failures degrade silently and never block chat or teach; added skillWhenToActivate signal (Phase 33 had the column + skill-manager edit path but no chat-level form signal); manual teach form preserved under a disclosure (SC#4); all HTTP via SkillService, OnPush+markForCheck, Tailwind only, LLM text via interpolation never innerHTML (T-34-02-01). Frontend nx project id is `frontend` (not `@org/frontend`).
+- Phase 35-01: Backend group orchestrator = new GroupAgentsService + GroupAgentsController (POST /api/agents/group SSE), reusing AgentsService.streamAgent UNCHANGED per answerer. One cheap gpt-4o-mini orchestrator call returns a defensively-parsed per-dino answer/react/silent plan; Round 1 concurrent (multiplexed, dino-tagged on one SSE stream), Round 2 bounded+sequential (≤MAX_INTER_DINO_REPLIES=2). @mention forcing moved to engine level (streamGroup, not runOrchestrator) so it holds independent of the LLM plan and is unit-testable. Reactions cost zero LLM calls; documented hard ceiling 1+4+2=7 calls/turn. parseOrchestratorPlan + buildAttributedHistory (D-09 speaker-labelled history) exported as pure helpers. shared-types has a `typecheck` target, not `build`.
 - Phase 34-01: Memory Creator backend = standalone MemoryCreatorService reusing agents.service paid-fallback shape (FALLBACK_MODEL=gpt-4o-mini) WITHOUT importing agents.service.ts (D-02); writes DinoSkills only via addSkill/updateSkill (no new persistence endpoint, D-08); reconcile is a separate server-side LLM call returning 'new' or an existing skill id (D-07, decision never surfaced); imageGen dinos use FALLBACK_MODEL; all creator LLM failures degrade (suggest→[], synthesize→raw input) and never 500 the chat; parseSynthesized/parseReconcile exported as pure unit-testable helpers
 
 ### Pending Todos
@@ -134,6 +135,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-07T14:55:00.000Z
-Stopped at: Completed 34-02-PLAN.md (creator frontend) — Phase 34 code-complete, HUMAN-UAT pending
+Last session: 2026-06-07T15:05:00.000Z
+Stopped at: Completed 35-01-PLAN.md (backend group orchestrator engine)
 Resume file: None
