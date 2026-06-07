@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
-import { DinoSummary } from '@org/shared-types';
+import { DinoSummary, GroupReaction } from '@org/shared-types';
 import { Mascot } from '../mascot/mascot.js';
 import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
 
@@ -30,4 +30,10 @@ export class GroupResponse {
 
   /** Error message shown when status === 'error'. */
   @Input() error?: string;
+
+  /** Emoji reactions pinned to this message (D-06). Each = reacting dino + emoji. */
+  @Input() reactions?: GroupReaction[];
+
+  /** When set, shows a subtle "replying to {name}" affordance in the header (D-05). */
+  @Input() respondingToName?: string;
 }

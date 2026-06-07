@@ -79,3 +79,25 @@ export const StreamingNoTokensYet: Story = {
     status: 'streaming',
   },
 };
+
+export const WithReactions: Story = {
+  args: {
+    dino: rexford,
+    text: 'A binary search halves the range each step, so it runs in O(log n).',
+    status: 'done',
+    reactions: [
+      { dinoId: 'veloce', emoji: '🔥' },
+      { dinoId: 'philo', emoji: '👍' },
+    ],
+  },
+};
+
+export const RespondingTo: Story = {
+  args: {
+    dino: veloce,
+    text: "Building on Rexford's point — there's also an interpolation-search variant worth knowing.",
+    status: 'done',
+    respondingToName: 'Rexford',
+    reactions: [{ dinoId: 'rexford', emoji: '🤝' }],
+  },
+};
