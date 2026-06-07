@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: — Dino Platform
 status: executing
-stopped_at: Completed 35-01-PLAN.md (backend group orchestrator engine)
-last_updated: "2026-06-07T15:05:00.000Z"
-last_activity: 2026-06-07 -- Phase 35 plan 01 (backend turn-based orchestrator) complete
+stopped_at: Completed 35-02-PLAN.md (frontend turn-based group client + old fan-out removal)
+last_updated: "2026-06-07T15:45:00.000Z"
+last_activity: 2026-06-07 -- Phase 35 plan 02 (frontend turn-based group chat) complete
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 33
-  percent: 85
+  completed_plans: 34
+  percent: 87
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 ## Current Position
 
 Phase: 35 (Conversational Group Chat) — EXECUTING
-Plan: 2 of 3
-Status: Executing Phase 35 (plan 01 backend engine complete)
-Last activity: 2026-06-07 -- Phase 35 plan 01 (backend turn-based orchestrator) complete
+Plan: 3 of 3
+Status: Executing Phase 35 (plans 01 backend + 02 frontend complete; plan 03 persistence pending)
+Last activity: 2026-06-07 -- Phase 35 plan 02 (frontend turn-based group chat) complete
 
 ## Performance Metrics
 
@@ -91,6 +91,7 @@ Recent decisions affecting current work:
 - Phase 28-01: VOX-01/02 read-aloud with VoiceSynthesisService + BrowserTtsAdapter; per-dino voiceProfile; Phase 29 seam wired via Actions$ ofType read_last_message
 - Phase 28-02: VOX-03 dictation; VoiceRecognitionService NgZone-wrapped signals; MAX_DRAFT_LENGTH=10_000 for transcript sanitization (T-28-03); mic hidden on unsupported browsers
 - Phase 34-02: Memory Creator frontend = brain button rewired to openCreator() (auto-fires suggest on overlay open); pick-suggestion + free-text converge on one private synthesizeInto() step (D-05); saveCreated delegates create-vs-update to the backend with NO component branching/toggle (D-07); creator failures degrade silently and never block chat or teach; added skillWhenToActivate signal (Phase 33 had the column + skill-manager edit path but no chat-level form signal); manual teach form preserved under a disclosure (SC#4); all HTTP via SkillService, OnPush+markForCheck, Tailwind only, LLM text via interpolation never innerHTML (T-34-02-01). Frontend nx project id is `frontend` (not `@org/frontend`).
+- Phase 35-02: Frontend turn-based group client = rebuilt `GroupchatService` around the single backend `POST /api/agents/group` endpoint (new `ChatService.streamGroup` async generator mirroring `streamMessage`'s SSE parse loop; `streamMessage` byte-for-byte unchanged). Old parallel fan-out fully removed (no `DinoStreamEntry`, no `group-{groupId}-{dinoId}` per-dino threads, no fallback). Service exposes an ordered `messages` signal (`GroupViewMessage` extends shared `GroupMessage` with frontend-only `status`/`serverMessageId`/`error`) + `streaming` signal; `plan` pre-creates Round-1 placeholder slots in `order`, `dino_token`/`dino_done` route by dinoId into the open slot (`findOpenSlot` newest-first), Round-2 replies with no open slot append, `reaction` pins a chip onto its `targetMessageId` (matches `id` OR `serverMessageId`, no extra line — D-06), `dino_error` sets error status, `group_done` clears streaming. History capped at 20, participants at `MAX_DINOS=4`. `group-response` extended with `reactions`/`respondingToName` inputs (presentational, stays service-free). Groupchat view rewired to one top-to-bottom transcript (user bubbles + `app-group-response` rows). `@mention` autocomplete is app-layer (chat.ts `ngDoCheck` watches a `#groupComposer` ViewChild draft; trailing `@<partial>` opens a participant dropdown; `applyMention` inserts `@Name ` — `app-input-composer` untouched). Frontend nx project id is `frontend`; the `nx test frontend` runner crashes at bundle generation in this env (pre-existing — see deferred-items.md), so the Vitest spec (migrated to `vi.*`) could not be executed here.
 - Phase 35-01: Backend group orchestrator = new GroupAgentsService + GroupAgentsController (POST /api/agents/group SSE), reusing AgentsService.streamAgent UNCHANGED per answerer. One cheap gpt-4o-mini orchestrator call returns a defensively-parsed per-dino answer/react/silent plan; Round 1 concurrent (multiplexed, dino-tagged on one SSE stream), Round 2 bounded+sequential (≤MAX_INTER_DINO_REPLIES=2). @mention forcing moved to engine level (streamGroup, not runOrchestrator) so it holds independent of the LLM plan and is unit-testable. Reactions cost zero LLM calls; documented hard ceiling 1+4+2=7 calls/turn. parseOrchestratorPlan + buildAttributedHistory (D-09 speaker-labelled history) exported as pure helpers. shared-types has a `typecheck` target, not `build`.
 - Phase 34-01: Memory Creator backend = standalone MemoryCreatorService reusing agents.service paid-fallback shape (FALLBACK_MODEL=gpt-4o-mini) WITHOUT importing agents.service.ts (D-02); writes DinoSkills only via addSkill/updateSkill (no new persistence endpoint, D-08); reconcile is a separate server-side LLM call returning 'new' or an existing skill id (D-07, decision never surfaced); imageGen dinos use FALLBACK_MODEL; all creator LLM failures degrade (suggest→[], synthesize→raw input) and never 500 the chat; parseSynthesized/parseReconcile exported as pure unit-testable helpers
 
@@ -99,7 +100,8 @@ Recent decisions affecting current work:
 - **Phase 34 Task 4 — Memory Creator end-to-end UAT (human):** with Phase 33 + 34-01 deployed, `DATABASE_URL` + `OPENROUTER_API_KEY` set and `dino_skills` pushed, serve the app and in a dino conversation: (1) brain → thinking state → ≥3 conversation-derived suggestions (SC#1); (2) pick-a-suggestion AND free-text both prefill the editable name/when/instruction form (SC#2); (3) save persists + auto-applies next chat, and an overlapping item UPDATES the existing skill (no duplicate, no new-vs-update toggle) (SC#3); (4) the manual teach form (under the disclosure) + stored skills/memories still work (SC#4). BLOCKING for phase verification. See 34-02-SUMMARY.md.
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
 - **Phase 22 Task 5 — teach-once smoke test (human):** with DB + key and `dino_skills` pushed: teach rexford "Always answer in British English." → new chat with rexford applies it without re-teaching → manager delete stops it → veloce unaffected. See 22-01-SUMMARY.md.
-- **Phase 23 Task 4 — groupchat smoke test (human):** serve app with live API key; enter Group chat; select 3 dinos; send "Explain recursion in one line."; confirm 3 attributed panels stream in parallel; kill network for one model and confirm only that panel errors. See 23-01-SUMMARY.md.
+- **Phase 35 Task 7 — turn-based group chat live UAT (human):** serve `npx nx serve @org/backend` + `npx nx serve frontend` with a live `OPENROUTER_API_KEY`. In Group chat select 3-4 dinos and: (1) send a general prompt → confirm a real chat emerges (some answer, some show an emoji reaction chip, some stay silent) rendered top-to-bottom with mascot+name attribution (GRP2-01); (2) `@mention` one dino via the autocomplete → that dino always replies, and a non-addressed competent dino sometimes volunteers a named reply (GRP2-02); (3) confirm ≥1 bounded inter-dino follow-up appears and reads coherently (GRP2-03); (4) confirm single-dino chat + Arena are unchanged. BLOCKING for phase verification. See 35-02-SUMMARY.md.
+- **Phase 23 Task 4 — groupchat smoke test (human):** ⚠ SUPERSEDED by Phase 35 Task 7 (old parallel fan-out removed). See 23-01-SUMMARY.md for historical context only.
 - **Phase 28-02 Task 5 — VOX-03 manual dictation smoke test (human):** serve app (`npx nx serve frontend`); in Chrome: click mic, grant permission, speak, confirm interim words fill draft live, confirm no auto-submit, confirm listening pulse ring, confirm long transcript is capped; in Firefox: confirm mic button is absent entirely. See 28-02-SUMMARY.md.
 - **Phase 28 Task 8 — TTS manual audio smoke test (human):** confirm audible speech per dino in Chrome, Stop halts, no SSML markup spoken literally. See 28-01-SUMMARY.md.
 - **Phase 27 Task 7 — NgRx regression sweep (human):** serve the app and exercise EVERY flow (send/stream, stop, regenerate, edit-and-resend, theme toggle + reload persistence, new chat, switch/delete/rename/pin session, dino picker, Explore, groupchat, arena, leaderboard). Confirm no behavior change vs pre-refactor + open Redux DevTools to confirm actions fire. See 27-01-SUMMARY.md. **Env note:** `nx test frontend` currently crashes with a pre-existing TS `referencedFiles` bug (reproduces on pre-NgRx baseline too) — see phase deferred-items.md.
@@ -135,6 +137,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-07T15:05:00.000Z
-Stopped at: Completed 35-01-PLAN.md (backend group orchestrator engine)
+Last session: 2026-06-07T15:45:00.000Z
+Stopped at: Completed 35-02-PLAN.md (frontend turn-based group client + old fan-out removal)
 Resume file: None

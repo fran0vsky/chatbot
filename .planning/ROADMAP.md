@@ -643,7 +643,7 @@ Plans:
   3. Dinos can respond to each other (bounded inter-dino turns), and the thread reads top-to-bottom like a real chat with clear per-dino attribution
   4. Group conversations are saved in the history panel and reopen with full transcript (current groupchat is ephemeral)
 **Scope note:** In — turn-based orchestrator/router (per-dino speak/react/silent decision), directed-mention forcing, bounded inter-dino dialogue, emoji reactions, persisted group threads. Out — the old parallel fan-out (removed, no fallback). Loop bounds + cost caps designed and documented in-phase (build on the Phase 23 `MAX_DINOS=4` cap).
-**Plans:** 1/3 complete (01 backend orchestrator engine — done; 02 frontend + old fan-out removal, 03 pending)
+**Plans:** 2/3 complete (01 backend orchestrator engine — done; 02 frontend turn-based client + old fan-out removal — done, HUMAN-UAT pending; 03 persistence pending)
 **UI hint:** yes
 
 ### Phase 36: HTTPS / Let's Encrypt
