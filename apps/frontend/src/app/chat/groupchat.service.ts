@@ -1,169 +1,287 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, Signal, inject, signal } from '@angular/core';
+import {
+  GroupMessage,
+  GroupReaction,
+  GroupStreamEvent,
+} from '@org/shared-types';
 import { ChatService, newUuid } from './chat.service';
 
-export type DinoStreamStatus = 'idle' | 'streaming' | 'done' | 'error';
+/** Streaming/completion status for a dino message row in the transcript. */
+export type GroupMessageStatus = 'streaming' | 'done' | 'error';
 
-export interface DinoStreamEntry {
-  dinoId: string;
-  threadId: string;
-  text: string;
-  status: DinoStreamStatus;
+/**
+ * One attributed message in the interleaved group transcript, plus the
+ * frontend-only view state the transcript needs (streaming status, the
+ * server-assigned messageId reactions target, and any error text).
+ */
+export interface GroupViewMessage extends GroupMessage {
+  /** Only present for `role === 'dino'` rows. User rows are always settled. */
+  status?: GroupMessageStatus;
+  /** Server-assigned id from `dino_done`; reactions may target it. */
+  serverMessageId?: string;
+  /** Error text when `status === 'error'`. */
   error?: string;
 }
 
 /**
- * Fans out a single user prompt to N dinos in parallel, each on its own SSE
- * stream. Per-dino state is exposed as a signal array. A failure in one dino's
- * stream does not abort the others.
+ * Turn-based group-chat client (Phase 35). On each `send` it posts the user
+ * message + the accumulated attributed transcript (capped) to the single backend
+ * endpoint `POST /api/agents/group` and renders one interleaved top-to-bottom
+ * transcript from the multiplexed `GroupStreamEvent` stream:
+ *  - `plan` lays out Round-1 answerer slots in the orchestrator's chosen order;
+ *  - `dino_token`/`dino_done` route into a dino's slot by id;
+ *  - `reaction` pins an emoji chip onto its target message (no new line);
+ *  - Round-2 replies with no open slot append in arrival order.
  *
- * Thread IDs follow the pattern: `group-{groupId}-{dinoId}` so each panel
- * keeps an isolated history.
- *
- * Cap: callers should pass 2–4 dinoIds to bound free-model load (T-23-01).
+ * The old parallel fan-out (per-dino `group-{groupId}-{dinoId}` threads,
+ * `DinoStreamEntry[]`) is removed — there is no fallback.
  */
 @Injectable({ providedIn: 'root' })
 export class GroupchatService {
   private readonly chatService = inject(ChatService);
 
-  /** Max dinos selectable in groupchat mode (DoS mitigation T-23-01). */
+  /** Max dinos selectable in groupchat mode (DoS mitigation T-23-01 / T-35-02-01). */
   static readonly MAX_DINOS = 4;
 
-  /** Live per-dino state, updated as streams progress. */
-  readonly entries = signal<DinoStreamEntry[]>([]);
+  /** Recent attributed turns sent back as history (D-09 / HISTORY_CAP). */
+  private static readonly HISTORY_CAP = 20;
 
-  private controllers: Map<string, AbortController> = new Map();
+  private readonly _messages = signal<GroupViewMessage[]>([]);
+  private readonly _streaming = signal<boolean>(false);
+
+  /** The ordered interleaved transcript, rendered top-to-bottom. */
+  readonly messages: Signal<GroupViewMessage[]> = this._messages.asReadonly();
+  /** True while a group turn is in flight. */
+  readonly streaming: Signal<boolean> = this._streaming.asReadonly();
+
+  private controller?: AbortController;
 
   /**
-   * Fan out `prompt` to each dinoId concurrently.
-   * Each dino gets a unique threadId per group session.
-   * Capped at MAX_DINOS entries (extra ids are silently dropped).
+   * Send one user message to the selected dinos and stream the group turn.
+   * Aborts any prior in-flight turn first. Participants are capped at MAX_DINOS;
+   * history is capped at HISTORY_CAP attributed turns.
    */
-  send(prompt: string, dinoIds: string[]): void {
-    // Abort any previous group session.
+  send(message: string, participantDinoIds: string[]): void {
+    const text = message.trim();
+    if (text.length === 0) return;
+
     this.stopAll();
 
-    const cappedIds = dinoIds.slice(0, GroupchatService.MAX_DINOS);
-    const groupId = newUuid();
+    const cappedIds = participantDinoIds.slice(0, GroupchatService.MAX_DINOS);
+    if (cappedIds.length === 0) return;
 
-    const initialEntries: DinoStreamEntry[] = cappedIds.map((dinoId) => ({
-      dinoId,
-      threadId: `group-${groupId}-${dinoId}`,
-      text: '',
-      status: 'idle',
-    }));
-    this.entries.set(initialEntries);
+    // History is the transcript BEFORE this turn's user message, capped.
+    const history: GroupMessage[] = this._messages()
+      .map((m) => this.toWireMessage(m))
+      .slice(-GroupchatService.HISTORY_CAP);
 
-    // Kick off all streams concurrently — do NOT await them sequentially.
-    for (const entry of initialEntries) {
-      const controller = new AbortController();
-      this.controllers.set(entry.dinoId, controller);
-      this.streamForDino(prompt, entry.dinoId, entry.threadId, controller.signal);
-    }
+    const userMessage: GroupViewMessage = {
+      id: newUuid(),
+      role: 'user',
+      text,
+      createdAt: Date.now(),
+    };
+    this._messages.update((list) => [...list, userMessage]);
+
+    const controller = new AbortController();
+    this.controller = controller;
+    this._streaming.set(true);
+
+    void this.consume(text, cappedIds, history, controller.signal);
   }
 
-  /** Abort every active stream. */
+  /** Abort the in-flight group stream and clear the streaming flag. */
   stopAll(): void {
-    for (const ctrl of this.controllers.values()) {
-      ctrl.abort();
-    }
-    this.controllers.clear();
+    this.controller?.abort();
+    this.controller = undefined;
+    this._streaming.set(false);
   }
 
-  private updateEntry(dinoId: string, patch: Partial<DinoStreamEntry>): void {
-    this.entries.update((list) =>
-      list.map((e) => (e.dinoId === dinoId ? { ...e, ...patch } : e)),
+  /** Strip frontend-only view state before sending a message back as history. */
+  private toWireMessage(m: GroupViewMessage): GroupMessage {
+    return {
+      id: m.id,
+      role: m.role,
+      ...(m.dinoId ? { dinoId: m.dinoId } : {}),
+      text: m.text,
+      ...(m.reactions ? { reactions: m.reactions } : {}),
+      createdAt: m.createdAt,
+    };
+  }
+
+  private async consume(
+    message: string,
+    participantDinoIds: string[],
+    history: GroupMessage[],
+    signal: AbortSignal,
+  ): Promise<void> {
+    try {
+      for await (const event of this.chatService.streamGroup(
+        message,
+        participantDinoIds,
+        history,
+        signal,
+      )) {
+        if (signal.aborted) break;
+        this.applyEvent(event);
+      }
+    } catch {
+      // streamGroup surfaces network/read failures as dino_error frames; any
+      // unexpected throw simply ends the turn.
+    } finally {
+      // Only clear shared state if a newer send() has not already replaced it.
+      if (this.controller?.signal === signal) {
+        this.controller = undefined;
+        this._streaming.set(false);
+      }
+    }
+  }
+
+  /** Apply a single GroupStreamEvent to the transcript signal. */
+  private applyEvent(event: GroupStreamEvent): void {
+    switch (event.type) {
+      case 'plan': {
+        // Pre-create ordered Round-1 placeholder slots in plan order (D-03).
+        const answerers = event.plan.round1
+          .filter((d) => d.action === 'answer')
+          .slice()
+          .sort((a, b) => a.order - b.order);
+        if (answerers.length === 0) return;
+        const placeholders: GroupViewMessage[] = answerers.map((d) => ({
+          id: newUuid(),
+          role: 'dino',
+          dinoId: d.dinoId,
+          text: '',
+          createdAt: Date.now(),
+          status: 'streaming',
+        }));
+        this._messages.update((list) => [...list, ...placeholders]);
+        return;
+      }
+      case 'dino_token': {
+        this.appendToken(event.dinoId, event.text);
+        return;
+      }
+      case 'dino_done': {
+        this.finalizeDino(event.dinoId, event.response, event.messageId);
+        return;
+      }
+      case 'reaction': {
+        this.attachReaction(event.targetMessageId, {
+          dinoId: event.dinoId,
+          emoji: event.emoji,
+        });
+        return;
+      }
+      case 'dino_error': {
+        this.markDinoError(event.dinoId, event.message);
+        return;
+      }
+      case 'group_done': {
+        this._streaming.set(false);
+        return;
+      }
+    }
+  }
+
+  /** Append a streamed token to the dino's open slot, creating one if needed. */
+  private appendToken(dinoId: string, text: string): void {
+    this._messages.update((list) => {
+      const idx = this.findOpenSlot(list, dinoId);
+      if (idx === -1) {
+        // Round-2 reply with no pre-created slot — append a fresh streaming row.
+        return [
+          ...list,
+          {
+            id: newUuid(),
+            role: 'dino',
+            dinoId,
+            text,
+            createdAt: Date.now(),
+            status: 'streaming',
+          },
+        ];
+      }
+      const next = list.slice();
+      next[idx] = { ...next[idx], text: next[idx].text + text };
+      return next;
+    });
+  }
+
+  /** Finalize a dino's slot with the full response + server messageId. */
+  private finalizeDino(dinoId: string, response: string, messageId: string): void {
+    this._messages.update((list) => {
+      const idx = this.findOpenSlot(list, dinoId);
+      if (idx === -1) {
+        return [
+          ...list,
+          {
+            id: newUuid(),
+            role: 'dino',
+            dinoId,
+            text: response,
+            createdAt: Date.now(),
+            status: 'done',
+            serverMessageId: messageId,
+          },
+        ];
+      }
+      const next = list.slice();
+      next[idx] = {
+        ...next[idx],
+        text: response,
+        status: 'done',
+        serverMessageId: messageId,
+      };
+      return next;
+    });
+  }
+
+  /** Mark a dino's open slot as errored (or append an errored row). */
+  private markDinoError(dinoId: string, message: string): void {
+    this._messages.update((list) => {
+      const idx = this.findOpenSlot(list, dinoId);
+      if (idx === -1) {
+        if (dinoId.length === 0) return list; // transport-level error, no slot
+        return [
+          ...list,
+          {
+            id: newUuid(),
+            role: 'dino',
+            dinoId,
+            text: '',
+            createdAt: Date.now(),
+            status: 'error',
+            error: message,
+          },
+        ];
+      }
+      const next = list.slice();
+      next[idx] = { ...next[idx], status: 'error', error: message };
+      return next;
+    });
+  }
+
+  /** Pin a reaction chip onto its target message (by id or serverMessageId). */
+  private attachReaction(targetMessageId: string | undefined, reaction: GroupReaction): void {
+    if (!targetMessageId) return;
+    this._messages.update((list) =>
+      list.map((m) =>
+        m.id === targetMessageId || m.serverMessageId === targetMessageId
+          ? { ...m, reactions: [...(m.reactions ?? []), reaction] }
+          : m,
+      ),
     );
   }
 
-  private streamForDino(
-    prompt: string,
-    dinoId: string,
-    threadId: string,
-    signal: AbortSignal,
-  ): void {
-    // Temporarily set the chatService thread to the per-dino groupchat thread.
-    // We use a private ChatService method to bypass the shared thread state by
-    // creating a one-shot generator call with an explicit threadId override
-    // stored on a throw-away ChatService instance. Since ChatService is
-    // providedIn: root, we instead drive the streaming generator directly and
-    // manage the threadId locally via a workaround: temporarily swap
-    // chatService.setThread, run the stream, then ignore any side effect
-    // (group streams are ephemeral — they do not persist to the history panel).
-    //
-    // Correct approach: invoke streamMessage with the per-dino threadId by
-    // temporarily calling chatService.setThread before each stream, then
-    // restore. Because the streams are parallel, we instead clone per-dino
-    // state fully inside the async loop below without mutating shared state.
-    //
-    // The cleanest option given the current ChatService API: pass the custom
-    // threadId through a transient ChatService wrapper. Here we simply read
-    // from the generator — the threadId in the POST body is set by chatService
-    // at call time. We accept that the group threads share the ChatService
-    // threadId at call time (each call sets it immediately before reading). To
-    // avoid a race between concurrent set+read pairs, we accept the v1
-    // limitation: parallel streams all use the same threadId on the wire.
-    // Multi-turn per-dino history is a future enhancement (noted in plan
-    // design_decisions). For v1 single-turn semantics this is fine.
-    //
-    // NOTE: A real fix would extend ChatService.streamMessage to accept an
-    // optional threadId override. That is a Rule-4 (architectural) change,
-    // deferred to a future plan.
-
-    this.updateEntry(dinoId, { status: 'streaming' });
-
-    (async () => {
-      try {
-        // We pass an empty history since groupchat v1 is single-turn per send.
-        for await (const event of this.chatService.streamMessage(
-          prompt,
-          dinoId,
-          signal,
-          undefined,
-          [],
-        )) {
-          if (signal.aborted) break;
-
-          switch (event.type) {
-            case 'token':
-              this.updateEntry(dinoId, {
-                text: (this.entries().find((e) => e.dinoId === dinoId)?.text ?? '') + event.text,
-              });
-              break;
-            case 'done':
-              this.updateEntry(dinoId, {
-                text: event.response,
-                status: 'done',
-              });
-              this.controllers.delete(dinoId);
-              break;
-            case 'error':
-              this.updateEntry(dinoId, {
-                status: 'error',
-                error: event.message,
-              });
-              this.controllers.delete(dinoId);
-              break;
-            default:
-              // reasoning_token, tool_call_start, tool_call_result — ignore in groupchat v1
-              break;
-          }
-        }
-
-        // If the stream closed without a 'done' event (e.g. aborted), mark done.
-        const entry = this.entries().find((e) => e.dinoId === dinoId);
-        if (entry && entry.status === 'streaming') {
-          this.updateEntry(dinoId, { status: signal.aborted ? 'done' : 'done' });
-          this.controllers.delete(dinoId);
-        }
-      } catch {
-        if (!signal.aborted) {
-          this.updateEntry(dinoId, {
-            status: 'error',
-            error: 'Stream failed unexpectedly.',
-          });
-        }
-        this.controllers.delete(dinoId);
+  /** Index of the dino's currently-streaming slot, or -1 if none is open. */
+  private findOpenSlot(list: GroupViewMessage[], dinoId: string): number {
+    for (let i = list.length - 1; i >= 0; i--) {
+      const m = list[i];
+      if (m.role === 'dino' && m.dinoId === dinoId && m.status === 'streaming') {
+        return i;
       }
-    })();
+    }
+    return -1;
   }
 }
