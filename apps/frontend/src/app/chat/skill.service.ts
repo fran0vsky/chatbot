@@ -1,7 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DinoSkill, LearnedItems } from '@org/shared-types';
+import {
+  ChatHistoryItem,
+  DinoSkill,
+  LearnedItems,
+  SaveCreatedSkillResponse,
+  SuggestSkillsResponse,
+  SynthesizedSkill,
+} from '@org/shared-types';
 import { environment } from '../../environments/environment';
 import { loadUserId } from './chat.service';
 
@@ -45,5 +52,40 @@ export class SkillService {
 
   deleteMemory(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/memories/${id}`);
+  }
+
+  // --- AI Memory Creator (Phase 34) ---
+  // The creator engine runs server-side over the active dino's own model. The
+  // client only sends dinoId; the backend resolves model/prompt and reconciles
+  // create-vs-update on save (the decision is never surfaced to the UI).
+
+  /** Derive ≥3 things-worth-remembering from the current conversation (SC#1). */
+  suggest(dinoId: string, history: ChatHistoryItem[]): Observable<SuggestSkillsResponse> {
+    return this.http.post<SuggestSkillsResponse>(`${this.base}/skills/suggest`, {
+      userId: this.userId,
+      dinoId,
+      history,
+    });
+  }
+
+  /** Turn a chosen suggestion OR free natural text into the editable 3-field form (SC#2). */
+  synthesize(dinoId: string, input: string): Observable<SynthesizedSkill> {
+    return this.http.post<SynthesizedSkill>(`${this.base}/skills/synthesize`, {
+      userId: this.userId,
+      dinoId,
+      input,
+    });
+  }
+
+  /** Persist a created skill; the backend decides create-vs-update server-side (SC#3). */
+  saveCreated(
+    dinoId: string,
+    item: { title: string; whenToActivate?: string; instruction: string },
+  ): Observable<SaveCreatedSkillResponse> {
+    return this.http.post<SaveCreatedSkillResponse>(`${this.base}/skills/save`, {
+      userId: this.userId,
+      dinoId,
+      ...item,
+    });
   }
 }
