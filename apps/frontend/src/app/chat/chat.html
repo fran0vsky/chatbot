@@ -45,7 +45,7 @@
     [activeSessionId]="activeSessionId"
     [mobileOpen]="mobileSidebarOpen()"
     [activeView]="activeView()"
-    (sessionSelected)="setActiveView('chats'); switchToSession($event); closeMobileSidebar()"
+    (sessionSelected)="onSessionSelected($event)"
     (sessionDeleted)="deleteSession($event)"
     (sessionRenamed)="renameSession($event.id, $event.title)"
     (sessionPinned)="togglePinSession($event)"

@@ -191,7 +191,24 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
         this.cdr.markForCheck();
       }
     });
+
+    // Persist a completed group turn (D-08 / GRP2-04). When the group stream
+    // settles (streaming true → false) and the transcript has ≥1 user message,
+    // save the interleaved attributed session through the same store/HistoryService
+    // path single chat uses, then refresh the panel. The group session keeps a
+    // stable id across turns, so re-saving updates in place (no duplicate entry).
+    effect(() => {
+      const streaming = this.groupchatStreaming();
+      const wasStreaming = this.prevGroupStreaming;
+      this.prevGroupStreaming = streaming;
+      if (wasStreaming && !streaming) {
+        this.persistGroupSession();
+      }
+    });
   }
+
+  /** Tracks the previous group-streaming value so the persist effect fires on the falling edge. */
+  private prevGroupStreaming = false;
 
   // Transient STREAMING state — intentionally NOT migrated (documented boundary).
   readonly streamingText = signal('');
@@ -342,6 +359,55 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     if (ids.length === 0 || !text.trim()) return;
     this.closeMention();
     this.groupchatService.send(text, ids);
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Persist the current group transcript (D-08). Title is seeded from the first
+   * user message (like single chat). Only persists when the transcript has ≥1
+   * user message. Reuses the existing session upsert path (store + HistoryService)
+   * and refreshes the panel so the group thread lists alongside single chats.
+   */
+  private persistGroupSession(): void {
+    const messages = this.groupchatMessages();
+    const firstUser = messages.find((m) => m.role === 'user');
+    if (!firstUser) return;
+    const seed = firstUser.text || 'Group chat';
+    const title = seed.length > 50 ? seed.slice(0, 50) + '…' : seed;
+    this.store.dispatch(
+      SessionActions.upsertActiveSession({
+        session: this.groupchatService.toSession(title),
+      }),
+    );
+    this.store.dispatch(SessionActions.loadSessions());
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * History-panel selection handler: group threads reopen into the groupchat view
+   * (full transcript + roster restored); single chats keep the existing switch path.
+   */
+  onSessionSelected(session: ConversationSession): void {
+    if (session.isGroup) {
+      this.openSession(session);
+      return;
+    }
+    this.setActiveView('chats');
+    this.switchToSession(session);
+    this.closeMobileSidebar();
+  }
+
+  /**
+   * Reopen a persisted group thread (Success Criterion #4 / GRP2-04): switch to
+   * the groupchat view, restore the full attributed transcript + the saved
+   * participant roster, and close the mobile sidebar. Single-chat reopen stays on
+   * the `switchToSession` path (see chat.html `(sessionSelected)` branch).
+   */
+  openSession(session: ConversationSession): void {
+    this.setActiveView('groupchat');
+    this.selectedGroupDinoIds.set(this.groupchatService.loadSession(session));
+    this.store.dispatch(UiActions.closeHistory());
+    this.closeMobileSidebar();
     this.cdr.markForCheck();
   }
 
