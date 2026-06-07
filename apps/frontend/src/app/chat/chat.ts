@@ -392,10 +392,22 @@ export class ChatComponent implements OnInit, OnDestroy {
   /** When true, the teach-a-skill + "what this dino knows" overlay is shown. */
   readonly skillPanelOpen = signal(false);
   readonly skillTitle = signal('');
+  /** Editable activation trigger for the 3-field form (Phase 33 column / Phase 34 creator). */
+  readonly skillWhenToActivate = signal('');
   readonly skillInstruction = signal('');
   readonly skillSaving = signal(false);
   readonly learnedSkills = signal<DinoSkill[]>([]);
   readonly learnedMemories = signal<{ id: string; content: string }[]>([]);
+
+  // ─────────── AI Memory Creator state (Phase 34, SC#1–SC#3) ───────────
+  /** True while suggestions are being generated — drives the dino "thinking" placeholder (D-06). */
+  readonly creatorThinking = signal(false);
+  /** Conversation-derived suggestions (≥3 on success; empty on error → free-text fallback). */
+  readonly creatorSuggestions = signal<string[]>([]);
+  /** Free natural-text input the user can synthesize instead of picking a suggestion (D-05). */
+  readonly creatorInput = signal('');
+  /** True while a pick/free-text choice is being synthesized into the 3-field form. */
+  readonly creatorSynthesizing = signal(false);
 
   openSkillPanel(prefillInstruction?: string): void {
     const dinoId = this.activeDinoId();
@@ -407,10 +419,131 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.refreshLearned(dinoId);
   }
 
+  /**
+   * Brain-click entry (D-06): open the overlay, reset creator state, then auto-fire
+   * suggestion generation from the current conversation. While it runs the template
+   * shows a dino "thinking" placeholder. On error suggestions stay empty (the UI falls
+   * back to the free-text input) — a creator failure never blocks the chat (T-34-02-03).
+   */
+  openCreator(): void {
+    const dinoId = this.activeDinoId();
+    if (!dinoId) return;
+    this.skillPanelOpen.set(true);
+    this.resetCreator();
+    this.refreshLearned(dinoId);
+    const history: ChatHistoryItem[] = this.messages()
+      .filter((m): m is ChatMessage & { role: 'user' | 'assistant' } =>
+        (m.role === 'user' || m.role === 'assistant') && m.text.trim().length > 0,
+      )
+      .map((m) => ({ role: m.role, text: m.text }));
+    this.creatorThinking.set(true);
+    this.skillService.suggest(dinoId, history).subscribe({
+      next: (res) => {
+        this.creatorSuggestions.set(res.suggestions);
+        this.creatorThinking.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.creatorSuggestions.set([]);
+        this.creatorThinking.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** Pick a generated suggestion → synthesize it into the editable form (D-05). */
+  pickSuggestion(suggestion: string): void {
+    this.synthesizeInto(suggestion);
+  }
+
+  /** Submit the free-text input → synthesize it into the editable form (D-05). */
+  submitCreatorInput(): void {
+    const input = this.creatorInput().trim();
+    if (!input) return;
+    this.synthesizeInto(input);
+  }
+
+  updateCreatorInput(event: Event): void {
+    this.creatorInput.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  updateSkillWhenToActivate(event: Event): void {
+    this.skillWhenToActivate.set((event.target as HTMLInputElement).value);
+  }
+
+  /**
+   * Single convergent synthesize step (D-05): both pick-a-suggestion and free-text
+   * route here. Prefills the editable name/when/instruction signals; the form stays
+   * fully editable before save. On error the form is left as-is.
+   */
+  private synthesizeInto(input: string): void {
+    const dinoId = this.activeDinoId();
+    if (!dinoId || this.creatorSynthesizing()) return;
+    this.creatorSynthesizing.set(true);
+    this.skillService.synthesize(dinoId, input).subscribe({
+      next: (skill) => {
+        this.skillTitle.set(skill.title);
+        this.skillWhenToActivate.set(skill.whenToActivate ?? '');
+        this.skillInstruction.set(skill.instruction);
+        this.creatorSynthesizing.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.creatorSynthesizing.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /**
+   * Save the synthesized item (D-07): the backend reconciles create-vs-update — the
+   * component does NO new-vs-update branching. On success refresh the learned list so
+   * the item appears in <app-skill-manager>, then reset the creator + form.
+   */
+  saveCreated(): void {
+    const dinoId = this.activeDinoId();
+    const title = this.skillTitle().trim();
+    const instruction = this.skillInstruction().trim();
+    const whenToActivate = this.skillWhenToActivate().trim();
+    if (!dinoId || !title || !instruction || this.skillSaving()) return;
+    this.skillSaving.set(true);
+    this.skillService
+      .saveCreated(dinoId, {
+        title,
+        instruction,
+        ...(whenToActivate ? { whenToActivate } : {}),
+      })
+      .subscribe({
+        next: () => {
+          this.refreshLearned(dinoId);
+          this.resetCreator();
+          this.skillTitle.set('');
+          this.skillWhenToActivate.set('');
+          this.skillInstruction.set('');
+          this.skillSaving.set(false);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.skillSaving.set(false);
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  /** Clear creator-only state (suggestions, input, thinking/synthesizing flags). */
+  private resetCreator(): void {
+    this.creatorSuggestions.set([]);
+    this.creatorInput.set('');
+    this.creatorThinking.set(false);
+    this.creatorSynthesizing.set(false);
+  }
+
   closeSkillPanel(): void {
     this.skillPanelOpen.set(false);
     this.skillTitle.set('');
+    this.skillWhenToActivate.set('');
     this.skillInstruction.set('');
+    this.resetCreator();
     this.cdr.markForCheck();
   }
 
