@@ -416,7 +416,7 @@
           </div>
           <button
             type="button"
-            (click)="openSkillPanel()"
+            (click)="openCreator()"
             class="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-jungle-accent dark:text-jungle-night-accent bg-jungle-accent/10 dark:bg-jungle-night-accent/10 hover:bg-jungle-accent/20 dark:hover:bg-jungle-night-accent/20 border border-jungle-accent/30 dark:border-jungle-night-accent/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
             [title]="'Teach ' + dino.name + ' a skill'"
           >
@@ -709,8 +709,95 @@
           </button>
         </div>
 
-        <!-- Teach form -->
+        <!-- AI Memory Creator (Phase 34): thinking → suggestions/free-text → synthesize -->
         <div class="space-y-3 mb-6">
+          <!-- Thinking placeholder (D-06 / SC#1) -->
+          @if (creatorThinking()) {
+            <div class="flex items-center gap-3 px-3 py-4 rounded-lg bg-jungle-surface/40 dark:bg-jungle-night-surface/40 border border-jungle-border/30 dark:border-jungle-night-border/30">
+              <span class="text-2xl animate-bounce" aria-hidden="true">🦖</span>
+              <span class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted animate-pulse">
+                {{ activeDino()?.name ?? 'Your dino' }} is thinking of things worth remembering…
+              </span>
+            </div>
+          } @else {
+            <!-- Conversation-derived suggestions (SC#1) -->
+            @if (creatorSuggestions().length > 0) {
+              <div class="space-y-2">
+                <p class="text-xs font-medium uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted">
+                  Suggestions
+                </p>
+                @for (suggestion of creatorSuggestions(); track suggestion) {
+                  <button
+                    type="button"
+                    (click)="pickSuggestion(suggestion)"
+                    [disabled]="creatorSynthesizing()"
+                    class="w-full text-left px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text hover:border-jungle-accent/60 dark:hover:border-jungle-night-accent/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                  >
+                    {{ suggestion }}
+                  </button>
+                }
+              </div>
+            }
+            <!-- Free-text input — always available (covers empty/error case) (D-05) -->
+            <div class="space-y-2">
+              <textarea
+                [value]="creatorInput()"
+                (input)="updateCreatorInput($event)"
+                rows="2"
+                placeholder="…or describe something to remember in your own words"
+                class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+              ></textarea>
+              <button
+                type="button"
+                (click)="submitCreatorInput()"
+                [disabled]="creatorSynthesizing() || creatorInput().trim().length === 0"
+                class="w-full px-4 py-2 rounded-lg text-sm font-medium text-jungle-accent dark:text-jungle-night-accent bg-jungle-accent/10 dark:bg-jungle-night-accent/10 hover:bg-jungle-accent/20 dark:hover:bg-jungle-night-accent/20 border border-jungle-accent/30 dark:border-jungle-night-accent/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+              >
+                {{ creatorSynthesizing() ? 'Thinking…' : 'Turn into a skill' }}
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Editable 3-field form: prefilled by synthesize, save reconciles server-side (SC#2/SC#3) -->
+        <div class="space-y-3 mb-6">
+          <input
+            type="text"
+            [value]="skillTitle()"
+            (input)="updateSkillTitle($event)"
+            placeholder="Skill name (e.g. British English)"
+            class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          />
+          <input
+            type="text"
+            [value]="skillWhenToActivate()"
+            (input)="updateSkillWhenToActivate($event)"
+            placeholder="When to activate (optional, e.g. when writing emails)"
+            class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          />
+          <textarea
+            [value]="skillInstruction()"
+            (input)="updateSkillInstruction($event)"
+            rows="3"
+            placeholder="Instruction (e.g. Always answer in British English.)"
+            class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/60 dark:placeholder:text-jungle-night-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+          ></textarea>
+          <button
+            type="button"
+            (click)="saveCreated()"
+            [disabled]="skillSaving() || skillTitle().trim().length === 0 || skillInstruction().trim().length === 0"
+            class="w-full px-4 py-2 rounded-lg text-sm font-medium text-white bg-jungle-accent dark:bg-jungle-night-accent hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            {{ skillSaving() ? 'Saving…' : 'Save skill' }}
+          </button>
+        </div>
+
+        <!-- Classic teach form (Phase 22/33) — kept additive (SC#4) -->
+        <details class="mb-6 group">
+          <summary class="cursor-pointer text-xs font-medium text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors select-none">
+            Or teach a skill manually
+          </summary>
+          <div class="space-y-3 mt-3">
           <input
             type="text"
             [value]="skillTitle()"
@@ -733,7 +820,8 @@
           >
             {{ skillSaving() ? 'Saving…' : 'Save skill' }}
           </button>
-        </div>
+          </div>
+        </details>
 
         <!-- What this dino knows -->
         <app-skill-manager
