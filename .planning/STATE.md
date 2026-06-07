@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: — Dino Platform
 status: executing
-stopped_at: Phase 35 context gathered
-last_updated: "2026-06-07T14:35:00.000Z"
-last_activity: 2026-06-07 -- Phase 34 plan 01 (creator backend engine) complete
+stopped_at: Phase 34 complete (plan 02 frontend); HUMAN-UAT pending
+last_updated: "2026-06-07T14:55:00.000Z"
+last_activity: 2026-06-07 -- Phase 34 plan 02 (creator frontend) complete
 progress:
   total_phases: 11
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 31
-  completed_plans: 33
-  percent: 82
+  completed_plans: 34
+  percent: 85
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 ## Current Position
 
-Phase: 34 (ai-memory-creator) — EXECUTING
-Plan: 2 of 2
-Status: Plan 01 (creator backend engine) complete; plan 02 (frontend) next
-Last activity: 2026-06-07 -- Phase 34 plan 01 complete
+Phase: 34 (ai-memory-creator) — COMPLETE (HUMAN-UAT pending)
+Plan: 2 of 2 complete
+Status: Both plans complete; SC#1–SC#3 await runtime HUMAN-UAT (Task 4)
+Last activity: 2026-06-07 -- Phase 34 plan 02 (creator frontend) complete
 
 ## Performance Metrics
 
@@ -90,10 +90,12 @@ Recent decisions affecting current work:
 - Phase 27: NgRx pinned to 21.1.0; zod 4.4.3; installed via `npm install --legacy-peer-deps`
 - Phase 28-01: VOX-01/02 read-aloud with VoiceSynthesisService + BrowserTtsAdapter; per-dino voiceProfile; Phase 29 seam wired via Actions$ ofType read_last_message
 - Phase 28-02: VOX-03 dictation; VoiceRecognitionService NgZone-wrapped signals; MAX_DRAFT_LENGTH=10_000 for transcript sanitization (T-28-03); mic hidden on unsupported browsers
+- Phase 34-02: Memory Creator frontend = brain button rewired to openCreator() (auto-fires suggest on overlay open); pick-suggestion + free-text converge on one private synthesizeInto() step (D-05); saveCreated delegates create-vs-update to the backend with NO component branching/toggle (D-07); creator failures degrade silently and never block chat or teach; added skillWhenToActivate signal (Phase 33 had the column + skill-manager edit path but no chat-level form signal); manual teach form preserved under a disclosure (SC#4); all HTTP via SkillService, OnPush+markForCheck, Tailwind only, LLM text via interpolation never innerHTML (T-34-02-01). Frontend nx project id is `frontend` (not `@org/frontend`).
 - Phase 34-01: Memory Creator backend = standalone MemoryCreatorService reusing agents.service paid-fallback shape (FALLBACK_MODEL=gpt-4o-mini) WITHOUT importing agents.service.ts (D-02); writes DinoSkills only via addSkill/updateSkill (no new persistence endpoint, D-08); reconcile is a separate server-side LLM call returning 'new' or an existing skill id (D-07, decision never surfaced); imageGen dinos use FALLBACK_MODEL; all creator LLM failures degrade (suggest→[], synthesize→raw input) and never 500 the chat; parseSynthesized/parseReconcile exported as pure unit-testable helpers
 
 ### Pending Todos
 
+- **Phase 34 Task 4 — Memory Creator end-to-end UAT (human):** with Phase 33 + 34-01 deployed, `DATABASE_URL` + `OPENROUTER_API_KEY` set and `dino_skills` pushed, serve the app and in a dino conversation: (1) brain → thinking state → ≥3 conversation-derived suggestions (SC#1); (2) pick-a-suggestion AND free-text both prefill the editable name/when/instruction form (SC#2); (3) save persists + auto-applies next chat, and an overlapping item UPDATES the existing skill (no duplicate, no new-vs-update toggle) (SC#3); (4) the manual teach form (under the disclosure) + stored skills/memories still work (SC#4). BLOCKING for phase verification. See 34-02-SUMMARY.md.
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
 - **Phase 22 Task 5 — teach-once smoke test (human):** with DB + key and `dino_skills` pushed: teach rexford "Always answer in British English." → new chat with rexford applies it without re-teaching → manager delete stops it → veloce unaffected. See 22-01-SUMMARY.md.
 - **Phase 23 Task 4 — groupchat smoke test (human):** serve app with live API key; enter Group chat; select 3 dinos; send "Explain recursion in one line."; confirm 3 attributed panels stream in parallel; kill network for one model and confirm only that panel errors. See 23-01-SUMMARY.md.
@@ -132,6 +134,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-07T14:35:00.000Z
-Stopped at: Completed 34-01-PLAN.md (creator backend engine)
+Last session: 2026-06-07T14:55:00.000Z
+Stopped at: Completed 34-02-PLAN.md (creator frontend) — Phase 34 code-complete, HUMAN-UAT pending
 Resume file: None

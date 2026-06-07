@@ -57,7 +57,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing (completed 2026-06-05)
 - [ ] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning
 - [x] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills (completed 2026-06-06)
-- [ ] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory
+- [x] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory (completed 2026-06-07; HUMAN-UAT pending)
 - [ ] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23)
 - [ ] **Phase 36: HTTPS / Let's Encrypt** - certbot + nginx on the VM, auto-renewing cert, HTTP→HTTPS redirect [independent infra track]
 
@@ -629,7 +629,7 @@ Plans:
   3. Saving persists the item and it auto-applies in later chats with that dino; an item that overlaps an existing memory updates it rather than duplicating — without the user choosing "new vs update" (the creator reconciles the plus/minus input automatically)
   4. No regression to the Phase 22 teach flow or existing stored skills/memories
 **Scope note:** In — suggestion generation from conversation, natural-text → form synthesis, create-or-update reconciliation, editable form. Out — cross-device sync (needs auth). The new-vs-update decision is made by the synthesizer, not surfaced as a toggle.
-**Plans:** TBD (run `/gsd-plan-phase 34`)
+**Plans:** 2/2 plans complete (01 backend engine, 02 frontend creator) — HUMAN-UAT pending
 **UI hint:** yes
 
 ### Phase 35: Conversational Group Chat (supersedes Phase 23)
