@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: — Dino Platform
-status: completed
+status: executing
 stopped_at: Phase 35 context gathered
-last_updated: "2026-06-06T20:57:56.672Z"
-last_activity: 2026-06-06 -- Phase 33 marked complete
+last_updated: "2026-06-07T14:35:00.000Z"
+last_activity: 2026-06-07 -- Phase 34 plan 01 (creator backend engine) complete
 progress:
-  total_phases: 32
-  completed_phases: 22
-  total_plans: 61
-  completed_plans: 57
-  percent: 69
+  total_phases: 11
+  completed_phases: 9
+  total_plans: 31
+  completed_plans: 33
+  percent: 82
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 33 — composer-knowledge-reorg
+**Current focus:** Phase 34 — ai-memory-creator
 
 ## Current Position
 
-Phase: 33 — COMPLETE
-Plan: 3 of 3
-Status: Phase 33 complete
-Last activity: 2026-06-06 -- Phase 33 marked complete
+Phase: 34 (ai-memory-creator) — EXECUTING
+Plan: 2 of 2
+Status: Plan 01 (creator backend engine) complete; plan 02 (frontend) next
+Last activity: 2026-06-07 -- Phase 34 plan 01 complete
 
 ## Performance Metrics
 
@@ -90,6 +90,7 @@ Recent decisions affecting current work:
 - Phase 27: NgRx pinned to 21.1.0; zod 4.4.3; installed via `npm install --legacy-peer-deps`
 - Phase 28-01: VOX-01/02 read-aloud with VoiceSynthesisService + BrowserTtsAdapter; per-dino voiceProfile; Phase 29 seam wired via Actions$ ofType read_last_message
 - Phase 28-02: VOX-03 dictation; VoiceRecognitionService NgZone-wrapped signals; MAX_DRAFT_LENGTH=10_000 for transcript sanitization (T-28-03); mic hidden on unsupported browsers
+- Phase 34-01: Memory Creator backend = standalone MemoryCreatorService reusing agents.service paid-fallback shape (FALLBACK_MODEL=gpt-4o-mini) WITHOUT importing agents.service.ts (D-02); writes DinoSkills only via addSkill/updateSkill (no new persistence endpoint, D-08); reconcile is a separate server-side LLM call returning 'new' or an existing skill id (D-07, decision never surfaced); imageGen dinos use FALLBACK_MODEL; all creator LLM failures degrade (suggest→[], synthesize→raw input) and never 500 the chat; parseSynthesized/parseReconcile exported as pure unit-testable helpers
 
 ### Pending Todos
 
@@ -131,6 +132,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-06T20:52:50.655Z
-Stopped at: Phase 35 context gathered
+Last session: 2026-06-07T14:35:00.000Z
+Stopped at: Completed 34-01-PLAN.md (creator backend engine)
 Resume file: None
