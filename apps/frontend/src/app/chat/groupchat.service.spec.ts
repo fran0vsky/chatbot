@@ -164,6 +164,104 @@ describe('GroupchatService (turn-based)', () => {
     expect(participantDinoIds).toHaveLength(GroupchatService.MAX_DINOS);
   });
 
+  // ─── Persistence + reopen (D-08 / GRP2-04) ───
+
+  /** Drive a complete group turn so the service holds a populated transcript. */
+  async function seedTranscript(): Promise<void> {
+    let userId = '';
+    streamGroup.mockImplementation(() => {
+      userId = service.messages()[0].id;
+      return makeEvents([
+        {
+          type: 'plan',
+          plan: {
+            round1: [
+              { dinoId: 'philo', action: 'answer', order: 0 },
+              { dinoId: 'rex', action: 'answer', order: 1 },
+            ],
+            round2: [],
+          },
+        },
+        { type: 'dino_done', dinoId: 'philo', response: 'Hi Philo.', messageId: 's-philo' },
+        { type: 'dino_done', dinoId: 'rex', response: 'Hello Rex.', messageId: 's-rex' },
+        // React to the user's message so a chip round-trips through persistence.
+        { type: 'reaction', dinoId: 'rex', emoji: '🔥', targetMessageId: userId },
+        { type: 'group_done' },
+      ]);
+    });
+    service.send('what do you think?', ['philo', 'rex']);
+    await tick();
+  }
+
+  it('toSession() produces an isGroup session with the roster, stable id, and dino→assistant+dinoId mapping', async () => {
+    await seedTranscript();
+
+    const session = service.toSession('Group: design review');
+
+    expect(session.isGroup).toBe(true);
+    expect(session.title).toBe('Group: design review');
+    expect(session.participantDinoIds).toEqual(['philo', 'rex']);
+
+    // user → 'user'; dino → 'assistant' carrying its dinoId.
+    expect(session.messages.map((m) => m.role)).toEqual(['user', 'assistant', 'assistant']);
+    const philo = session.messages.find((m) => m.dinoId === 'philo');
+    const rex = session.messages.find((m) => m.dinoId === 'rex');
+    expect(philo?.text).toBe('Hi Philo.');
+    expect(rex?.text).toBe('Hello Rex.');
+
+    // The reaction chip on the user message is preserved.
+    expect(session.messages[0].reactions).toEqual([{ dinoId: 'rex', emoji: '🔥' }]);
+
+    // Stable id across calls within the same session.
+    const again = service.toSession('Group: design review');
+    expect(again.id).toBe(session.id);
+  });
+
+  it('loadSession() restores the messages signal and returns the saved roster', async () => {
+    await seedTranscript();
+    const session = service.toSession('Group: design review');
+
+    // Reset to a fresh service state, then reopen the saved session.
+    service.startNewSession();
+    expect(service.messages()).toHaveLength(0);
+
+    const roster = service.loadSession(session);
+    expect(roster).toEqual(['philo', 'rex']);
+
+    const restored = service.messages();
+    expect(restored.map((m) => m.role)).toEqual(['user', 'dino', 'dino']);
+    expect(dino(restored, 'philo')?.text).toBe('Hi Philo.');
+    expect(dino(restored, 'rex')?.text).toBe('Hello Rex.');
+    expect(dino(restored, 'rex')?.status).toBe('done');
+    expect(restored[0].reactions).toEqual([{ dinoId: 'rex', emoji: '🔥' }]);
+  });
+
+  it('round-trips a transcript: toSession → loadSession preserves order, attribution, and reactions', async () => {
+    await seedTranscript();
+    const original = service.messages();
+    const session = service.toSession('Group: design review');
+
+    service.startNewSession();
+    service.loadSession(session);
+    const restored = service.messages();
+
+    expect(restored.map((m) => m.role)).toEqual(original.map((m) => m.role));
+    expect(restored.map((m) => m.dinoId)).toEqual(original.map((m) => m.dinoId));
+    expect(restored.map((m) => m.text)).toEqual(original.map((m) => m.text));
+    expect(restored.map((m) => m.reactions)).toEqual(original.map((m) => m.reactions));
+  });
+
+  it('reopening via loadSession adopts the session id so re-saving updates in place', async () => {
+    await seedTranscript();
+    const first = service.toSession('Group: design review');
+
+    service.startNewSession();
+    service.loadSession(first);
+    const resaved = service.toSession('Group: design review (edited)');
+
+    expect(resaved.id).toBe(first.id);
+  });
+
   it('stopAll aborts the in-flight stream and clears streaming', async () => {
     let captured: AbortSignal | undefined;
     async function* neverEnds(
