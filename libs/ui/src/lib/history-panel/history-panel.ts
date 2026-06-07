@@ -14,6 +14,7 @@ import {
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConversationSession } from '@org/shared-types';
+import { Mascot } from '../mascot/mascot';
 
 interface DateGroup {
   label: string;
@@ -23,7 +24,7 @@ interface DateGroup {
 @Component({
   standalone: true,
   selector: 'app-history-panel',
-  imports: [NgClass, NgTemplateOutlet, FormsModule],
+  imports: [NgClass, NgTemplateOutlet, FormsModule, Mascot],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './history-panel.html',
   styles: [':host { display: contents; }'],
@@ -108,6 +109,20 @@ export class HistoryPanel implements AfterViewChecked {
     ];
 
     return result.filter((group) => group.sessions.length > 0);
+  }
+
+  /** Max participant mascots shown in a group-thread cluster (the rest are summarized as +N). */
+  static readonly MAX_CLUSTER_MASCOTS = 3;
+
+  /** The first few participant dino ids for the group-thread mascot cluster. */
+  clusterDinoIds(session: ConversationSession): string[] {
+    return (session.participantDinoIds ?? []).slice(0, HistoryPanel.MAX_CLUSTER_MASCOTS);
+  }
+
+  /** Count of participants beyond the displayed cluster (for the +N badge), or 0. */
+  extraParticipantCount(session: ConversationSession): number {
+    const total = session.participantDinoIds?.length ?? 0;
+    return Math.max(0, total - HistoryPanel.MAX_CLUSTER_MASCOTS);
   }
 
   formatDate(ts: number): string {

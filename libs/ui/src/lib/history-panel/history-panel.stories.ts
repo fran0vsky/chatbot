@@ -45,6 +45,17 @@ const sampleSessions = [
   },
 ];
 
+const groupSession = {
+  id: 's-group-1',
+  title: 'Group: Should we ship the new schema?',
+  pinned: false,
+  isGroup: true,
+  participantDinoIds: ['rexford', 'veloce', 'glyphos', 'spinos'],
+  createdAt: now - 2 * 60 * 60 * 1000,
+  updatedAt: now - 60 * 60 * 1000,
+  messages: [],
+};
+
 export const Empty: Story = {
   args: { sessions: [], activeSessionId: '', activeView: 'chats' },
 };
@@ -62,5 +73,13 @@ export const KnowledgeActive: Story = {
     sessions: sampleSessions,
     activeSessionId: '',
     activeView: 'knowledge',
+  },
+};
+
+export const WithGroupThread: Story = {
+  args: {
+    sessions: [groupSession, ...sampleSessions],
+    activeSessionId: 's-group-1',
+    activeView: 'chats',
   },
 };
