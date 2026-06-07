@@ -1,5 +1,12 @@
 import { Injectable } from '@angular/core';
-import { ChatHistoryItem, ChatRequest, StreamEvent } from '@org/shared-types';
+import {
+  ChatHistoryItem,
+  ChatRequest,
+  GroupChatRequest,
+  GroupMessage,
+  GroupStreamEvent,
+  StreamEvent,
+} from '@org/shared-types';
 import { environment } from '../../environments/environment';
 
 export const USER_ID_KEY = 'spino-user-id';
@@ -124,6 +131,81 @@ export class ChatService {
       if (signal.aborted) return;
       const msg = err instanceof Error ? err.message : 'Stream read error';
       yield { type: 'error', message: msg };
+    }
+  }
+
+  /**
+   * Stream the turn-based group endpoint (Phase 35). POSTs a GroupChatRequest and
+   * yields multiplexed GroupStreamEvent frames. The backend resolves each dino's
+   * model + system prompt + tools server-side; history carries the interleaved
+   * attributed transcript so far (capped). Mirrors streamMessage's SSE parse loop.
+   */
+  async *streamGroup(
+    message: string,
+    participantDinoIds: string[],
+    history: GroupMessage[] | undefined,
+    signal: AbortSignal,
+  ): AsyncGenerator<GroupStreamEvent, void, void> {
+    const body: GroupChatRequest = {
+      message,
+      participantDinoIds,
+      userId: this.userId,
+      history,
+    };
+
+    let response: Response;
+    try {
+      response = await fetch(`${environment.apiUrl}/api/agents/group`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal,
+      });
+    } catch (err) {
+      if (signal.aborted) return;
+      const msg = err instanceof Error ? err.message : 'Network error';
+      yield { type: 'dino_error', dinoId: '', message: msg };
+      return;
+    }
+
+    if (!response.ok || !response.body) {
+      yield {
+        type: 'dino_error',
+        dinoId: '',
+        message: `Request failed (${response.status})`,
+      };
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let frameEnd = buffer.indexOf('\n\n');
+        while (frameEnd !== -1) {
+          const frame = buffer.slice(0, frameEnd);
+          buffer = buffer.slice(frameEnd + 2);
+          const dataLine = frame.startsWith('data: ') ? frame.slice(6) : frame;
+          if (dataLine.length > 0) {
+            try {
+              yield JSON.parse(dataLine) as GroupStreamEvent;
+            } catch {
+              // skip malformed frames
+            }
+          }
+          frameEnd = buffer.indexOf('\n\n');
+        }
+      }
+    } catch (err) {
+      if (signal.aborted) return;
+      const msg = err instanceof Error ? err.message : 'Stream read error';
+      yield { type: 'dino_error', dinoId: '', message: msg };
     }
   }
 }
