@@ -364,21 +364,21 @@ export class GroupAgentsService {
       .filter((d) => d.action === 'answer')
       .sort((a, b) => a.order - b.order);
 
-    const round1Results = await this.runConcurrent(
+    const round1Answers = yield* this.runConcurrentStream(
       answerers,
       message,
       transcript,
       roster,
       userId,
       signal,
-      (event) => event,
     );
-    for (const event of round1Results.events) {
-      yield event;
-    }
     if (signal.aborted) return;
-    // Append each completed Round-1 answer to the transcript for Round 2.
-    for (const ans of round1Results.answers) {
+    // Append completed Round-1 answers in PLAN order (not completion order) so
+    // Round 2 sees a stable, orchestrator-ordered transcript regardless of which
+    // dino finished streaming first.
+    for (const decision of answerers) {
+      const ans = round1Answers.find((a) => a.dinoId === decision.dinoId);
+      if (!ans) continue;
       transcript.push({
         id: ans.messageId,
         role: 'dino',
@@ -427,42 +427,72 @@ export class GroupAgentsService {
   }
 
   /**
-   * Start every answerer's generator concurrently and drain them, collecting
-   * the multiplexed events (in completion-interleaved order) and the assembled
-   * per-dino answers. Round 1 streams concurrently on the backend; the frontend
-   * renders strictly in plan order via the dino-tagged events.
+   * Start every answerer's generator concurrently and multiplex their events
+   * onto the stream AS THEY ARRIVE (D-03): tokens from all Round-1 dinos
+   * interleave live rather than being buffered until the slowest one finishes.
+   * The frontend renders strictly in plan order via the dino-tagged events.
+   * Returns the assembled per-dino answers for the caller to fold into the
+   * transcript. On abort, stops draining and asks each still-pending generator
+   * to return so the underlying streamAgent calls unwind.
    */
-  private async runConcurrent(
+  private async *runConcurrentStream(
     decisions: DinoTurnDecision[],
     message: string,
     transcript: GroupMessage[],
     roster: Dino[],
     userId: string | undefined,
     signal: AbortSignal,
-    tag: (event: GroupStreamEvent) => GroupStreamEvent,
-  ): Promise<{ events: GroupStreamEvent[]; answers: { dinoId: string; response: string; messageId: string }[] }> {
-    const events: GroupStreamEvent[] = [];
+  ): AsyncGenerator<
+    GroupStreamEvent,
+    { dinoId: string; response: string; messageId: string }[],
+    void
+  > {
     const answers: { dinoId: string; response: string; messageId: string }[] = [];
+    const states = decisions.map((decision) => ({
+      decision,
+      gen: this.runAnswerer(decision, message, transcript, roster, userId, signal),
+      messageId: '',
+    }));
 
-    await Promise.all(
-      decisions.map(async (decision) => {
-        const gen = this.runAnswerer(decision, message, transcript, roster, userId, signal);
-        let messageId = '';
-        let next = await gen.next();
-        while (!next.done) {
-          const ev = tag(next.value);
-          if (ev.type === 'dino_done') messageId = ev.messageId;
-          events.push(ev);
-          next = await gen.next();
-        }
+    // One in-flight next() promise per still-active generator, tagged with its
+    // index so Promise.race can tell us which generator produced the next event.
+    const pending = new Map<
+      number,
+      Promise<{ idx: number; res: IteratorResult<GroupStreamEvent, string> }>
+    >();
+    states.forEach((state, idx) => {
+      pending.set(idx, state.gen.next().then((res) => ({ idx, res })));
+    });
+
+    while (pending.size > 0) {
+      if (signal.aborted) break;
+      const { idx, res } = await Promise.race(pending.values());
+      if (res.done) {
+        pending.delete(idx);
+        const state = states[idx];
         answers.push({
-          dinoId: decision.dinoId,
-          response: next.value,
-          messageId: messageId || `${decision.dinoId}-${Date.now()}`,
+          dinoId: state.decision.dinoId,
+          response: res.value,
+          messageId:
+            state.messageId ||
+            `${state.decision.dinoId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         });
-      }),
-    );
+      } else {
+        const event = res.value;
+        if (event.type === 'dino_done') states[idx].messageId = event.messageId;
+        yield event;
+        pending.set(idx, states[idx].gen.next().then((r) => ({ idx, res: r })));
+      }
+    }
 
-    return { events, answers };
+    // Aborted mid-flight: unwind any generators still pending so their
+    // streamAgent calls stop instead of finishing in the background.
+    if (pending.size > 0) {
+      await Promise.allSettled(
+        [...pending.keys()].map((idx) => states[idx].gen.return('')),
+      );
+    }
+
+    return answers;
   }
 }

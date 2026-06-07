@@ -234,8 +234,31 @@ export class GroupchatService {
       if (this.controller?.signal === signal) {
         this.controller = undefined;
         this._streaming.set(false);
+        // Settle any rows still 'streaming' (stream ended without `group_done`,
+        // e.g. a mid-turn drop) so a stuck placeholder is never persisted as a
+        // blank `done` bubble: keep partial text as done, drop-to-error if empty.
+        this.settleOpenSlots();
       }
     }
+  }
+
+  /**
+   * Force-settle any dino rows left in `status: 'streaming'` after a turn ends.
+   * Rows with partial text become `done`; empty placeholders become `error`
+   * (never persisted as blank answers).
+   */
+  private settleOpenSlots(): void {
+    this._messages.update((list) => {
+      let changed = false;
+      const next = list.map((m) => {
+        if (m.role !== 'dino' || m.status !== 'streaming') return m;
+        changed = true;
+        return m.text.length > 0
+          ? { ...m, status: 'done' as const }
+          : { ...m, status: 'error' as const, error: 'No response.' };
+      });
+      return changed ? next : list;
+    });
   }
 
   /** Apply a single GroupStreamEvent to the transcript signal. */
