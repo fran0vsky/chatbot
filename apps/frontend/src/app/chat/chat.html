@@ -98,13 +98,13 @@
   <!-- Center chat column -->
   <div class="relative z-10 flex flex-col flex-1 min-w-0">
     @if (activeView() === 'groupchat') {
-      <!-- ───────── Groupchat: multi-dino parallel responses ───────── -->
+      <!-- ───────── Groupchat: turn-based conversation (Phase 35) ───────── -->
       <main class="flex-1 overflow-y-auto px-6 py-6">
-        <div class="max-w-6xl mx-auto flex flex-col gap-6">
+        <div class="max-w-3xl mx-auto flex flex-col gap-6">
           <div>
             <h1 class="font-title text-3xl text-jungle-accent dark:text-jungle-night-accent mb-1">Group chat</h1>
             <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
-              Pick up to {{ groupchatMaxDinos }} dinos, send one prompt, and each answers independently.
+              Pick up to {{ groupchatMaxDinos }} dinos and chat — each may answer, react, or stay silent. Use &#64;name to address one.
             </p>
           </div>
 
@@ -146,33 +146,73 @@
             </div>
           </div>
 
-          <!-- Composer -->
-          <app-input-composer
-            [placeholder]="selectedGroupDinoIds().length === 0 ? 'Select at least one dino above…' : 'Ask all selected dinos…'"
-            [disabled]="selectedGroupDinoIds().length === 0"
-            [loading]="false"
-            [tools]="[]"
-            [enabledToolNames]="[]"
-            (send)="onGroupSend($event.text)"
-            (stop)="groupchatService.stopAll()"
-          />
-
-          <!-- Response grid -->
-          @if (groupchatEntries().length > 0) {
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              @for (entry of groupchatEntries(); track entry.dinoId) {
-                @let responseDino = groupDinoById(entry.dinoId);
-                @if (responseDino) {
-                  <app-group-response
-                    [dino]="responseDino"
-                    [text]="entry.text"
-                    [status]="entry.status"
-                    [error]="entry.error"
-                  />
+          <!-- Interleaved transcript: one top-to-bottom attributed chat (D-03) -->
+          @if (groupchatMessages().length > 0) {
+            <div class="flex flex-col gap-4">
+              @for (msg of groupchatMessages(); track msg.id) {
+                @if (msg.role === 'user') {
+                  <div class="self-end max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-sm bg-jungle-accent dark:bg-jungle-night-accent text-jungle-user-ink text-sm leading-relaxed whitespace-pre-wrap break-words shadow-md">
+                    {{ msg.text }}
+                    @if (msg.reactions?.length) {
+                      <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                        @for (reaction of msg.reactions; track $index) {
+                          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/20">
+                            <app-mascot [dinoId]="reaction.dinoId" size="sm" class="flex-shrink-0 w-4 h-4" />
+                            <span class="text-sm leading-none" aria-hidden="true">{{ reaction.emoji }}</span>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  @let responseDino = groupDinoById(msg.dinoId);
+                  @if (responseDino) {
+                    <app-group-response
+                      [dino]="responseDino"
+                      [text]="msg.text"
+                      [status]="msg.status ?? 'done'"
+                      [error]="msg.error"
+                      [reactions]="msg.reactions"
+                    />
+                  }
                 }
               }
             </div>
           }
+
+          <!-- Composer + @mention autocomplete -->
+          <div class="relative">
+            @if (mentionOpen() && mentionCandidates().length > 0) {
+              <div
+                class="absolute bottom-full left-0 mb-2 z-20 w-64 max-h-60 overflow-y-auto rounded-xl bg-jungle-surface dark:bg-jungle-night-surface border border-jungle-border/40 dark:border-jungle-night-border/40 shadow-xl py-1"
+                role="listbox"
+                aria-label="Mention a dino"
+              >
+                @for (candidate of mentionCandidates(); track candidate.id) {
+                  <button
+                    type="button"
+                    role="option"
+                    [attr.aria-selected]="false"
+                    (click)="applyMention(candidate)"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-jungle-bg/60 dark:hover:bg-jungle-night/60 focus-visible:outline-none focus-visible:bg-jungle-bg/60 dark:focus-visible:bg-jungle-night/60 transition-colors"
+                  >
+                    <app-mascot [dinoId]="candidate.id" size="sm" class="flex-shrink-0 w-6 h-6" />
+                    <span class="min-w-0 truncate text-jungle-ink dark:text-jungle-night-text">{{ candidate.name }}</span>
+                  </button>
+                }
+              </div>
+            }
+            <app-input-composer
+              #groupComposer
+              [placeholder]="selectedGroupDinoIds().length === 0 ? 'Select at least one dino above…' : 'Message the group… (use @name to address one)'"
+              [disabled]="selectedGroupDinoIds().length === 0"
+              [loading]="groupchatStreaming()"
+              [tools]="[]"
+              [enabledToolNames]="[]"
+              (send)="onGroupSend($event.text)"
+              (stop)="groupchatService.stopAll()"
+            />
+          </div>
         </div>
       </main>
     } @else if (activeView() === 'arena') {

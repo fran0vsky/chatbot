@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DoCheck,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -91,7 +92,7 @@ interface KnowledgeFile {
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
 })
-export class ChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   private readonly chatService = inject(ChatService);
   private readonly skillService = inject(SkillService);
   readonly groupchatService = inject(GroupchatService);
@@ -140,9 +141,20 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   // Groupchat: set of selected dino IDs (transient selection — out of NgRx scope)
   readonly selectedGroupDinoIds = signal<string[]>([]);
-  readonly groupchatEntries = this.groupchatService.entries;
+  /** Interleaved attributed group transcript (turn-based — Phase 35). */
+  readonly groupchatMessages = this.groupchatService.messages;
+  /** True while a group turn is streaming. */
+  readonly groupchatStreaming = this.groupchatService.streaming;
   /** Expose cap for template use (static → instance bridge). */
   readonly groupchatMaxDinos = GroupchatService.MAX_DINOS;
+
+  // ─── @mention autocomplete for the group composer (GRP2-02 / D-04) ───
+  /** True while the mention dropdown is open. */
+  readonly mentionOpen = signal(false);
+  /** Participant dinos matching the trailing @<partial> token. */
+  readonly mentionCandidates = signal<DinoSummary[]>([]);
+  /** Last group-composer draft seen by the mention detector (DoCheck guard). */
+  private lastGroupDraft = '';
   readonly knowledgeFiles = signal<KnowledgeFile[]>([]);
 
   /**
@@ -324,17 +336,69 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Send the prompt to all selected dinos via GroupchatService. */
+  /** Send the prompt to all selected dinos via the turn-based GroupchatService. */
   onGroupSend(text: string): void {
     const ids = this.selectedGroupDinoIds();
     if (ids.length === 0 || !text.trim()) return;
+    this.closeMention();
     this.groupchatService.send(text, ids);
     this.cdr.markForCheck();
   }
 
-  /** Retrieve a dino by id for template iteration over groupchat entries. */
-  groupDinoById(id: string): DinoSummary | undefined {
+  /** Retrieve a dino by id for template iteration over groupchat messages. */
+  groupDinoById(id: string | undefined): DinoSummary | undefined {
+    if (!id) return undefined;
     return this.dinos().find((d) => d.id === id);
+  }
+
+  /** The participant dinos resolved to summaries, in selection order. */
+  private participantDinos(): DinoSummary[] {
+    return this.selectedGroupDinoIds()
+      .map((id) => this.groupDinoById(id))
+      .filter((d): d is DinoSummary => d !== undefined);
+  }
+
+  /**
+   * @mention detection (D-04): when the group composer draft ends with a
+   * `@<partial>` token, open a dropdown of participant dinos whose name matches.
+   * Driven from ngDoCheck so it tracks the composer's draft without modifying
+   * app-input-composer. Scoped to the groupchat view only.
+   */
+  private detectMention(draft: string): void {
+    const match = draft.match(/(?:^|\s)@([\w-]*)$/);
+    if (!match) {
+      this.closeMention();
+      return;
+    }
+    const partial = match[1].toLowerCase();
+    const candidates = this.participantDinos().filter((d) =>
+      d.name.toLowerCase().includes(partial),
+    );
+    if (candidates.length === 0) {
+      this.closeMention();
+      return;
+    }
+    this.mentionCandidates.set(candidates);
+    this.mentionOpen.set(true);
+  }
+
+  /** Insert `@Name ` into the group composer draft, replacing the trailing token. */
+  applyMention(dino: DinoSummary): void {
+    const composer = this.groupComposerRef;
+    if (!composer) return;
+    composer.draft = composer.draft.replace(/(?:^|\s)@([\w-]*)$/, (full) => {
+      const lead = full.startsWith('@') ? '' : full[0];
+      return `${lead}@${dino.name} `;
+    });
+    this.lastGroupDraft = composer.draft;
+    this.closeMention();
+    this.cdr.markForCheck();
+  }
+
+  /** Close the mention dropdown and clear candidates. */
+  private closeMention(): void {
+    if (this.mentionOpen()) this.mentionOpen.set(false);
+    if (this.mentionCandidates().length > 0) this.mentionCandidates.set([]);
   }
 
   // ─────────────────────────── Arena methods ────────────────────────────────
@@ -711,6 +775,22 @@ export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messageEnd') private messageEnd?: ElementRef<HTMLElement>;
   /** Reference to the main chat InputComposer for filling draft from STT transcript. */
   @ViewChild(InputComposer) private inputComposerRef?: InputComposer;
+  /** Reference to the group-view composer — drives @mention detection (D-04). */
+  @ViewChild('groupComposer') private groupComposerRef?: InputComposer;
+
+  /**
+   * Watch the group composer's draft each change-detection cycle and run @mention
+   * detection when it changes. Guarded by lastGroupDraft so it only re-evaluates
+   * on an actual edit. Only the groupchat view renders #groupComposer.
+   */
+  ngDoCheck(): void {
+    const composer = this.groupComposerRef;
+    if (!composer) return;
+    if (composer.draft !== this.lastGroupDraft) {
+      this.lastGroupDraft = composer.draft;
+      this.detectMention(composer.draft);
+    }
+  }
 
   private placeholderIndex = 0;
   private placeholderTimer: ReturnType<typeof setInterval> | null = null;
