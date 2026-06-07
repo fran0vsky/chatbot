@@ -1,3 +1,5 @@
+import type { GroupReaction } from './group.types.js';
+
 /** A single prior turn sent so the backend has within-thread context. */
 export interface ChatHistoryItem {
   role: 'user' | 'assistant';
@@ -55,6 +57,17 @@ export interface ChatMessage {
   reasoning?: string;
   reasoningDurationMs?: number;
   createdAt?: number;
+  /**
+   * Group-thread attribution (D-08): the dino that spoke this message in a
+   * persisted group transcript. Present on `role === 'assistant'` rows that
+   * originated from a group dino; absent for single-dino chats.
+   */
+  dinoId?: string;
+  /**
+   * Group-thread attribution (D-08): emoji reactions pinned to this message in
+   * a persisted group transcript, so a saved group chat round-trips its chips.
+   */
+  reactions?: GroupReaction[];
 }
 
 export interface ConversationSession {
@@ -65,6 +78,10 @@ export interface ConversationSession {
   pinned?: boolean;
   /** The dino bound to this session; sent as dinoId on every message. */
   dinoId?: string;
+  /** True when this session is a persisted group thread (D-08). */
+  isGroup?: boolean;
+  /** Saved participant roster for a group thread, so it reopens with the exact dino set (D-08). */
+  participantDinoIds?: string[];
 }
 
 export interface StreamTokenEvent {
