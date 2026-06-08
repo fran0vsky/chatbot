@@ -178,10 +178,45 @@ export class AgentsService {
       const systemPrompt = dino ? this.buildSystemPrompt(dino.systemPrompt, skills, memories) : undefined;
 
       // Within-thread context: replay recent prior turns so follow-ups have
-      // context. Closes the prior stateless-loop gap (each request was a single
-      // HumanMessage). user → Human, assistant → AI.
-      const historyMessages: BaseMessage[] = (history ?? []).map((h) =>
-        h.role === 'user' ? new HumanMessage(h.text) : new AIMessage(h.text),
+      // context. Four cases per ChatHistoryItem:
+      //   user + imageDataUrl → multimodal HumanMessage (same shape as currentTurn)
+      //   user (text only)   → HumanMessage(text)
+      //   assistant          → AIMessage(text)
+      //   tool               → AIMessage(tool_calls) + ToolMessage(toolResult)
+      //     The AIMessage+ToolMessage pair reconstructs a faithful replay so the
+      //     model sees what it already "fetched" and avoids redundant re-calls.
+      const historyMessages: BaseMessage[] = (history ?? []).flatMap(
+        (h: ChatHistoryItem, index: number): BaseMessage[] => {
+          if (h.role === 'tool') {
+            // Reconstruct the prior tool call as the two-message pair the live
+            // loop would have produced: AIMessage(tool_calls) + ToolMessage.
+            const toolId = `replay-${h.toolName ?? 'unknown'}-${index}`;
+            const args: Record<string, unknown> = h.toolArgs ?? {};
+            return [
+              new AIMessage({
+                content: '',
+                tool_calls: [{ id: toolId, name: h.toolName ?? '', args }],
+              }),
+              new ToolMessage({ content: h.toolResult ?? '', tool_call_id: toolId }),
+            ];
+          }
+          if (h.role === 'user') {
+            if (h.imageDataUrl) {
+              // Multimodal HumanMessage — mirrors the currentTurn builder below.
+              return [
+                new HumanMessage({
+                  content: [
+                    ...(h.text ? [{ type: 'text' as const, text: h.text }] : []),
+                    { type: 'image_url' as const, image_url: { url: h.imageDataUrl } },
+                  ],
+                }),
+              ];
+            }
+            return [new HumanMessage(h.text)];
+          }
+          // assistant
+          return [new AIMessage(h.text)];
+        },
       );
 
       // When an image is attached, send a multimodal HumanMessage (text + image)
