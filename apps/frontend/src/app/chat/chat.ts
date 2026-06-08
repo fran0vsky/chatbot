@@ -7,13 +7,14 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile } from '@org/shared-types';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, IMAGE_TOKEN_COST, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow } from '@org/shared-types';
 import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
 import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { AssistantService } from '../voice/assistant.service.js';
@@ -53,6 +54,16 @@ import {
  * hard limit on typed text, so we use a generous but bounded cap here.
  */
 const MAX_DRAFT_LENGTH = 10_000;
+
+/**
+ * Conservative estimate of the tokens consumed by the dino's system prompt.
+ * The client never holds the prompt text, so we use a fixed allowance (~800 tokens
+ * — typical for a 2-3 paragraph system prompt). Deliberately approximate (D-08).
+ */
+const SYSTEM_PROMPT_ALLOWANCE = 800;
+
+/** Cap on retained images in context, matching buildHistory() IMAGE_CAP (Phase 32-01). */
+const IMAGE_CAP = 2;
 
 const PLACEHOLDER_EXAMPLES = [
   'Explain quantum computing in simple terms...',
@@ -147,6 +158,64 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   readonly groupchatStreaming = this.groupchatService.streaming;
   /** Expose cap for template use (static → instance bridge). */
   readonly groupchatMaxDinos = GroupchatService.MAX_DINOS;
+
+  // ─── Context-usage ring (Phase 32 / CTX-03) ────────────────────────────────
+
+  /**
+   * Current draft text in the main chat composer, updated via the
+   * `(draftChange)` output. Used in the contextUsage estimate so the
+   * ring reflects the draft contribution in real time.
+   */
+  readonly currentDraft = signal('');
+
+  /**
+   * Live estimate of next-turn context-window usage, derived from:
+   *   - replayed history text (estimateTextTokens per user/assistant item)
+   *   - replayed tool results (estimateTextTokens per toolResult)
+   *   - retained images (IMAGE_TOKEN_COST × up to IMAGE_CAP images)
+   *   - a fixed SYSTEM_PROMPT_ALLOWANCE (client never holds the prompt)
+   *   - the current draft (estimateTextTokens)
+   *
+   * Denominator: getContextWindow(activeDino().model) — real per-model window
+   * from @org/shared-types, falling back to DEFAULT_CONTEXT_WINDOW (8000) for
+   * unknown models (D-07). All values are approximately computed (D-08).
+   * Warn-only at ~80% — nothing is removed (D-09/D-10).
+   */
+  readonly contextUsage = computed(() => {
+    const msgs = this.messages();
+    const draft = this.currentDraft();
+    const model = this.activeDino()?.model ?? '';
+
+    let tokens = SYSTEM_PROMPT_ALLOWANCE;
+    let imageCount = 0;
+
+    // Walk the message list in newest-to-oldest order to apply the IMAGE_CAP.
+    // We then iterate oldest-to-newest for the text sum, so collect first.
+    const allItems = msgs.slice(0, -1); // exclude the current turn (not yet sent)
+
+    for (let i = allItems.length - 1; i >= 0; i--) {
+      const m = allItems[i];
+      if (m.role === 'user') {
+        tokens += estimateTextTokens(m.text);
+        if (m.imageDataUrl && imageCount < IMAGE_CAP) {
+          tokens += IMAGE_TOKEN_COST;
+          imageCount++;
+        }
+      } else if (m.role === 'assistant') {
+        tokens += estimateTextTokens(m.text);
+      } else if (m.role === 'tool' && m.toolResult) {
+        tokens += estimateTextTokens(m.toolResult);
+      }
+    }
+
+    // Add the current draft contribution.
+    tokens += estimateTextTokens(draft);
+
+    const window = getContextWindow(model);
+    const percent = Math.min(100, Math.round((tokens / window) * 100));
+
+    return { tokens, percent };
+  });
 
   // ─── @mention autocomplete for the group composer (GRP2-02 / D-04) ───
   /** True while the mention dropdown is open. */

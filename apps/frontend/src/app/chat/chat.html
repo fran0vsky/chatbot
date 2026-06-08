@@ -501,11 +501,14 @@
               [sttSupported]="voiceRec.supported()"
               [listening]="voiceRec.listening()"
               [allowImage]="true"
+              [contextPercent]="contextUsage().percent"
+              [contextTokens]="contextUsage().tokens"
               (send)="onSend($event.text, $event.imageDataUrl)"
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
               (micToggle)="onMicToggle()"
               (teachOpen)="openSkillPanel($event)"
+              (draftChange)="currentDraft.set($event)"
             />
           </div>
         </div>
@@ -596,11 +599,14 @@
               [sttSupported]="voiceRec.supported()"
               [listening]="voiceRec.listening()"
               [allowImage]="true"
+              [contextPercent]="contextUsage().percent"
+              [contextTokens]="contextUsage().tokens"
               (send)="onSend($event.text, $event.imageDataUrl)"
               (stop)="onStop()"
               (toolToggled)="toggleTool($event.name, $event.enabled)"
               (micToggle)="onMicToggle()"
               (teachOpen)="openSkillPanel($event)"
+              (draftChange)="currentDraft.set($event)"
             />
           </div>
         </div>
