@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: — Dino Platform
 status: verifying
 stopped_at: Completed 35-03-PLAN.md (durable group-chat persistence — Phase 35 code complete, HUMAN-UAT pending)
-last_updated: "2026-06-08T07:58:57.078Z"
+last_updated: "2026-06-08T08:04:21.900Z"
 last_activity: 2026-06-08
 progress:
   total_phases: 11
