@@ -1117,18 +1117,67 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     this.scrollToBottom();
   }
 
-  // Recent prior turns (user/assistant only) sent so the backend has within-thread
-  // context. The current turn's user message is already the last entry in
-  // the message list, so it is excluded here; the backend receives it as `message`.
+  // Recent prior turns sent so the backend has within-thread context. Includes
+  // tool messages (empty text but real toolResult) and forwards imageDataUrl for
+  // vision replay. The current turn is excluded; the backend receives it as `message`.
   private buildHistory(): ChatHistoryItem[] {
     const HISTORY_CAP = 20;
-    return this.messages()
-      .slice(0, -1)
-      .filter((m): m is ChatMessage & { role: 'user' | 'assistant' } =>
-        (m.role === 'user' || m.role === 'assistant') && m.text.trim().length > 0,
-      )
-      .map((m) => ({ role: m.role, text: m.text }))
-      .slice(-HISTORY_CAP);
+    const IMAGE_CAP = 2;
+
+    const allMessages = this.messages().slice(0, -1);
+
+    // Build raw list: keep user/assistant turns with non-empty text, and tool turns
+    // with a toolResult. Map each to a ChatHistoryItem carrying all replay fields.
+    const raw: ChatHistoryItem[] = allMessages.flatMap((m): ChatHistoryItem[] => {
+      if (m.role === 'user' && m.text.trim().length > 0) {
+        return [{ role: 'user', text: m.text, ...(m.imageDataUrl ? { imageDataUrl: m.imageDataUrl } : {}) }];
+      }
+      if (m.role === 'assistant' && m.text.trim().length > 0) {
+        return [{ role: 'assistant', text: m.text }];
+      }
+      if (m.role === 'tool' && (m.toolName || m.toolResult)) {
+        return [{
+          role: 'tool',
+          text: '',
+          ...(m.toolName ? { toolName: m.toolName } : {}),
+          ...(m.toolArgs ? { toolArgs: m.toolArgs } : {}),
+          ...(m.toolResult ? { toolResult: m.toolResult } : {}),
+        }];
+      }
+      return [];
+    });
+
+    // Apply HISTORY_CAP to conversational (user/assistant) turns only.
+    // Count how many user/assistant turns to keep (last HISTORY_CAP),
+    // then find the oldest kept conversational turn's index and slice from there.
+    let convCount = 0;
+    let cutIdx = raw.length;
+    for (let i = raw.length - 1; i >= 0; i--) {
+      if (raw[i].role === 'user' || raw[i].role === 'assistant') {
+        convCount++;
+        if (convCount === HISTORY_CAP) {
+          cutIdx = i;
+          break;
+        }
+      }
+    }
+    const capped = raw.slice(cutIdx === raw.length ? 0 : cutIdx);
+
+    // Apply last-2-images cap: walk newest→oldest and strip imageDataUrl from
+    // user items beyond the IMAGE_CAP most-recent image-bearing turns.
+    let imgCount = 0;
+    for (let i = capped.length - 1; i >= 0; i--) {
+      if (capped[i].role === 'user' && capped[i].imageDataUrl) {
+        imgCount++;
+        if (imgCount > IMAGE_CAP) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { imageDataUrl: _, ...rest } = capped[i];
+          capped[i] = rest;
+        }
+      }
+    }
+
+    return capped;
   }
 
   private async dispatchRequest(text: string, imageDataUrl?: string): Promise<void> {
