@@ -199,9 +199,17 @@
         [disabled]="disabled && !loading"
         (keydown)="onKeydown($event)"
         (paste)="onPaste($event)"
-        (input)="autoResize(textareaRef)"
+        (input)="autoResize(textareaRef); draftChange.emit(draft)"
       ></textarea>
 
+      @if (contextPercent !== null) {
+        <!-- Context-usage ring (CTX-03 / D-11): shown only when contextPercent is bound -->
+        <app-usage-ring
+          [percent]="contextPercent"
+          [tokens]="contextTokens"
+          class="flex-shrink-0"
+        />
+      }
       @if (loading) {
         <button type="button" (click)="submit()"
           [attr.aria-label]="'Stop response'"

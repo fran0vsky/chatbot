@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToolInfo } from '@org/shared-types';
+import { UsageRing } from '../usage-ring/usage-ring.js';
 
 /** Payload emitted on submit: the trimmed text plus an optional attached image. */
 export interface ComposerSubmit {
@@ -65,7 +66,7 @@ function downscaleImage(file: File, maxDim: number): Promise<string> {
   selector: 'app-input-composer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './input-composer.html',
-  imports: [FormsModule],
+  imports: [FormsModule, UsageRing],
 })
 export class InputComposer implements AfterViewChecked {
   @Input() placeholder = 'Message';
@@ -87,6 +88,16 @@ export class InputComposer implements AfterViewChecked {
   /** Emitted when the user opens the teach flow (brain button or /teach command).
    *  Carries the optional trailing text to pre-fill the instruction field. */
   @Output() teachOpen = new EventEmitter<string | undefined>();
+  /**
+   * When non-null, renders the context-usage ring near the send button.
+   * Null (default) hides the ring entirely — groupchat/arena composers omit it.
+   */
+  @Input() contextPercent: number | null = null;
+  /** Approximate token count passed through to the ring tooltip. */
+  @Input() contextTokens?: number;
+  /** Emitted whenever the draft text changes — lets the smart chat component
+   *  fold the live draft into its context estimate without coupling services. */
+  @Output() draftChange = new EventEmitter<string>();
 
   draft = '';
   atMaxHeight = false;
