@@ -1,0 +1,35 @@
+<svg
+  class="w-7 h-7 -rotate-90"
+  viewBox="0 0 24 24"
+  fill="none"
+  role="img"
+  [attr.aria-label]="ariaLabel"
+  [attr.title]="tooltipText"
+>
+  <!-- Background track circle -->
+  <circle
+    cx="12"
+    cy="12"
+    [attr.r]="radius"
+    stroke-width="3"
+    class="text-jungle-border/30 dark:text-jungle-night-border/30"
+    stroke="currentColor"
+    fill="none"
+  />
+  <!-- Foreground arc — length driven by dashLength; colour shifts to amber on warning -->
+  <circle
+    cx="12"
+    cy="12"
+    [attr.r]="radius"
+    stroke-width="3"
+    [attr.stroke-dasharray]="dashLength + ' ' + circumference"
+    stroke-dashoffset="0"
+    stroke="currentColor"
+    stroke-linecap="round"
+    fill="none"
+    [class.text-jungle-accent]="!isWarning"
+    [class.dark:text-jungle-night-accent]="!isWarning"
+    [class.text-amber-500]="isWarning"
+    [class.dark:text-amber-400]="isWarning"
+  />
+</svg>
