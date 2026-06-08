@@ -55,7 +55,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 30: UX Reliability & Cleanup** - Loading/skeleton states (no stale messages on chat switch), long-text textarea fix, remove dino-picker "active" badge, remove Explore (completed 2026-06-04)
 - [x] **Phase 31: Tool Reliability — Web Search + Cheerio Fetch** - Replace DuckDuckGo IA `web_search` with a real free-tier provider; Cheerio-based `fetch_page` parsing (completed 2026-06-05)
-- [ ] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning
+- [x] **Phase 32: Conversation Working Memory + Context Ring** - Persist attached images + fetched tool results in thread context (reused across turns); context-usage ring with near-limit warning (completed 2026-06-08)
 - [x] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills (completed 2026-06-06)
 - [x] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory (completed 2026-06-07; HUMAN-UAT pending)
 - [x] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23) (code complete 2026-06-07; HUMAN-UAT pending)
@@ -146,7 +146,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | **— v2.1 Reliability, Depth & Hardening —** | | | |
 | 30. UX Reliability & Cleanup | 4/4 | Complete    | 2026-06-05 |
 | 31. Tool Reliability (Search + Cheerio) | 2/2 | Complete   | 2026-06-05 |
-| 32. Working Memory + Context Ring | 1/2 | In Progress|  |
+| 32. Working Memory + Context Ring | 2/2 | Complete   | 2026-06-08 |
 | 33. Composer & Knowledge Reorg | 3/3 | Complete   | 2026-06-06 |
 | 34. AI Memory Creator | 1/2 | In Progress | - |
 | 35. Conversational Group Chat | 3/3 | Code Complete (HUMAN-UAT pending) | 2026-06-07 |
@@ -600,7 +600,7 @@ Plans:
   3. A context-usage ring is visible in the chat, reflecting approximate context-window fill, with a visible warning as it nears the limit
   4. No regression to single-turn chat beyond the intended reuse
 **Scope note:** In — per-thread working-memory store for images + fetched data, reuse on subsequent turns, context-ring UI + estimation. Out — vector/semantic retrieval (that's cross-thread memory, Phase 21). Token estimation may be approximate and documented.
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 **UI hint:** yes
 
 ### Phase 33: Composer & Knowledge Reorg
