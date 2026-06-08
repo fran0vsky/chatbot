@@ -1,9 +1,25 @@
 import type { GroupReaction } from './group.types.js';
 
-/** A single prior turn sent so the backend has within-thread context. */
+/**
+ * A single prior turn sent so the backend has within-thread context.
+ * Now also carries retained images (capped to the last 2 image-bearing user
+ * turns) and replayed tool results so the model can reference them without
+ * re-attaching or re-fetching — working memory for within-thread continuity.
+ */
 export interface ChatHistoryItem {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'tool';
   text: string;
+  /**
+   * Prior user image (base64 data URL), forwarded for vision-model replay.
+   * Capped to the 2 most-recent image-bearing user turns; older turns omit this.
+   */
+  imageDataUrl?: string;
+  /** Name of the tool that was called (present on role:'tool' items). */
+  toolName?: string;
+  /** Arguments passed to the tool (present on role:'tool' items). */
+  toolArgs?: Record<string, unknown>;
+  /** Textual result returned by the tool (present on role:'tool' items). */
+  toolResult?: string;
 }
 
 export interface ChatRequest {
