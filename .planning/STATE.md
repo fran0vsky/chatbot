@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: — Dino Platform
 status: verifying
-stopped_at: Completed 35-03-PLAN.md (durable group-chat persistence — Phase 35 code complete, HUMAN-UAT pending)
-last_updated: "2026-06-08T08:04:21.900Z"
-last_activity: 2026-06-08
+stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
+last_updated: "2026-06-09T00:00:00.000Z"
+last_activity: 2026-06-09
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 32
+  completed_plans: 33
   percent: 82
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 32 — working-memory-context-ring
+**Current focus:** Phase 36 — https-lets-encrypt
 
 ## Current Position
 
-Phase: 32 (working-memory-context-ring) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-06-08
+Phase: 36 (https-lets-encrypt) — CODE COMPLETE (live VM cert issuance manual/pending)
+Plan: 1 of 1
+Status: Deliverables committed — INFRA-01 live verification awaits the manual VM runbook (Task 4)
+Last activity: 2026-06-09
 
 ## Performance Metrics
 
@@ -95,10 +95,12 @@ Recent decisions affecting current work:
 - Phase 35-03: Durable group-chat persistence (D-08 / GRP2-04) = group threads save as a SINGLE interleaved `ConversationSession` in the SAME localStorage store as single chats (`desert-chat-history`) — no DB, no migration. Additive optional type extensions only: `ChatMessage` += `dinoId?`/`reactions?: GroupReaction[]`, `ConversationSession` += `isGroup?`/`participantDinoIds?` (existing single chats stay valid). GroupchatService gained a stable `groupSessionId` (minted on first send, reused across turns so re-saving updates in place), `toSession(title)`/`loadSession(session)`/`startNewSession()`, and GroupMessage⇄ChatMessage mappers (`user`↔`user`, `dino`↔`assistant`+dinoId, reactions preserved). ChatComponent persists on the falling edge of `groupchatStreaming()` via a constructor effect → `upsertActiveSession(toSession(title))` + `loadSessions()` refresh (reuses the single-chat store path; single-dino save/switch unchanged). `onSessionSelected` branches on `session.isGroup` → `openSession` (groupchat view + transcript + roster restore) else `switchToSession`. HistoryPanel shows a participant-mascot cluster (capped 3 + N badge) when `isGroup` (stays presentational). shared-types import must use the `.js` specifier (`./group.types.js`) under its NodeNext `typecheck` target. `nx test frontend` still crashes at bundle generation (pre-existing `referencedFiles`/`pos` Windows bug) so the new vi.* spec is type-sound but unrun locally.
 - Phase 35-01: Backend group orchestrator = new GroupAgentsService + GroupAgentsController (POST /api/agents/group SSE), reusing AgentsService.streamAgent UNCHANGED per answerer. One cheap gpt-4o-mini orchestrator call returns a defensively-parsed per-dino answer/react/silent plan; Round 1 concurrent (multiplexed, dino-tagged on one SSE stream), Round 2 bounded+sequential (≤MAX_INTER_DINO_REPLIES=2). @mention forcing moved to engine level (streamGroup, not runOrchestrator) so it holds independent of the LLM plan and is unit-testable. Reactions cost zero LLM calls; documented hard ceiling 1+4+2=7 calls/turn. parseOrchestratorPlan + buildAttributedHistory (D-09 speaker-labelled history) exported as pure helpers. shared-types has a `typecheck` target, not `build`.
 - Phase 34-01: Memory Creator backend = standalone MemoryCreatorService reusing agents.service paid-fallback shape (FALLBACK_MODEL=gpt-4o-mini) WITHOUT importing agents.service.ts (D-02); writes DinoSkills only via addSkill/updateSkill (no new persistence endpoint, D-08); reconcile is a separate server-side LLM call returning 'new' or an existing skill id (D-07, decision never surfaced); imageGen dinos use FALLBACK_MODEL; all creator LLM failures degrade (suggest→[], synthesize→raw input) and never 500 the chat; parseSynthesized/parseReconcile exported as pure unit-testable helpers
+- Phase 36-01: HTTPS/TLS = host-level nginx + certbot (D-01), NOT dockerized. Ship `infra/nginx/dinoagents.conf` as an HTTP-only port-80 server block reverse-proxying `{DOMAIN}` → `http://localhost:3000`; `sudo certbot --nginx -d {DOMAIN}` augments the file in place (adds the `443 ssl` server + 80→443 301 redirect + systemd renew timer), sidestepping the cert/nginx chicken-and-egg (D-02). SSE streaming preserved via `proxy_buffering off` + `proxy_read_timeout/proxy_send_timeout 3600s` (backend already sends `X-Accel-Buffering: no`); `client_max_body_size 25m` for pasted screenshots (D-04). `CORS_ORIGIN=${CORS_ORIGIN:-https://{DOMAIN}}` added to compose backend env + `.env.example` (replaced the localhost dev default, D-05). README `## Deployment` fully rewritten VM+nginx+certbot (Cloud Run/Artifact Registry/WIF/Firebase Hosting content removed, D-06). `{DOMAIN}` placeholder only — no real host/cert committed (D-03). Live cert issuance + browser/streaming verification is a manual VM task (Task 4 — HUMAN-UAT, blocks INFRA-01 live confirmation). Docker not installed locally, so compose validity checked via `yaml` parse, not `docker compose config`.
 - Phase 32-01: Image cap N=2 in buildHistory() — last 2 image-bearing user turns retain imageDataUrl; older stripped (D-01/D-02); flatMap for historyMessages — tool items yield AIMessage(tool_calls)+ToolMessage pair with synthetic id replay-{toolName}-{index}; HISTORY_CAP=20 applied to conversational turns only, tool messages ride within window (D-04/D-05/D-06)
 
 ### Pending Todos
 
+- **Phase 36 Task 4 — Issue cert + verify HTTPS on the VM (human, BLOCKING for INFRA-01 live verification):** on the production Compute Engine VM, follow the new README `## Deployment` runbook with the real domain. (1) Confirm the domain A record → VM IP and ports 80/443 open (3000 NOT public); (2) `sudo apt install nginx certbot python3-certbot-nginx`, deploy `infra/nginx/dinoagents.conf` to `/etc/nginx/sites-available/dinoagents` (replace `{DOMAIN}`), symlink, `sudo nginx -t && sudo systemctl reload nginx`; (3) `sudo certbot --nginx -d {DOMAIN}` and confirm it obtains a cert + rewrites the config (443 + redirect); (4) set `CORS_ORIGIN=https://{DOMAIN}` in the VM `.env`, `docker compose up -d`; (5) verify in browser: valid Let's Encrypt cert (padlock), `http://`→`https://` 301, a chat message streams token-by-token over HTTPS (SSE through the proxy), an image paste/upload succeeds, NO mixed-content errors; (6) `sudo certbot renew --dry-run` succeeds + renew timer active. Optionally re-commit the certbot-augmented `dinoagents.conf` (re-placeholdered). See 36-01-SUMMARY.md.
 - **Phase 32 Task 5 — Live UAT image+tool reuse (human):** serve `npx nx serve @org/backend` + `npx nx serve frontend` with a live `OPENROUTER_API_KEY`. In one thread: (1) attach an image, ask about it, then on a later turn (no re-attach) ask a follow-up referencing it — confirm dino answers from retained image (CTX-01); attach 2 more newer images and confirm oldest dropped (N=2 cap). (2) ask a web-capable dino to fetch_page a URL; on follow-up ask a question answerable from that page — confirm NO second tool_call_start for the same URL (CTX-02). (3) fresh single-turn message behaves identically to pre-change (Success Criterion #4). BLOCKING for phase verification. See 32-01-SUMMARY.md.
 - **Phase 34 Task 4 — Memory Creator end-to-end UAT (human):** with Phase 33 + 34-01 deployed, `DATABASE_URL` + `OPENROUTER_API_KEY` set and `dino_skills` pushed, serve the app and in a dino conversation: (1) brain → thinking state → ≥3 conversation-derived suggestions (SC#1); (2) pick-a-suggestion AND free-text both prefill the editable name/when/instruction form (SC#2); (3) save persists + auto-applies next chat, and an overlapping item UPDATES the existing skill (no duplicate, no new-vs-update toggle) (SC#3); (4) the manual teach form (under the disclosure) + stored skills/memories still work (SC#4). BLOCKING for phase verification. See 34-02-SUMMARY.md.
 - **Phase 21 Task 5 — cross-thread memory smoke test (human):** with `DATABASE_URL` + `OPENROUTER_API_KEY` set and `user_memories` pushed (`drizzle-kit push`): tell rexford a fact in thread A → recall in new thread B (same dino) → veloce in thread C must NOT know → unset `DATABASE_URL` → no crash, no recall. See 21-01-SUMMARY.md.
@@ -141,6 +143,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-08T07:58:57.072Z
-Stopped at: Completed 35-03-PLAN.md (durable group-chat persistence — Phase 35 code complete, HUMAN-UAT pending)
+Last session: 2026-06-09T00:00:00.000Z
+Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None

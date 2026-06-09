@@ -59,7 +59,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills (completed 2026-06-06)
 - [x] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory (completed 2026-06-07; HUMAN-UAT pending)
 - [x] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23) (code complete 2026-06-07; HUMAN-UAT pending)
-- [ ] **Phase 36: HTTPS / Let's Encrypt** - certbot + nginx on the VM, auto-renewing cert, HTTP→HTTPS redirect [independent infra track]
+- [x] **Phase 36: HTTPS / Let's Encrypt** - certbot + nginx on the VM, auto-renewing cert, HTTP→HTTPS redirect [independent infra track] (deliverables committed 2026-06-09; live VM cert issuance + verification manual/pending)
 
 ## Phase Details
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 33. Composer & Knowledge Reorg | 3/3 | Complete   | 2026-06-06 |
 | 34. AI Memory Creator | 1/2 | In Progress | - |
 | 35. Conversational Group Chat | 3/3 | Code Complete (HUMAN-UAT pending) | 2026-06-07 |
-| 36. HTTPS / Let's Encrypt | 0/1 | Plan written ✎ (infra track; live VM step manual) | - |
+| 36. HTTPS / Let's Encrypt | 1/1 | Code Complete (live VM issuance pending) | 2026-06-09 |
 
 ### Phase 4: Dark Theme and Visual Polish
 

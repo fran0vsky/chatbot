@@ -110,61 +110,40 @@ And join the Nx community:
 
 ## Deployment
 
-**Architecture:** Cloud Run hosts the NestJS backend (image stored in GCP Artifact Registry); Firebase Hosting serves the Angular SPA. CI/CD runs on GitHub Actions and deploys automatically on every push to `main`.
+**Architecture:** A single **Compute Engine VM** runs the backend as a Docker container (`docker-compose.yml`, host port `3000`). The backend serves both the `/api/*` routes and the baked-in Angular SPA from the same origin. Host-level **nginx** sits in front of it as a reverse proxy and terminates TLS, with certificates issued and auto-renewed by **certbot** (Let's Encrypt). The committed proxy config lives at [`infra/nginx/dinoagents.conf`](infra/nginx/dinoagents.conf).
 
-### One-time GCP setup
+### Prerequisites
 
-1. Create or select a GCP project. Note its **Project ID** and choose a **region** (e.g. `europe-west1`).
-2. Enable APIs: Cloud Run Admin, Artifact Registry, Secret Manager, IAM Service Account Credentials.
-3. Create an Artifact Registry Docker repository named `chatbot` in your chosen region.
-4. In Secret Manager, create a secret named `openrouter-api-key` with your OpenRouter key value.
-5. In Cloud Run, create a service named `chatbot-backend` (initial image can be any placeholder). Enable "Allow unauthenticated invocations". Note the service URL.
-6. Grant the Cloud Run runtime service account (`PROJECT_NUMBER-compute@developer.gserviceaccount.com`) the role `roles/secretmanager.secretAccessor` on the `openrouter-api-key` secret.
+- A registered domain with an **A record pointing at the VM's public IP**.
+- The backend container running and reachable on `localhost:3000` (`docker compose up -d`).
+- Ports **80 and 443 open** in the VM firewall. Port `3000` must **not** be exposed publicly — nginx reaches the backend over `localhost` only.
 
-### One-time Workload Identity Federation setup (for GitHub Actions → GCP, no long-lived keys)
+### Runbook (on the VM)
 
-1. Create a service account `github-deployer@PROJECT_ID.iam.gserviceaccount.com`.
-2. Grant it: `roles/run.admin`, `roles/artifactregistry.writer`, `roles/iam.serviceAccountUser`.
-3. In IAM → Workload Identity Federation, create a pool (e.g. `github-pool`) with an OIDC provider for `https://token.actions.githubusercontent.com`. Restrict to your repo via attribute condition: `attribute.repository == 'YOUR_ORG/YOUR_REPO'`.
-4. Bind the WIF principal to the service account as `roles/iam.workloadIdentityUser`.
-5. Note the full WIF provider resource path: `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/PROVIDER_NAME`.
-
-### One-time Firebase setup
-
-1. Go to https://console.firebase.google.com and create a project (or attach to the same GCP project).
-2. Enable Firebase Hosting. Note the Hosting URL (`https://PROJECT_ID.web.app`).
-3. In Project Settings → Service accounts → Generate new private key. Save the JSON (do **not** commit it).
-
-### One-time repo edits
-
-- In `.firebaserc`, replace `REPLACE_WITH_FIREBASE_PROJECT_ID` with your Firebase project ID.
-- In `apps/frontend/src/environments/environment.prod.ts`, replace `YOUR_CLOUD_RUN_URL` with the Cloud Run service URL from step 5 above.
-
-### GitHub Actions repository variables and secrets
-
-Go to **Settings → Secrets and variables → Actions**.
-
-**Repository Variables** (Vars tab — visible in logs):
-
-| Variable | Value |
-|----------|-------|
-| `GCP_PROJECT_ID` | Your GCP project ID |
-| `GCP_REGION` | e.g. `europe-west1` |
-| `GCP_ARTIFACT_REPO` | `chatbot` |
-| `GCP_WIF_PROVIDER` | Full WIF provider resource path |
-| `GCP_WIF_SERVICE_ACCOUNT` | `github-deployer@PROJECT_ID.iam.gserviceaccount.com` |
-| `CLOUD_RUN_SERVICE` | `chatbot-backend` |
-| `FIREBASE_PROJECT_ID` | Your Firebase project ID |
-| `FIREBASE_HOSTING_URL` | `https://PROJECT_ID.web.app` (used as `CORS_ORIGIN` on Cloud Run) |
-
-**Repository Secrets** (Secrets tab — masked):
-
-| Secret | Value |
-|--------|-------|
-| `FIREBASE_SERVICE_ACCOUNT` | Full contents of the Firebase service account JSON |
-| `OPENROUTER_API_KEY` | Your OpenRouter API key (needed by the CI E2E job) |
-
-> **Note:** The E2E job starts a real local backend and calls OpenRouter — `OPENROUTER_API_KEY` must be set as a secret or the E2E job will fail with a 500 error.
+1. **Install nginx + certbot:**
+   ```sh
+   sudo apt update && sudo apt install nginx certbot python3-certbot-nginx
+   ```
+2. **Deploy the proxy config.** Copy `infra/nginx/dinoagents.conf` to `/etc/nginx/sites-available/dinoagents`, replace every `{DOMAIN}` placeholder with your real hostname, then enable it:
+   ```sh
+   sudo ln -s /etc/nginx/sites-available/dinoagents /etc/nginx/sites-enabled/dinoagents
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+   nginx now serves the site over plain HTTP and proxies to the backend.
+3. **Issue the certificate:**
+   ```sh
+   sudo certbot --nginx -d {DOMAIN}
+   ```
+   certbot obtains the cert, **rewrites `dinoagents.conf`** to add the `443 ssl` server block and an `80 → 443` (301) redirect, and installs the systemd renew timer.
+4. **Point the backend at the HTTPS origin.** Set `CORS_ORIGIN=https://{DOMAIN}` in the VM's `.env`, then `docker compose up -d` to apply it.
+5. **Verify:**
+   - `https://{DOMAIN}` loads with a valid Let's Encrypt certificate (padlock).
+   - `http://{DOMAIN}` 301-redirects to `https://{DOMAIN}`.
+   - A chat message streams token-by-token over HTTPS (SSE works through the proxy) and an image paste/upload succeeds, with **no mixed-content errors** in the browser console.
+   - Renewal is healthy:
+     ```sh
+     sudo certbot renew --dry-run
+     ```
 
 ### Running E2E locally
 
