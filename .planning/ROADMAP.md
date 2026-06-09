@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 33. Composer & Knowledge Reorg | 3/3 | Complete   | 2026-06-06 |
 | 34. AI Memory Creator | 1/2 | In Progress | - |
 | 35. Conversational Group Chat | 3/3 | Code Complete (HUMAN-UAT pending) | 2026-06-07 |
-| 36. HTTPS / Let's Encrypt | 0/TBD | Planned (infra track) | - |
+| 36. HTTPS / Let's Encrypt | 0/1 | Plan written ✎ (infra track; live VM step manual) | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -657,5 +657,6 @@ Plans:
   3. The certificate auto-renews (certbot timer/cron) and renewal is verified (dry-run)
   4. Frontend → backend calls work over HTTPS with no mixed-content errors
 **Scope note:** In — nginx reverse proxy, certbot issuance + auto-renew, HTTP→HTTPS redirect, any API base-URL/CORS updates for the HTTPS origin. Out — CDN, multi-domain, infra-as-code rewrite. Reflects the move from Cloud Run + Firebase to a VM.
-**Plans:** TBD (run `/gsd-plan-phase 36`)
+**Plans:** 1 plan
+  - 36-01: Host-level nginx + certbot (INFRA-01) — `infra/nginx/dinoagents.conf` reverse-proxy (streaming/upload-safe) → `localhost:3000`, `certbot --nginx` TLS + 80→443 redirect + auto-renew, `CORS_ORIGIN` bump, README deployment runbook rewrite. Live cert issuance + verification is a manual VM task.
 **UI hint:** no
