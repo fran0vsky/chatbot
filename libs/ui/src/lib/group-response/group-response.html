@@ -54,7 +54,10 @@
   @if (reactions?.length) {
     <div class="flex flex-wrap items-center gap-1.5 px-4 pb-3">
       @for (reaction of reactions; track $index) {
-        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 border border-jungle-border/30 dark:border-jungle-night-border/40">
+        <span
+          class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 border border-jungle-border/30 dark:border-jungle-night-border/40 cursor-default"
+          [title]="reactionTooltip(reaction.emoji)"
+          [attr.aria-label]="reactionTooltip(reaction.emoji)">
           <app-mascot [dinoId]="reaction.dinoId" size="sm" class="flex-shrink-0 w-4 h-4" />
           <span class="text-sm leading-none" aria-hidden="true">{{ reaction.emoji }}</span>
         </span>

@@ -8,6 +8,7 @@ import {
   GroupMessage,
   GroupOrchestratorPlan,
   GroupStreamEvent,
+  REACTION_TOOLTIPS,
 } from '@org/shared-types';
 import { DINOS, getDino } from './dinos';
 import { AgentsService } from './agents.service';
@@ -214,7 +215,11 @@ export class GroupAgentsService {
           forcedNames.length > 0
             ? `- The user @mentioned these dinos; they MUST answer in Round 1: ${forcedNames.join(', ')}.`
             : '- No dinos were @mentioned.',
-          '- A "react" decision MUST include a single emoji. "answer"/"silent" must NOT include an emoji.',
+          '- A "react" decision MUST include a single emoji, chosen ONLY from this captioned set (pick the one whose meaning fits): ' +
+            Object.entries(REACTION_TOOLTIPS)
+              .map(([e, caption]) => `${e}=${caption}`)
+              .join(', ') +
+            '. "answer"/"silent" must NOT include an emoji.',
           '- Order is ascending speaking order within the round.',
         ].join('\n'),
       );
