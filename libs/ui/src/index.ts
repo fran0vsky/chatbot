@@ -7,8 +7,6 @@ export { DinoCard } from './lib/dino-card/dino-card.js';
 export { DinoPicker } from './lib/dino-picker/dino-picker.js';
 export { MessageBubble } from './lib/message-bubble/message-bubble.js';
 export { Mascot } from './lib/mascot/mascot.js';
-export { MascotPanel } from './lib/mascot-panel/mascot-panel.js';
-export type { MascotStatus } from './lib/mascot-panel/mascot-panel.js';
 export { InputComposer } from './lib/input-composer/input-composer.js';
 export { HeaderBar } from './lib/header-bar/header-bar.js';
 export { HistoryPanel } from './lib/history-panel/history-panel.js';
