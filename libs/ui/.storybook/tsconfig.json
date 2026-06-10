@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "types": []
+  },
+  "include": [
+    "../src/**/*.ts",
+    "../src/**/*.stories.ts",
+    "./preview.ts",
+    "./main.ts"
+  ],
+  "exclude": ["../src/**/*.spec.ts", "../src/**/*.test.ts"]
+}

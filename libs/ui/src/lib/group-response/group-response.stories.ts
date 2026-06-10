@@ -1,6 +1,6 @@
-import { applicationConfig, importProvidersFrom } from '@angular/core';
+import { importProvidersFrom } from '@angular/core';
 import { MarkdownModule } from 'ngx-markdown';
-import type { Meta, StoryObj } from '@storybook/angular';
+import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 import { DinoSummary } from '@org/shared-types';
 import { GroupResponse } from './group-response';
 

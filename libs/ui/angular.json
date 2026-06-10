@@ -4,10 +4,28 @@
     "ui": {
       "root": "",
       "sourceRoot": "src",
+      "projectType": "library",
       "architect": {
-        "build": {
+        "build-storybook": {
+          "builder": "@storybook/angular:build-storybook",
           "options": {
-            "tsConfig": "tsconfig.lib.json",
+            "compodoc": false,
+            "experimentalZoneless": true,
+            "configDir": ".storybook",
+            "outputDir": "../../dist/storybook/ui",
+            "tsConfig": ".storybook/tsconfig.json",
+            "styles": [".storybook/styles.scss"],
+            "assets": []
+          }
+        },
+        "storybook": {
+          "builder": "@storybook/angular:start-storybook",
+          "options": {
+            "compodoc": false,
+            "experimentalZoneless": true,
+            "configDir": ".storybook",
+            "port": 6006,
+            "tsConfig": ".storybook/tsconfig.json",
             "styles": [".storybook/styles.scss"],
             "assets": []
           }

@@ -14,8 +14,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "storybook": "storybook dev --config-dir .storybook --port 6006",
-    "build-storybook": "storybook build --config-dir .storybook --output-dir ../../dist/storybook/ui"
+    "storybook": "ng run ui:storybook",
+    "build-storybook": "ng run ui:build-storybook"
   },
   "peerDependencies": {
     "@angular/common": ">=21.0.0",
