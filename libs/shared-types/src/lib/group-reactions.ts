@@ -40,6 +40,8 @@ export const REACTION_TOOLTIPS: Record<string, string> = {
   '📌': "thinks that's important",
   '🎭': 'sees it differently',
   '🧐': 'wants more evidence',
+  // Artist / creative
+  '🎨': 'appreciates the craft of that',
   // Character-rich
   '😎': 'thought that was cool',
   '🤯': 'was blown away by that',
@@ -53,6 +55,13 @@ export const REACTION_TOOLTIPS: Record<string, string> = {
 
 /** The full set of allowed reaction emojis (insertion order preserved). */
 export const REACTION_EMOJIS: readonly string[] = Object.keys(REACTION_TOOLTIPS);
+
+/**
+ * Default reaction for an image-generation dino in group chat. Image dinos
+ * cannot surface their output in the group stream, so an `answer` slot would
+ * render blank — the engine converts it to this react instead.
+ */
+export const ARTIST_DEFAULT_REACTION = '🎨';
 
 /**
  * Resolve an emoji to its caption. Falls back to a neutral caption so an

@@ -9,6 +9,7 @@ import {
   GroupOrchestratorPlan,
   GroupStreamEvent,
   REACTION_TOOLTIPS,
+  ARTIST_DEFAULT_REACTION,
 } from '@org/shared-types';
 import { DINOS, getDino } from './dinos';
 import { AgentsService } from './agents.service';
@@ -161,6 +162,16 @@ export class GroupAgentsService {
       if (roster.length >= MAX_GROUP_DINOS) break;
     }
     return roster;
+  }
+
+  /**
+   * True for image-generation dinos (e.g. Vinci). Their output is an image,
+   * which the group stream does not surface (D-03), so a text `answer` slot
+   * would render blank and waste a paid image call. In group mode such a dino
+   * REACTS instead of answering.
+   */
+  private isImageGenDino(dinoId: string): boolean {
+    return getDino(dinoId).imageGen === true;
   }
 
   /** Forced dinoIds from `@<name>` mentions, matched case-insensitively. */
@@ -356,7 +367,9 @@ export class GroupAgentsService {
       createdAt: Date.now(),
     });
 
-    // Round 1 reactions cost no LLM call — emit them up front.
+    // Round 1 reactions cost no LLM call — emit them up front. An image-gen
+    // dino assigned `answer` is converted to a react here (it cannot show its
+    // image in the group stream) so it is still visibly present.
     for (const decision of plan.round1) {
       if (decision.action === 'react' && decision.emoji) {
         yield {
@@ -365,12 +378,20 @@ export class GroupAgentsService {
           emoji: decision.emoji,
           targetMessageId: decision.targetMessageId ?? userMessageId,
         };
+      } else if (decision.action === 'answer' && this.isImageGenDino(decision.dinoId)) {
+        yield {
+          type: 'reaction',
+          dinoId: decision.dinoId,
+          emoji: ARTIST_DEFAULT_REACTION,
+          targetMessageId: userMessageId,
+        };
       }
     }
 
     // --- Round 1: answerers run CONCURRENTLY, events multiplexed (D-03) ------
+    // Image-gen dinos are excluded (handled as reactions above).
     const answerers = plan.round1
-      .filter((d) => d.action === 'answer')
+      .filter((d) => d.action === 'answer' && !this.isImageGenDino(d.dinoId))
       .sort((a, b) => a.order - b.order);
 
     const round1Answers = yield* this.runConcurrentStream(
@@ -424,6 +445,23 @@ export class GroupAgentsService {
         continue;
       }
       if (decision.action !== 'answer') continue;
+
+      // Image-gen dino can't surface an answer in the group stream — react to
+      // the dino it was responding to (or the user) instead of running a
+      // dropped, paid image call.
+      if (this.isImageGenDino(decision.dinoId)) {
+        const targetMessageId =
+          (decision.respondingTo
+            ? [...transcript].reverse().find((m) => m.dinoId === decision.respondingTo)?.id
+            : undefined) ?? userMessageId;
+        yield {
+          type: 'reaction',
+          dinoId: decision.dinoId,
+          emoji: ARTIST_DEFAULT_REACTION,
+          targetMessageId,
+        };
+        continue;
+      }
 
       const gen = this.runAnswerer(decision, message, transcript, roster, userId, signal);
       let next = await gen.next();

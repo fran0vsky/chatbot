@@ -216,6 +216,26 @@ describe('GroupAgentsService.streamGroup', () => {
     expect(reaction?.targetMessageId).toBe(rexfordDone?.messageId);
   });
 
+  it('converts an image-gen dino answer to a reaction (never calls streamAgent)', async () => {
+    const plan: GroupOrchestratorPlan = {
+      round1: [
+        { dinoId: 'rexford', action: 'answer', order: 0 },
+        { dinoId: 'vinci', action: 'answer', order: 1 },
+      ],
+      round2: [],
+    };
+    const { service, streamAgent } = makeService(plan);
+    const events = await collect(
+      service.streamGroup('draw something nice', ['rexford', 'vinci'], undefined, undefined, new AbortController().signal),
+    );
+    // Only the text dino runs the agent loop; Vinci never does.
+    const calledDinoIds = streamAgent.mock.calls.map((c) => c[5]);
+    expect(calledDinoIds).toContain('rexford');
+    expect(calledDinoIds).not.toContain('vinci');
+    // Vinci is still visibly present via a reaction.
+    expect(events.some((e) => e.type === 'reaction' && e.dinoId === 'vinci')).toBe(true);
+  });
+
   it('emits a plan event first and group_done last', async () => {
     const plan: GroupOrchestratorPlan = {
       round1: [{ dinoId: 'rexford', action: 'answer', order: 0 }],
