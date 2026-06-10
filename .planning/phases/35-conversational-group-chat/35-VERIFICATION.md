@@ -1,8 +1,8 @@
 ---
 phase: 35-conversational-group-chat
 verified: 2026-06-07T14:00:00Z
-status: human_needed
-score: 4/4 must-haves verified (code-complete); 2 live UATs pending human execution
+status: verified
+score: 4/4 must-haves verified; 2 live UATs passed (2026-06-11)
 overrides_applied: 0
 re_verification:
   previous_status: null

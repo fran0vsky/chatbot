@@ -71,8 +71,10 @@ export class AgentsService {
     const msg = error.message.toLowerCase();
     return (
       msg.includes('402') ||
+      msg.includes('404') ||
       msg.includes('429') ||
       msg.includes('rate limit') ||
+      msg.includes('not found') ||
       msg.includes('no endpoints') ||
       msg.includes('quota') ||
       msg.includes('context length') ||
