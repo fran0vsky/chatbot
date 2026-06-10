@@ -267,6 +267,17 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
       }
     });
 
+    // The app must never sit in a no-dino-chosen state. Once the roster has
+    // loaded, if nothing is selected yet (fresh load / reload), open the picker
+    // so the user is greeted with the dino choice — mirrors the new-chat flow.
+    // The picker is non-dismissable while activeDinoId is undefined (see
+    // dismissPicker() + chat.html), so this fires once until a dino is picked.
+    effect(() => {
+      if (this.dinos().length > 0 && !this.activeDinoId()) {
+        this.store.dispatch(UiActions.openPicker());
+      }
+    });
+
     // Persist a completed group turn (D-08 / GRP2-04). When the group stream
     // settles (streaming true → false) and the transcript has ≥1 user message,
     // save the interleaved attributed session through the same store/HistoryService
@@ -590,6 +601,16 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   closePicker(): void {
     this.store.dispatch(UiActions.closePicker());
     this.cdr.markForCheck();
+  }
+
+  /**
+   * Dismiss the picker via backdrop/X — but only when a dino is already
+   * selected. On a fresh load/reload no dino is bound, so the picker is forced
+   * open and cannot be dismissed: the app must never sit in a no-dino state.
+   */
+  dismissPicker(): void {
+    if (!this.activeDinoId()) return;
+    this.closePicker();
   }
 
   // ───────── Teach-a-skill + learned-items management (MEM-04..06) ─────────

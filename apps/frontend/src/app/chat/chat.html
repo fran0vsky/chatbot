@@ -688,10 +688,11 @@
 
   <!-- Dino picker overlay — shown when starting a new chat (PICK-01) -->
   @if (pickerOpen()) {
-    <!-- Backdrop (click-to-dismiss; decorative, mirrors the mobile sidebar backdrop) -->
+    <!-- Backdrop — dismisses only when a dino is already selected (dismissPicker
+         is a no-op while no dino is bound, so a fresh load can't be dismissed). -->
     <div
       class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
-      (click)="closePicker()"
+      (click)="dismissPicker()"
       aria-hidden="true"
     ></div>
     <div
@@ -708,17 +709,21 @@
             <h2 class="font-title text-2xl text-jungle-accent dark:text-jungle-night-accent">Choose a dino</h2>
             <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">Pick who you want to chat with.</p>
           </div>
-          <button
-            type="button"
-            (click)="closePicker()"
-            aria-label="Close picker"
-            class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+          <!-- Close button is hidden until a dino is selected — the app must
+               never sit in a no-dino state, so the initial pick is mandatory. -->
+          @if (activeDinoId()) {
+            <button
+              type="button"
+              (click)="closePicker()"
+              aria-label="Close picker"
+              class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          }
         </div>
         <app-dino-picker
           [dinos]="dinos()"

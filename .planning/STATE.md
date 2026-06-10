@@ -136,6 +136,7 @@ Recent decisions affecting current work:
 | 260610-sxm | Livelier group chat — react-by-default for non-answerers, 2-3 round-1 answerers, richer inter-dino conversation | 2026-06-10 | pending | [260610-sxm-group-chat-liveliness](./quick/260610-sxm-group-chat-liveliness/) |
 | 260610-tg7 | Group reaction emoji tooltips — captioned hover text + shared vocabulary, orchestrator constrained to the set | 2026-06-10 | pending | [260610-tg7-group-reaction-tooltips](./quick/260610-tg7-group-reaction-tooltips/) |
 | 260610-vvn | Broaden Iris & Vinci personas for group chat; image-gen dinos react (never blank-answer) in group | 2026-06-10 | pending | [260610-vvn-broaden-iris-vinci-personas](./quick/260610-vvn-broaden-iris-vinci-personas/) |
+| 260610-fp1 | Force dino picker open on load/reload when no dino is selected; non-dismissable until a dino is chosen | 2026-06-10 | pending | [260610-fp1-force-dino-pick-on-load](./quick/260610-fp1-force-dino-pick-on-load/) |
 
 ## Deferred Items
 
