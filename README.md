@@ -110,40 +110,42 @@ And join the Nx community:
 
 ## Deployment
 
-**Architecture:** A single **Compute Engine VM** runs the backend as a Docker container (`docker-compose.yml`, host port `3000`). The backend serves both the `/api/*` routes and the baked-in Angular SPA from the same origin. Host-level **nginx** sits in front of it as a reverse proxy and terminates TLS, with certificates issued and auto-renewed by **certbot** (Let's Encrypt). The committed proxy config lives at [`infra/nginx/dinoagents.conf`](infra/nginx/dinoagents.conf).
+**Architecture:** A single **Compute Engine VM** (`spinochat-backend`, running **Container-Optimized OS**) runs the backend as a Docker container named `spinochat`, listening on port `3000`. The backend serves both the `/api/*` routes and the baked-in Angular SPA from the same origin. A **Caddy** container sits in front on ports `80`/`443` as a reverse proxy and **automatically obtains + renews** the Let's Encrypt certificate (no certbot, no cron). Caddy reaches the backend over a private Docker network (`web`); the backend is **not** published to the host. The committed Caddy config lives at [`infra/caddy/Caddyfile`](infra/caddy/Caddyfile).
+
+> **Note:** COS is Docker-only (no `apt`), so host-level nginx + certbot is **not** possible — that's why HTTPS is done with a Caddy container. The older `infra/nginx/dinoagents.conf` is retained for reference only and does **not** apply to this VM.
 
 ### Prerequisites
 
-- A registered domain with an **A record pointing at the VM's public IP**.
-- The backend container running and reachable on `localhost:3000` (`docker compose up -d`).
-- Ports **80 and 443 open** in the VM firewall. Port `3000` must **not** be exposed publicly — nginx reaches the backend over `localhost` only.
+- A domain with an **A record pointing at the VM's public IP** (DuckDNS works fine).
+- The backend container running on the `web` network as `spinochat` (port `3000`, internal only).
+- Ports **80 and 443 open** in the VM firewall. Port `3000` must **not** be exposed publicly.
 
 ### Runbook (on the VM)
 
-1. **Install nginx + certbot:**
+1. **Create the shared network and copy the backend's env** (preserves the baked-in secrets):
    ```sh
-   sudo apt update && sudo apt install nginx certbot python3-certbot-nginx
+   sudo docker network create web
+   sudo docker inspect spinochat --format '{{range .Config.Env}}{{println .}}{{end}}' | sudo tee /var/lib/spinochat.env >/dev/null
    ```
-2. **Deploy the proxy config.** Copy `infra/nginx/dinoagents.conf` to `/etc/nginx/sites-available/dinoagents`, replace every `{DOMAIN}` placeholder with your real hostname, then enable it:
+2. **Move the backend onto the network** (internal-only, HTTPS origin for CORS):
    ```sh
-   sudo ln -s /etc/nginx/sites-available/dinoagents /etc/nginx/sites-enabled/dinoagents
-   sudo nginx -t && sudo systemctl reload nginx
+   sudo docker rm -f spinochat
+   sudo docker run -d --name spinochat --restart always --network web \
+     --env-file /var/lib/spinochat.env -e CORS_ORIGIN=https://{DOMAIN} <backend-image>
    ```
-   nginx now serves the site over plain HTTP and proxies to the backend.
-3. **Issue the certificate:**
+3. **Write the Caddyfile** — copy `infra/caddy/Caddyfile` to `/var/lib/caddy/Caddyfile`, replacing `{DOMAIN}` with your hostname.
+4. **Start Caddy** (publishes 80/443, persists certs in a volume):
    ```sh
-   sudo certbot --nginx -d {DOMAIN}
+   sudo docker run -d --name caddy --restart always --network web \
+     -p 80:80 -p 443:443 \
+     -v /var/lib/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+     -v caddy_data:/data -v caddy_config:/config caddy:2
    ```
-   certbot obtains the cert, **rewrites `dinoagents.conf`** to add the `443 ssl` server block and an `80 → 443` (301) redirect, and installs the systemd renew timer.
-4. **Point the backend at the HTTPS origin.** Set `CORS_ORIGIN=https://{DOMAIN}` in the VM's `.env`, then `docker compose up -d` to apply it.
+   Caddy obtains the cert on first start and adds the `80 → 443` redirect automatically.
 5. **Verify:**
-   - `https://{DOMAIN}` loads with a valid Let's Encrypt certificate (padlock).
-   - `http://{DOMAIN}` 301-redirects to `https://{DOMAIN}`.
-   - A chat message streams token-by-token over HTTPS (SSE works through the proxy) and an image paste/upload succeeds, with **no mixed-content errors** in the browser console.
-   - Renewal is healthy:
-     ```sh
-     sudo certbot renew --dry-run
-     ```
+   - `https://{DOMAIN}` loads with a valid Let's Encrypt certificate (padlock); `http://{DOMAIN}` redirects to it.
+   - A chat message streams token-by-token over HTTPS (SSE works through Caddy) and an image paste/upload succeeds, with **no mixed-content errors**.
+   - Cert acquisition is confirmed in the log: `sudo docker logs caddy` shows `certificate obtained successfully`. Renewal is automatic (Caddy), persisted in the `caddy_data` volume.
 
 ### Running E2E locally
 

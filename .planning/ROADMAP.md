@@ -59,7 +59,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 33: Composer & Knowledge Reorg** - Brain icon replaces wrench, dedicated tools button, `/teach` slash-command + enlarged teach modal, skill editing, Knowledge lists each dino's skills (completed 2026-06-06)
 - [x] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory (completed 2026-06-07; HUMAN-UAT pending)
 - [x] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23) (code complete 2026-06-07; HUMAN-UAT pending)
-- [x] **Phase 36: HTTPS / Let's Encrypt** - certbot + nginx on the VM, auto-renewing cert, HTTP→HTTPS redirect [independent infra track] (deliverables committed 2026-06-09; live VM cert issuance + verification manual/pending)
+- [x] **Phase 36: HTTPS / Let's Encrypt** - auto-renewing cert + HTTP→HTTPS redirect [independent infra track] — ✅ LIVE 2026-06-11 at https://dinoagents.duckdns.org. NOTE: shipped with a **Caddy container**, not nginx+certbot — the VM runs Container-Optimized OS (Docker-only, no apt) so the original nginx+certbot plan was incompatible. Actual config: [`infra/caddy/Caddyfile`](infra/caddy/Caddyfile).
 
 ## Phase Details
 
@@ -658,5 +658,5 @@ Plans:
   4. Frontend → backend calls work over HTTPS with no mixed-content errors
 **Scope note:** In — nginx reverse proxy, certbot issuance + auto-renew, HTTP→HTTPS redirect, any API base-URL/CORS updates for the HTTPS origin. Out — CDN, multi-domain, infra-as-code rewrite. Reflects the move from Cloud Run + Firebase to a VM.
 **Plans:** 1 plan
-  - 36-01: Host-level nginx + certbot (INFRA-01) — `infra/nginx/dinoagents.conf` reverse-proxy (streaming/upload-safe) → `localhost:3000`, `certbot --nginx` TLS + 80→443 redirect + auto-renew, `CORS_ORIGIN` bump, README deployment runbook rewrite. Live cert issuance + verification is a manual VM task.
+  - 36-01: Host-level nginx + certbot (INFRA-01) — original plan, SUPERSEDED at deploy time. The production VM runs Container-Optimized OS (Docker-only, no apt), so nginx+certbot could not be installed. HTTPS went live 2026-06-11 via a **Caddy container** ([`infra/caddy/Caddyfile`](../infra/caddy/Caddyfile)): `caddy:2` on host 80/443 → backend `spinochat:3000` over a `web` Docker network; Caddy auto-obtains + auto-renews the Let's Encrypt cert (persisted in the `caddy_data` volume), adds the 80→443 redirect, and `CORS_ORIGIN=https://dinoagents.duckdns.org`. The committed `infra/nginx/dinoagents.conf` is retained for reference only.
 **UI hint:** no

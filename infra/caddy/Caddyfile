@@ -1,0 +1,14 @@
+# DinoAgents — Caddy reverse proxy with automatic HTTPS.
+#
+# The production VM runs Container-Optimized OS (COS): Docker-only, no apt, so
+# host-level nginx + certbot is NOT possible. Caddy runs as a container instead
+# and obtains + auto-renews the Let's Encrypt certificate on its own (no certbot,
+# no cron). See README "## Deployment" for the full runbook.
+#
+# Replace {DOMAIN} with the real hostname (e.g. dinoagents.duckdns.org).
+# `spinochat` is the backend container name on the shared `web` Docker network;
+# it listens on 3000 internally and is NOT published to the host.
+
+{DOMAIN} {
+    reverse_proxy spinochat:3000
+}
