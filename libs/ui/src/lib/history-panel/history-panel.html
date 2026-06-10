@@ -328,6 +328,13 @@
           >
           }
         </span>
+        } @else if (session.dinoId) {
+        <span
+          class="flex-shrink-0 w-4 h-4 rounded-full ring-1 ring-jungle-bg dark:ring-jungle-night overflow-hidden bg-jungle-surface/60 dark:bg-jungle-night-surface/60 flex items-center justify-center"
+          [attr.aria-label]="'Chat with this dino'"
+        >
+          <app-mascot [dinoId]="session.dinoId" size="sm" />
+        </span>
         }
         @if (session.pinned) {
         <svg

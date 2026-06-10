@@ -422,7 +422,7 @@ Plans:
   2. Each mascot has day + night variants generated via `split-mascot.js` → optimize scripts
   3. Mascots render in the picker, Explore page, and assistant message bubbles bound to the active dino
   4. Mascots render crisply (integer-scaled, no artifacts), consistent with MASC-02
-  5. Each chat row in the history panel shows the active dino's mascot icon (v2.1 rider)
+  5. Each chat row in the history panel shows the active dino's mascot icon (v2.1 rider) — ✅ DELIVERED 2026-06-11 (single-dino rows render `app-mascot [dinoId]="session.dinoId"`, independent of the pixel-art generation step)
 **Scope note:** In — art generation per species, pipeline run, integration, per-chat mascot icon in the history panel. Out — mascot motion/animation (deferred ex-Phase 14). Art creation is partly a human/asset task; this phase defines per-species art specs and wires the pipeline + integration.
 **Plans:** TBD (run `/gsd-plan-phase 20`)
 **UI hint:** yes
