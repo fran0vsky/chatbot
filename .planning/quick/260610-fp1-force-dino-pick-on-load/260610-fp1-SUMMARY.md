@@ -36,3 +36,24 @@ the forced state normally.
 
 No store/reducer changes were needed — reused existing `openPicker`/`closePicker`
 UI actions.
+
+## Update — dedicated welcome screen (supersedes forced modal)
+
+Per follow-up feedback, the forced-modal approach was replaced with a dedicated
+welcome/onboarding screen — a friendlier landing than a modal over an empty chat.
+
+- **Reverted** the auto-open `effect()`, `dismissPicker()`, and the
+  non-dismissable modal tweaks (backdrop + hidden X). The "New chat" picker modal
+  is back to its original always-dismissable behavior (used for mid-session dino
+  switching, where a dino is already bound).
+- **`chat.html`** — added a welcome branch as the first case of the center-column
+  view switch: `@if (activeView() === 'chats' && !activeDinoId())`. It renders
+  "Welcome to DinoAgents", the tagline, a one-line intro to what DinoAgents is,
+  a "Pick your agent" heading, and the existing `<app-dino-picker>` grid inline
+  (wired to `pickDino()`). Selecting a dino sets it active and drops the user into
+  the normal chat view.
+
+Net guarantee is unchanged — the app never sits in a no-dino chat state — but the
+entry is now a proper welcome page instead of a locked modal.
+
+`nx build frontend` — succeeded.

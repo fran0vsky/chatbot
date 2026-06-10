@@ -97,7 +97,31 @@
 
   <!-- Center chat column -->
   <div class="relative z-10 flex flex-col flex-1 min-w-0">
-    @if (activeView() === 'groupchat') {
+    @if (activeView() === 'chats' && !activeDinoId()) {
+      <!-- ───────── Welcome / onboarding: pick an agent to begin ───────── -->
+      <main class="flex-1 overflow-y-auto px-6 py-10 relative z-10">
+        <div class="max-w-5xl mx-auto flex flex-col items-center text-center">
+          <h1 class="font-title text-4xl sm:text-5xl text-jungle-accent dark:text-jungle-night-accent drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+            Welcome to DinoAgents
+          </h1>
+          <p class="mt-2 text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">The AI that survived.</p>
+          <p class="mt-5 max-w-xl text-sm sm:text-base text-jungle-ink dark:text-jungle-night-text leading-relaxed">
+            DinoAgents is a pack of AI specialists — each dino brings its own personality,
+            strengths, and tools. Pick one to start chatting; you can switch anytime from
+            <span class="font-medium text-jungle-accent dark:text-jungle-night-accent">New chat</span>.
+          </p>
+          <div class="mt-10 w-full">
+            <h2 class="font-title text-2xl text-jungle-accent dark:text-jungle-night-accent mb-1">Pick your agent</h2>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted mb-5">Choose who you want to chat with.</p>
+            <app-dino-picker
+              [dinos]="dinos()"
+              [activeDinoId]="activeDinoId()"
+              (dinoSelected)="pickDino($event)"
+            />
+          </div>
+        </div>
+      </main>
+    } @else if (activeView() === 'groupchat') {
       <!-- ───────── Groupchat: turn-based conversation (Phase 35) ───────── -->
       <main class="flex-1 overflow-y-auto px-6 py-6">
         <div class="max-w-3xl mx-auto flex flex-col gap-6">
@@ -688,11 +712,10 @@
 
   <!-- Dino picker overlay — shown when starting a new chat (PICK-01) -->
   @if (pickerOpen()) {
-    <!-- Backdrop — dismisses only when a dino is already selected (dismissPicker
-         is a no-op while no dino is bound, so a fresh load can't be dismissed). -->
+    <!-- Backdrop (click-to-dismiss; decorative, mirrors the mobile sidebar backdrop) -->
     <div
       class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
-      (click)="dismissPicker()"
+      (click)="closePicker()"
       aria-hidden="true"
     ></div>
     <div
@@ -709,21 +732,17 @@
             <h2 class="font-title text-2xl text-jungle-accent dark:text-jungle-night-accent">Choose a dino</h2>
             <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">Pick who you want to chat with.</p>
           </div>
-          <!-- Close button is hidden until a dino is selected — the app must
-               never sit in a no-dino state, so the initial pick is mandatory. -->
-          @if (activeDinoId()) {
-            <button
-              type="button"
-              (click)="closePicker()"
-              aria-label="Close picker"
-              class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          }
+          <button
+            type="button"
+            (click)="closePicker()"
+            aria-label="Close picker"
+            class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
         <app-dino-picker
           [dinos]="dinos()"
