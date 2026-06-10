@@ -61,11 +61,19 @@ echo "[deploy] Stopping previous container (if running)"
 docker stop "$CONTAINER_NAME" 2>/dev/null || true
 docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
+# Caddy (the public-facing container) owns host ports 80/443 and reverse-proxies
+# to this backend by container name over the shared 'web' Docker network. So the
+# backend must NOT publish port 80 itself (that races Caddy and fails with
+# "port is already allocated"); it only needs to be reachable at spinochat:3000
+# on the 'web' network. Creating the network is idempotent if it already exists.
+echo "[deploy] Ensuring shared 'web' network exists"
+docker network create web 2>/dev/null || true
+
 echo "[deploy] Starting new container"
 docker run -d \
     --name="$CONTAINER_NAME" \
     --restart=always \
-    -p 80:3000 \
+    --network=web \
     -e PORT=3000 \
     -e NODE_ENV=production \
     -e OPENROUTER_API_KEY="$OPENROUTER_KEY" \
