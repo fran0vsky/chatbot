@@ -78,17 +78,18 @@ describe('parseOrchestratorPlan', () => {
     expect(plan.round1[0].dinoId).toBe('rexford');
   });
 
-  it('clamps round2 to MAX_INTER_DINO_REPLIES (2)', () => {
+  it('clamps round2 to MAX_INTER_DINO_REPLIES (3)', () => {
     const raw = JSON.stringify({
       round1: [{ dinoId: 'rexford', action: 'answer', order: 0 }],
       round2: [
         { dinoId: 'veloce', action: 'answer', order: 0 },
         { dinoId: 'glyphos', action: 'answer', order: 1 },
         { dinoId: 'rexford', action: 'answer', order: 2 },
+        { dinoId: 'veloce', action: 'answer', order: 3 },
       ],
     });
     const plan = parseOrchestratorPlan(raw, roster);
-    expect(plan.round2).toHaveLength(2);
+    expect(plan.round2).toHaveLength(3);
   });
 
   it('keeps a single emoji on a react decision', () => {
@@ -181,15 +182,38 @@ describe('GroupAgentsService.streamGroup', () => {
         { dinoId: 'veloce', action: 'answer', order: 0 },
         { dinoId: 'glyphos', action: 'answer', order: 1 },
         { dinoId: 'rexford', action: 'answer', order: 2 },
+        { dinoId: 'veloce', action: 'answer', order: 3 },
       ],
     };
     const { service, streamAgent } = makeService(plan);
     await collect(
       service.streamGroup('go', ['rexford', 'veloce', 'glyphos'], undefined, undefined, new AbortController().signal),
     );
-    // 1 round-1 answerer + at most 2 round-2 answerers = 3 total.
-    expect(streamAgent.mock.calls.length).toBeLessThanOrEqual(3);
-    expect(streamAgent.mock.calls.length).toBe(3);
+    // 1 round-1 answerer + at most 3 round-2 answerers = 4 total.
+    expect(streamAgent.mock.calls.length).toBeLessThanOrEqual(4);
+    expect(streamAgent.mock.calls.length).toBe(4);
+  });
+
+  it('targets a round-2 reaction at the responded-to dino\'s round-1 message', async () => {
+    const plan: GroupOrchestratorPlan = {
+      round1: [{ dinoId: 'rexford', action: 'answer', order: 0 }],
+      round2: [{ dinoId: 'veloce', action: 'react', emoji: '👍', respondingTo: 'rexford', order: 0 }],
+    };
+    const { service } = makeService(plan);
+    const events = await collect(
+      service.streamGroup('go', ['rexford', 'veloce'], undefined, undefined, new AbortController().signal),
+    );
+    const rexfordDone = events.find(
+      (e): e is Extract<GroupStreamEvent, { type: 'dino_done' }> =>
+        e.type === 'dino_done' && e.dinoId === 'rexford',
+    );
+    const reaction = events.find(
+      (e): e is Extract<GroupStreamEvent, { type: 'reaction' }> =>
+        e.type === 'reaction' && e.dinoId === 'veloce',
+    );
+    // The reaction must pin to Rexford's actual round-1 message id, not be dropped.
+    expect(reaction?.targetMessageId).toBeDefined();
+    expect(reaction?.targetMessageId).toBe(rexfordDone?.messageId);
   });
 
   it('emits a plan event first and group_done last', async () => {

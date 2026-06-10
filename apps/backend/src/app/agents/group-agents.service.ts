@@ -17,13 +17,16 @@ import { AgentsService } from './agents.service';
 //   1 orchestrator call
 // + up to MAX_GROUP_DINOS Round-1 answerers
 // + up to MAX_INTER_DINO_REPLIES Round-2 answerers
-// = the documented hard per-turn LLM-call ceiling (1 + 4 + 2 = 7).
+// = the documented hard per-turn LLM-call ceiling (1 + 4 + 3 = 8).
 // `react`/`silent` dinos make ZERO model calls. Participants are capped to
 // MAX_GROUP_DINOS before the orchestrator runs (forward of the Phase 23
 // MAX_DINOS cap); Round 2 is clamped to MAX_INTER_DINO_REPLIES.
 const ORCHESTRATOR_MODEL = 'openai/gpt-4o-mini';
 const MAX_GROUP_DINOS = 4;
-const MAX_INTER_DINO_REPLIES = 2;
+// Round-2 inter-dino replies. Raised from 2 → 3 so the group reads as a
+// conversation (dinos building on / pushing back on each other) rather than two
+// parallel monologues.
+const MAX_INTER_DINO_REPLIES = 3;
 const HISTORY_CAP = 20;
 
 const VALID_ACTIONS: ReadonlyArray<DinoTurnDecision['action']> = ['answer', 'react', 'silent'];
@@ -205,8 +208,9 @@ export class GroupAgentsService {
           '  "round2": [{ "dinoId": string, "action": "answer"|"react"|"silent", "emoji"?: string, "respondingTo"?: string, "order": number }] }',
           'Rules:',
           '- Each dino does EXACTLY ONE action per round: answer, react (a SINGLE emoji), or silent.',
-          '- Round 1 = dinos that directly answer the user. Pick the dinos whose specialty fits; others may react or stay silent.',
-          `- Round 2 = at most ${MAX_INTER_DINO_REPLIES} dinos who reply to what was just said. STRONGLY favor a non-addressed but competent dino VOLUNTEERING when it has a genuinely different take, a disagreement, or a concrete useful addition; it MUST set "respondingTo" to the dino it answers. A dino with nothing distinct must stay silent (do not echo).`,
+          '- Aim for a LIVELY group: every participant should usually do something visible. A dino that does not answer should almost always "react" with a fitting emoji; reserve "silent" only for when even a reaction would be pure noise.',
+          '- Round 1 = dinos that directly answer the user. Pick the 2-3 dinos whose specialties best fit (more than one perspective is good); the remaining dinos "react" (or, rarely, stay silent).',
+          `- Round 2 = up to ${MAX_INTER_DINO_REPLIES} dinos reacting to the Round-1 answers, to make it feel like a conversation. A dino either ANSWERS to build on, add to, or respectfully push back on a specific dino (set "respondingTo" to that dino's id), or REACTS with a single emoji to a specific dino's answer (also set "respondingTo"). STRONGLY favor a competent dino VOLUNTEERING when it has a genuinely different take, a disagreement, or a concrete useful addition. A dino with nothing distinct should react rather than echo, or stay silent.`,
           forcedNames.length > 0
             ? `- The user @mentioned these dinos; they MUST answer in Round 1: ${forcedNames.join(', ')}.`
             : '- No dinos were @mentioned.',
@@ -397,11 +401,20 @@ export class GroupAgentsService {
     for (const decision of round2) {
       if (signal.aborted) return;
       if (decision.action === 'react' && decision.emoji) {
+        // A Round-2 reaction targets another dino's answer. The orchestrator
+        // cannot know message ids at plan time, so resolve `respondingTo`
+        // (a dinoId) to that dino's most recent message in the transcript;
+        // without a target the frontend silently drops the reaction.
+        const targetMessageId =
+          decision.targetMessageId ??
+          (decision.respondingTo
+            ? [...transcript].reverse().find((m) => m.dinoId === decision.respondingTo)?.id
+            : undefined);
         yield {
           type: 'reaction',
           dinoId: decision.dinoId,
           emoji: decision.emoji,
-          targetMessageId: decision.targetMessageId,
+          targetMessageId,
         };
         continue;
       }
