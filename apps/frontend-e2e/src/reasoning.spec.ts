@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { goToChat } from './support/go-to-chat';
 
 function sseBody(...frames: object[]): string {
   return frames.map((f) => `data: ${JSON.stringify(f)}\n\n`).join('');
@@ -22,9 +23,7 @@ test.describe('ReasoningBlock UX', () => {
       }),
     );
 
-    await page.goto('/');
-    const textarea = page.getByTestId('message-input');
-    await expect(textarea).toBeVisible();
+    const textarea = await goToChat(page);
 
     await textarea.fill('Hi');
     await textarea.press('Enter');
@@ -55,9 +54,7 @@ test.describe('ReasoningBlock UX', () => {
       }),
     );
 
-    await page.goto('/');
-    const textarea = page.getByTestId('message-input');
-    await expect(textarea).toBeVisible();
+    const textarea = await goToChat(page);
 
     await textarea.fill('What is the answer to life?');
     await textarea.press('Enter');
@@ -102,9 +99,7 @@ test.describe('ReasoningBlock UX', () => {
       }),
     );
 
-    await page.goto('/');
-    const textarea = page.getByTestId('message-input');
-    await expect(textarea).toBeVisible();
+    const textarea = await goToChat(page);
 
     await textarea.fill('First question');
     await textarea.press('Enter');

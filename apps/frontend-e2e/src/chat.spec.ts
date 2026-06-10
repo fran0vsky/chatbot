@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { goToChat } from './support/go-to-chat';
 
 test('user can send a message and receive an assistant reply', async ({ page }) => {
-  await page.goto('/');
-
-  const textarea = page.getByTestId('message-input');
-  await expect(textarea).toBeVisible();
+  const textarea = await goToChat(page);
 
   await textarea.fill('Hello from the Playwright E2E test.');
   await textarea.press('Enter');
