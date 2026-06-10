@@ -448,7 +448,11 @@
         <!-- Active dino header (PICK-04) -->
         <header class="flex items-center gap-3 pl-4 pr-14 py-2 border-b border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-bg/50 dark:bg-jungle-night/50 backdrop-blur-sm relative z-10 flex-shrink-0">
           <div class="flex-shrink-0">
-            <app-mascot size="sm" [dinoId]="dino.id" />
+            <img
+              [src]="activeDinoAvatarSrc()"
+              [alt]="dino.name + ' avatar'"
+              class="w-11 h-11 rounded-full object-cover bg-jungle-surface/70 dark:bg-jungle-night-surface/70 ring-1 ring-jungle-accent/40 dark:ring-jungle-night-accent/40"
+            />
           </div>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-medium text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</p>
@@ -623,6 +627,8 @@
   <app-mascot-panel
     [status]="(isLoading || isStreaming()) ? 'thinking' : 'idle'"
     [isDayMode]="isDayMode()"
+    [dinoId]="activeDinoId()"
+    [dinoName]="activeDino()?.name"
     (themeToggled)="toggleTheme()"
   />
 

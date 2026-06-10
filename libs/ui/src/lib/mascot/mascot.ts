@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
 
-export type MascotSize = 'sm' | 'hero';
+export type MascotSize = 'sm' | 'md' | 'hero';
 export type MascotTheme = 'day' | 'night';
 
 @Component({

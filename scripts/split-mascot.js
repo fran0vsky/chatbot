@@ -11,11 +11,14 @@ const SOURCE = path.join(SRC_DIR, 'dual-mascot.png');
 const DINOS_DIR = path.join(SRC_DIR, 'dinos');
 const DINOS_SRC_DIR = path.join(DINOS_DIR, '_src');
 
-const BLACK_THRESHOLD = 35;
+// A pixel counts as "background" only if its channel sum is below this AND it is
+// reachable from an image edge (see floodKeyBackground). Interior dark pixels —
+// claws, deep shadows, eye sockets — stay fully opaque.
+const BG_SUM_THRESHOLD = 70;
 
 /**
  * Split one stacked dual-mascot image (day half on top, night half on bottom,
- * on a black background) into two black-keyed, trimmed PNGs.
+ * on a black background) into two background-keyed, trimmed PNGs.
  */
 async function splitDual(source, dayOut, nightOut) {
   const meta = await sharp(source).metadata();
@@ -36,6 +39,59 @@ async function splitDual(source, dayOut, nightOut) {
   );
 }
 
+/**
+ * Remove the solid-black background by flood-filling inward from the image
+ * edges over near-black pixels. Only background-connected black is keyed to
+ * transparent; interior dark pixels (claws, shadows, eye sockets) keep their
+ * alpha. This replaces the old per-pixel threshold + partial-alpha pass, which
+ * punched holes through richly shaded sprites whose dark scales fell under the
+ * darkness cutoff.
+ */
+function floodKeyBackground(pixels, width, height, channels) {
+  const total = width * height;
+  const isDark = new Uint8Array(total);
+  for (let p = 0, i = 0; p < total; p++, i += channels) {
+    if (pixels[i] + pixels[i + 1] + pixels[i + 2] < BG_SUM_THRESHOLD) isDark[p] = 1;
+  }
+
+  const isBg = new Uint8Array(total);
+  const stack = [];
+  const push = (x, y) => {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    const p = y * width + x;
+    if (isDark[p] && !isBg[p]) {
+      isBg[p] = 1;
+      stack.push(p);
+    }
+  };
+  for (let x = 0; x < width; x++) {
+    push(x, 0);
+    push(x, height - 1);
+  }
+  for (let y = 0; y < height; y++) {
+    push(0, y);
+    push(width - 1, y);
+  }
+  while (stack.length) {
+    const p = stack.pop();
+    const x = p % width;
+    const y = (p - x) / width;
+    push(x - 1, y);
+    push(x + 1, y);
+    push(x, y - 1);
+    push(x, y + 1);
+  }
+
+  let keyedCount = 0;
+  for (let p = 0; p < total; p++) {
+    if (isBg[p]) {
+      pixels[p * channels + 3] = 0;
+      keyedCount++;
+    }
+  }
+  return keyedCount;
+}
+
 async function processHalf(source, region, output, label) {
   const { data, info } = await sharp(source)
     .extract(region)
@@ -44,31 +100,15 @@ async function processHalf(source, region, output, label) {
     .toBuffer({ resolveWithObject: true });
 
   const pixels = new Uint8ClampedArray(data);
-  const channels = info.channels;
-  let keyedCount = 0;
+  const { width, height, channels } = info;
+  const keyedCount = floodKeyBackground(pixels, width, height, channels);
 
-  for (let i = 0; i < pixels.length; i += channels) {
-    const r = pixels[i];
-    const g = pixels[i + 1];
-    const b = pixels[i + 2];
-    if (r + g + b < BLACK_THRESHOLD * 3) {
-      pixels[i + 3] = 0;
-      keyedCount++;
-    } else {
-      const darkness = Math.min(r, g, b);
-      if (darkness < BLACK_THRESHOLD * 2) {
-        const alpha = Math.min(255, Math.floor((darkness / (BLACK_THRESHOLD * 2)) * 255));
-        pixels[i + 3] = Math.min(pixels[i + 3], alpha);
-      }
-    }
-  }
-
-  await sharp(Buffer.from(pixels), { raw: { width: info.width, height: info.height, channels } })
+  await sharp(Buffer.from(pixels), { raw: { width, height, channels } })
     .trim({ threshold: 1 })
     .png()
     .toFile(output);
 
-  const pct = ((keyedCount / (info.width * info.height)) * 100).toFixed(1);
+  const pct = ((keyedCount / (width * height)) * 100).toFixed(1);
   console.log(`  ${label}: keyed ${pct}% of pixels to transparent -> ${path.basename(output)}`);
 }
 

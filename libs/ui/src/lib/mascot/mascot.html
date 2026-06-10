@@ -2,6 +2,8 @@
   class="inline-block"
   [class.w-14]="size === 'sm'"
   [class.h-14]="size === 'sm'"
+  [class.w-20]="size === 'md'"
+  [class.h-20]="size === 'md'"
   [class.w-32]="size === 'hero'"
   [class.h-32]="size === 'hero'"
   [class.md:w-40]="size === 'hero'"
@@ -14,7 +16,7 @@
         [src]="assetSrc(theme)"
         [alt]="dinoId + ' mascot'"
         (error)="onAssetError()"
-        class="w-full h-full object-contain [image-rendering:pixelated]"
+        class="w-full h-full object-contain"
       />
     } @else {
       <!-- Auto theme: day + night variants toggled by the global .night-mode (dark:) class -->
@@ -22,13 +24,13 @@
         [src]="assetSrc('day')"
         [alt]="dinoId + ' mascot'"
         (error)="onAssetError()"
-        class="w-full h-full object-contain [image-rendering:pixelated] dark:hidden"
+        class="w-full h-full object-contain dark:hidden"
       />
       <img
         [src]="assetSrc('night')"
         [alt]="dinoId + ' mascot'"
         (error)="onAssetError()"
-        class="w-full h-full object-contain [image-rendering:pixelated] hidden dark:block"
+        class="w-full h-full object-contain hidden dark:block"
       />
     }
   } @else {

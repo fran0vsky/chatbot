@@ -131,6 +131,12 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   readonly activeDinoId = this.store.selectSignal(selectActiveDinoId);
   readonly activeDino = this.store.selectSignal(selectActiveDino);
 
+  /** Head avatar of the active dino for the header + assistant message bubbles. */
+  readonly activeDinoAvatarSrc = computed(() => {
+    const id = this.activeDinoId();
+    return id ? `/spino/dinos/avatars/${id}.png` : '/spino/spino-avatar.png';
+  });
+
   isLoading = false;
   /** True for one animation frame during a session switch — covers the message swap so stale bubbles never paint. */
   threadSwitching = false;

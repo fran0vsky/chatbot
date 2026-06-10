@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 Phase: 36 (https-lets-encrypt) — CODE COMPLETE (live VM cert issuance manual/pending)
 Plan: 1 of 1
 Status: Deliverables committed — INFRA-01 live verification awaits the manual VM runbook (Task 4)
-Last activity: 2026-06-09
+Last activity: 2026-06-10 - Completed quick task 260610-qw4: real dino mascots + per-dino avatars
 
 ## Performance Metrics
 
@@ -132,6 +132,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260525-l8i | Soft Studio + Capybara redesign (palette + mascot + token rename) | 2026-05-25 | pending | [260525-l8i-redesign-soft-studio-capybara](./quick/260525-l8i-redesign-soft-studio-capybara/) |
+| 260610-qw4 | Replace placeholder dino mascots with real pixel-art + wire per-dino avatars | 2026-06-10 | pending | [260610-qw4-replace-placeholder-dino-mascots-with-re](./quick/260610-qw4-replace-placeholder-dino-mascots-with-re/) |
 
 ## Deferred Items
 

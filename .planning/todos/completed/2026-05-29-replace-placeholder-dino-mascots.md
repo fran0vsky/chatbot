@@ -1,5 +1,7 @@
 ---
 created: 2026-05-29T14:17:07Z
+completed: 2026-06-10
+resolved_by: quick task 260610-qw4
 title: Replace placeholder dino mascots with real pixel-art
 area: ui
 files:
@@ -37,3 +39,14 @@ nimbus=Pteranodon (source of truth: `apps/backend/src/app/agents/dinos/dinos.ts`
    confirm each dino shows its own crisp species in the right palette across the
    Explore gallery and the chat active-dino header; readable at ~48px, no blur.
 4. Once real art is in, `scripts/gen-placeholder-mascots.js` can be deleted.
+
+## Resolution (2026-06-10, quick task 260610-qw4)
+
+Done — all **6** dinos (the original 4 + `iris`/`vinci` added in later phases) now
+ship real per-species pixel-art:
+- `scripts/split-mascot.js` keyer replaced with **flood-fill** background removal —
+  the old partial-alpha pass punched holes through shaded sprites.
+- Bodies: `_src/{id}-dual.png` → `dinos/{id}-day.png` + `{id}-night.png` (≤800px).
+- Head avatars: `dinos/avatars/{id}.png` (256² transparent) wired into the chat
+  header + every assistant message bubble (modern chatbot pattern).
+- `scripts/gen-placeholder-mascots.js` deleted; full-res masters kept in `_src/`.
