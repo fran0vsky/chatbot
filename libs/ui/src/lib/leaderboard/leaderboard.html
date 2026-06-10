@@ -5,8 +5,8 @@
 } @else {
   <div class="rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/80 dark:bg-jungle-night-surface/80 backdrop-blur-sm overflow-hidden">
     <!-- Header row -->
-    <div class="grid grid-cols-[2rem_1fr_5rem_6rem_3rem] gap-3 px-4 py-2 border-b border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40 text-[10px] uppercase tracking-wide font-semibold text-jungle-ink-muted dark:text-jungle-night-muted">
-      <span>#</span>
+    <div class="grid grid-cols-[2.5rem_1fr_5rem_6rem_4rem] gap-4 px-5 py-3 border-b border-jungle-border/25 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40 text-[11px] uppercase tracking-wider font-semibold text-jungle-ink-muted dark:text-jungle-night-muted">
+      <span class="text-center">#</span>
       <span>Dino</span>
       <span class="text-right">Rating</span>
       <span class="text-right">W / L / D</span>
@@ -16,38 +16,53 @@
     <!-- Data rows -->
     @for (row of rows; track row.dinoId; let i = $index) {
       <div
-        class="grid grid-cols-[2rem_1fr_5rem_6rem_3rem] gap-3 px-4 py-2.5 items-center border-b border-jungle-border/10 dark:border-jungle-night-border/20 last:border-0 hover:bg-jungle-bg/30 dark:hover:bg-jungle-night/30 transition-colors"
+        class="grid grid-cols-[2.5rem_1fr_5rem_6rem_4rem] gap-4 px-5 py-3.5 items-center border-b border-jungle-border/10 dark:border-jungle-night-border/20 last:border-0 hover:bg-jungle-bg/30 dark:hover:bg-jungle-night/30 transition-colors"
       >
-        <!-- Rank -->
-        <span class="text-sm font-bold text-jungle-ink-muted dark:text-jungle-night-muted">
+        <!-- Rank (medal accent for the top three) -->
+        <span
+          class="flex items-center justify-center h-7 w-7 mx-auto rounded-full text-sm font-bold tabular-nums"
+          [class.bg-amber-400/20]="i === 0"
+          [class.text-amber-500]="i === 0"
+          [class.dark:text-amber-300]="i === 0"
+          [class.bg-slate-400/20]="i === 1"
+          [class.text-slate-500]="i === 1"
+          [class.dark:text-slate-300]="i === 1"
+          [class.bg-orange-700/20]="i === 2"
+          [class.text-orange-700]="i === 2"
+          [class.dark:text-orange-400]="i === 2"
+          [class.text-jungle-ink-muted]="i > 2"
+          [class.dark:text-jungle-night-muted]="i > 2"
+        >
           {{ i + 1 }}
         </span>
 
         <!-- Mascot + name + species -->
-        <div class="flex items-center gap-2.5 min-w-0">
-          <app-mascot [dinoId]="row.dinoId" size="sm" class="flex-shrink-0 w-7 h-7" />
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="flex-shrink-0 flex items-center justify-center h-11 w-11 rounded-xl bg-jungle-bg/50 dark:bg-jungle-night/50 ring-1 ring-jungle-border/20 dark:ring-jungle-night-border/30 overflow-hidden">
+            <app-mascot [dinoId]="row.dinoId" size="sm" class="w-9 h-9" />
+          </span>
           <div class="min-w-0">
-            <p class="text-sm font-semibold text-jungle-ink dark:text-jungle-night-text truncate">{{ row.name }}</p>
-            <p class="text-[10px] text-jungle-ink-muted dark:text-jungle-night-muted truncate">{{ row.species }}</p>
+            <p class="text-sm font-semibold text-jungle-ink dark:text-jungle-night-text truncate leading-tight">{{ row.name }}</p>
+            <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted truncate leading-tight">{{ row.species }}</p>
           </div>
         </div>
 
         <!-- Rating -->
-        <span class="text-right text-sm font-semibold text-jungle-accent dark:text-jungle-night-accent tabular-nums">
+        <span class="text-right text-base font-bold text-jungle-accent dark:text-jungle-night-accent tabular-nums">
           {{ row.rating }}
         </span>
 
         <!-- W / L / D -->
-        <span class="text-right text-xs text-jungle-ink-muted dark:text-jungle-night-muted tabular-nums">
-          <span class="text-emerald-500 dark:text-emerald-400">{{ row.wins }}</span>
-          <span class="mx-0.5">/</span>
-          <span class="text-red-400">{{ row.losses }}</span>
-          <span class="mx-0.5">/</span>
-          <span>{{ row.draws }}</span>
+        <span class="text-right text-sm tabular-nums whitespace-nowrap">
+          <span class="text-emerald-500 dark:text-emerald-400 font-medium">{{ row.wins }}</span>
+          <span class="mx-0.5 text-jungle-ink-muted/50 dark:text-jungle-night-muted/50">/</span>
+          <span class="text-red-400 font-medium">{{ row.losses }}</span>
+          <span class="mx-0.5 text-jungle-ink-muted/50 dark:text-jungle-night-muted/50">/</span>
+          <span class="text-jungle-ink-muted dark:text-jungle-night-muted">{{ row.draws }}</span>
         </span>
 
         <!-- Games -->
-        <span class="text-right text-xs text-jungle-ink-muted dark:text-jungle-night-muted tabular-nums">
+        <span class="text-right text-sm text-jungle-ink-muted dark:text-jungle-night-muted tabular-nums">
           {{ row.games }}
         </span>
       </div>

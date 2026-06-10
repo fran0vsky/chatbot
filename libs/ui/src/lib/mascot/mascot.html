@@ -1,14 +1,4 @@
-<span
-  class="inline-block"
-  [class.w-14]="size === 'sm'"
-  [class.h-14]="size === 'sm'"
-  [class.w-20]="size === 'md'"
-  [class.h-20]="size === 'md'"
-  [class.w-32]="size === 'hero'"
-  [class.h-32]="size === 'hero'"
-  [class.md:w-40]="size === 'hero'"
-  [class.md:h-40]="size === 'hero'"
->
+<span class="block w-full h-full">
   @if (dinoId && !assetFailed()) {
     @if (theme) {
       <!-- Explicit theme (e.g. Storybook side-by-side comparison) -->

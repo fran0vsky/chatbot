@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input, signal } from '@angular/core';
 
 export type MascotSize = 'sm' | 'md' | 'hero';
 export type MascotTheme = 'day' | 'night';
@@ -10,7 +10,18 @@ export type MascotTheme = 'day' | 'night';
   templateUrl: './mascot.html',
 })
 export class Mascot {
-  /** Visual size. */
+  /**
+   * Makes the host an `inline-block` so the width/height utility classes the
+   * caller puts on `<app-mascot>` actually take effect — the inner artwork
+   * fills the host (`w-full h-full`).
+   */
+  @HostBinding('class') readonly hostClass = 'inline-block';
+
+  /**
+   * Legacy visual-size hint. Dimensions are now driven by the width/height
+   * utility classes the caller sets on the host element; this input is kept
+   * for template/Storybook compatibility.
+   */
   @Input() size: MascotSize = 'sm';
 
   /**
