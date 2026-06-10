@@ -31,10 +31,10 @@
   <div class="flex-1 px-4 py-3 min-h-[6rem] text-sm text-jungle-ink dark:text-jungle-night-text font-body leading-relaxed">
     @if (status === 'idle') {
       <!-- Waiting for stream to start -->
-      <app-typing-indicator />
+      <app-typing-indicator [dinoId]="dino.id" />
     } @else if (status === 'streaming' && text.length === 0) {
       <!-- Stream started but no tokens yet -->
-      <app-typing-indicator />
+      <app-typing-indicator [dinoId]="dino.id" />
     } @else if (status === 'error') {
       <div class="flex items-start gap-2 text-red-400">
         <svg class="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

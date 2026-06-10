@@ -25,6 +25,8 @@ import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
 export class MessageBubble {
   @Input({ required: true }) message!: ChatMessage;
   @Input() typing = false;
+  /** When typing, the dino whose avatar the typing indicator should show. */
+  @Input() dinoId?: string;
   @Input() animate = false;
   @Input() canRegenerate = false;
   @Input() canEdit = false;

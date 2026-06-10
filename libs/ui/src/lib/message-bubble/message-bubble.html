@@ -70,7 +70,7 @@
   </div>
 } @else if (typing) {
   <div [class.msg-enter-left]="animate">
-    <app-typing-indicator />
+    <app-typing-indicator [dinoId]="dinoId" />
   </div>
 } @else {
   <div class="flex w-full justify-start group" [class.msg-enter-left]="animate">

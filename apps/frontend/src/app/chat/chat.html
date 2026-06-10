@@ -569,7 +569,7 @@
               }
             }
             @if (isLoading) {
-              <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" />
+              <app-message-bubble [message]="{ text: '', role: 'assistant' }" [typing]="true" [animate]="true" [dinoId]="activeDino()?.id" />
             }
             @if (isStreaming()) {
               @for (call of streamingToolCalls(); track $index) {
