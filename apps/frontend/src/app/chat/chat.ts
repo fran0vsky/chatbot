@@ -19,7 +19,7 @@ import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
 import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { AssistantService } from '../voice/assistant.service.js';
 import { SsmlHint } from '../voice/tts-provider.js';
-import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
+import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
 import { GroupchatService } from './groupchat.service';
@@ -98,7 +98,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MascotPanel, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
+  imports: [DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',

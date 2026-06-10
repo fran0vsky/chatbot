@@ -444,6 +444,21 @@
       </main>
     } @else {
     <main class="flex-1 overflow-hidden relative flex flex-col">
+      <!-- Active dino: decorative, floats at the right edge behind the chat (wide screens) -->
+      @if (activeDino(); as dino) {
+        <div class="hidden xl:block absolute bottom-0 right-0 z-[1] pointer-events-none select-none" aria-hidden="true">
+          <img
+            [src]="'/spino/dinos/' + dino.id + '-day.png'"
+            alt=""
+            class="h-[72vh] w-auto max-w-[34vw] object-contain object-right-bottom opacity-95 dark:hidden drop-shadow-[0_10px_24px_rgba(0,0,0,0.45)]"
+          />
+          <img
+            [src]="'/spino/dinos/' + dino.id + '-night.png'"
+            alt=""
+            class="h-[72vh] w-auto max-w-[34vw] object-contain object-right-bottom opacity-95 hidden dark:block drop-shadow-[0_10px_24px_rgba(0,0,0,0.6)]"
+          />
+        </div>
+      }
       @if (activeDino(); as dino) {
         <!-- Active dino header (PICK-04) -->
         <header class="flex items-center gap-3 pl-4 pr-14 py-2 border-b border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-bg/50 dark:bg-jungle-night/50 backdrop-blur-sm relative z-10 flex-shrink-0">
@@ -622,15 +637,6 @@
     </main>
     }
   </div>
-
-  <!-- Right mascot panel (desktop only) -->
-  <app-mascot-panel
-    [status]="(isLoading || isStreaming()) ? 'thinking' : 'idle'"
-    [isDayMode]="isDayMode()"
-    [dinoId]="activeDinoId()"
-    [dinoName]="activeDino()?.name"
-    (themeToggled)="toggleTheme()"
-  />
 
   <!-- Voice Dino Assistant (Phase 29) — floating command button. Hidden when STT
        is unsupported (Firefox). -->
