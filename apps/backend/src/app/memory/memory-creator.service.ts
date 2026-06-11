@@ -18,11 +18,21 @@ const FALLBACK_MODEL = 'openai/gpt-4o-mini';
 const SUGGEST_COUNT = 3;
 const MAX_SUGGESTIONS = 8;
 
+// Free OpenRouter models (e.g. Rexford's llama-3.3-70b:free) are often slow or hang
+// outright without ever erroring. ChatOpenAI has no implicit cap, so an unbounded
+// invoke would leave the client stuck on "Thinking…". These creator calls are short
+// utility tasks (a few seconds when healthy), so cap tightly: a slow/hung free model
+// trips the timeout fast and retries on the quick paid fallback, keeping the whole
+// interaction inside a few seconds rather than tens. Timeout counts as a capability
+// error so invokeWithFallback swaps to FALLBACK_MODEL.
+const LLM_TIMEOUT_MS = 8_000;
+
 /** Mirrors agents.service capability/rate detection — worth a single paid-model retry. */
 function isCapabilityError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   const msg = error.message.toLowerCase();
   return (
+    msg === 'llm_timeout' ||
     msg.includes('402') ||
     msg.includes('429') ||
     msg.includes('rate limit') ||
@@ -135,8 +145,18 @@ export class MemoryCreatorService {
       apiKey: process.env['OPENROUTER_API_KEY'],
       configuration: { baseURL: 'https://openrouter.ai/api/v1' },
     });
-    const res = (await llm.invoke(messages)) as AIMessage;
-    return typeof res.content === 'string' ? res.content : '';
+    let timer: ReturnType<typeof setTimeout>;
+    try {
+      const res = (await Promise.race([
+        llm.invoke(messages),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error('LLM_TIMEOUT')), LLM_TIMEOUT_MS);
+        }),
+      ])) as AIMessage;
+      return typeof res.content === 'string' ? res.content : '';
+    } finally {
+      clearTimeout(timer!);
+    }
   }
 
   /** Try the primary model; on a capability/rate error retry once on the paid fallback. */

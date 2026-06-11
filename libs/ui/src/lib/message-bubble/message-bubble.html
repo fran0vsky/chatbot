@@ -78,7 +78,7 @@
       <div class="relative markdown-bubble w-full rounded-2xl rounded-bl-md px-4 py-3 bg-jungle-surface/85 dark:bg-jungle-night-surface/85 backdrop-blur-sm text-jungle-ink dark:text-jungle-night-text border border-jungle-border/30 dark:border-jungle-night-border/40 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.35)] dark:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.55)] break-words text-sm font-body leading-relaxed">
         @if (message.reasoning) {
           <app-reasoning-block
-            [reasoning]="message.reasoning ?? ''"
+            [reasoning]="message.reasoning"
             [streaming]="false"
             [durationMs]="message.reasoningDurationMs"
             [autoCollapsed]="true">
