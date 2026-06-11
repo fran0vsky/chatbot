@@ -13,6 +13,13 @@
       }
     </div>
 
+    <!-- Intent chip (Phase 37): the social role this message played -->
+    @if (intentChip) {
+      <span class="flex-shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wide bg-jungle-accent/15 text-jungle-accent dark:bg-jungle-night-accent/20 dark:text-jungle-night-accent">
+        {{ intentChip }}
+      </span>
+    }
+
     <!-- Status badge -->
     <div class="ml-auto flex-shrink-0">
       @if (status === 'streaming') {

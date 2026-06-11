@@ -175,6 +175,8 @@ export class GroupchatService {
     };
     if (m.role === 'dino' && m.dinoId) base.dinoId = m.dinoId;
     if (m.reactions && m.reactions.length > 0) base.reactions = m.reactions;
+    if (m.intent) base.intent = m.intent;
+    if (m.replyToAgentId) base.replyToAgentId = m.replyToAgentId;
     return base;
   }
 
@@ -193,6 +195,8 @@ export class GroupchatService {
     if (isDino) {
       view.status = 'done';
       if (m.dinoId) view.dinoId = m.dinoId;
+      if (m.intent) view.intent = m.intent;
+      if (m.replyToAgentId) view.replyToAgentId = m.replyToAgentId;
     }
     if (m.reactions && m.reactions.length > 0) view.reactions = m.reactions;
     return view;
@@ -206,6 +210,10 @@ export class GroupchatService {
       ...(m.dinoId ? { dinoId: m.dinoId } : {}),
       text: m.text,
       ...(m.reactions ? { reactions: m.reactions } : {}),
+      ...(m.intent ? { intent: m.intent } : {}),
+      ...(m.replyToMessageId ? { replyToMessageId: m.replyToMessageId } : {}),
+      ...(m.replyToAgentId ? { replyToAgentId: m.replyToAgentId } : {}),
+      ...(m.confidence !== undefined ? { confidence: m.confidence } : {}),
       createdAt: m.createdAt,
     };
   }
@@ -287,7 +295,12 @@ export class GroupchatService {
         return;
       }
       case 'dino_done': {
-        this.finalizeDino(event.dinoId, event.response, event.messageId);
+        this.finalizeDino(event.dinoId, event.response, event.messageId, {
+          intent: event.intent,
+          replyToMessageId: event.replyToMessageId,
+          replyToAgentId: event.replyToAgentId,
+          confidence: event.confidence,
+        });
         return;
       }
       case 'reaction': {
@@ -332,8 +345,18 @@ export class GroupchatService {
     });
   }
 
-  /** Finalize a dino's slot with the full response + server messageId. */
-  private finalizeDino(dinoId: string, response: string, messageId: string): void {
+  /** Finalize a dino's slot with the full response + server messageId + social metadata. */
+  private finalizeDino(
+    dinoId: string,
+    response: string,
+    messageId: string,
+    meta: {
+      intent?: GroupViewMessage['intent'];
+      replyToMessageId?: string;
+      replyToAgentId?: string;
+      confidence?: number;
+    },
+  ): void {
     this._messages.update((list) => {
       const idx = this.findOpenSlot(list, dinoId);
       if (idx === -1) {
@@ -347,6 +370,7 @@ export class GroupchatService {
             createdAt: Date.now(),
             status: 'done',
             serverMessageId: messageId,
+            ...meta,
           },
         ];
       }
@@ -356,6 +380,7 @@ export class GroupchatService {
         text: response,
         status: 'done',
         serverMessageId: messageId,
+        ...meta,
       };
       return next;
     });

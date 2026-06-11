@@ -2,121 +2,60 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ChatOpenAI } from '@langchain/openai';
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import {
+  AgentProfile,
   ChatHistoryItem,
   Dino,
-  DinoTurnDecision,
   GroupMessage,
-  GroupOrchestratorPlan,
   GroupStreamEvent,
-  REACTION_TOOLTIPS,
+  SpeechIntent,
+  TopicAnalysis,
   ARTIST_DEFAULT_REACTION,
 } from '@org/shared-types';
 import { DINOS, getDino } from './dinos';
 import { AgentsService } from './agents.service';
+import { getProfile } from './group/agent-profiles';
+import {
+  ConversationState,
+  IntentDecision,
+  TurnBudget,
+  allowedIntents,
+  canContinue,
+  defaultBudget,
+  initConversationState,
+  lastDinoMessage,
+  pickNextSpeaker,
+  recordSilence,
+  recordTurn,
+  topicHitsWeakArea,
+  validateIntent,
+} from './group/governor';
 
-// --- Cost ceiling (D-01 / D-02) ---------------------------------------------
+// --- Cost ceiling (Phase 37) -------------------------------------------------
 // A single user message triggers AT MOST:
-//   1 orchestrator call
-// + up to MAX_GROUP_DINOS Round-1 answerers
-// + up to MAX_INTER_DINO_REPLIES Round-2 answerers
-// = the documented hard per-turn LLM-call ceiling (1 + 4 + 3 = 8).
-// `react`/`silent` dinos make ZERO model calls. Participants are capped to
-// MAX_GROUP_DINOS before the orchestrator runs (forward of the Phase 23
-// MAX_DINOS cap); Round 2 is clamped to MAX_INTER_DINO_REPLIES.
-const ORCHESTRATOR_MODEL = 'openai/gpt-4o-mini';
+//   1 topic-analysis call
+// + up to MAX_GROUP_DINOS participants resolved
+// + per speaking turn: 1 cheap intent call + 1 in-character generation call
+//   bounded by the governor's TurnBudget.maxAgentMessages.
+// `stay_silent` turns and image-gen reactions make ZERO generation calls.
+const DIRECTOR_MODEL = 'openai/gpt-4o-mini';
 const MAX_GROUP_DINOS = 4;
-// Round-2 inter-dino replies. Raised from 2 → 3 so the group reads as a
-// conversation (dinos building on / pushing back on each other) rather than two
-// parallel monologues.
-const MAX_INTER_DINO_REPLIES = 3;
 const HISTORY_CAP = 20;
 
-const VALID_ACTIONS: ReadonlyArray<DinoTurnDecision['action']> = ['answer', 'react', 'silent'];
-
-/** The minimal "everyone answers in roster order" plan used as a safe fallback. */
-function allAnswerPlan(roster: Dino[]): GroupOrchestratorPlan {
-  return {
-    round1: roster.map((d, i) => ({ dinoId: d.id, action: 'answer', order: i })),
-    round2: [],
-  };
-}
-
-/** Pick the first emoji-like cluster from a string (keeps a single emoji). */
-function firstEmoji(raw: unknown): string | undefined {
-  if (typeof raw !== 'string') return undefined;
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) return undefined;
-  // Take the first Unicode code point cluster (covers most single emoji).
-  return [...trimmed][0];
-}
-
-/** Narrow an unknown value to a `DinoTurnDecision` against the roster. */
-function coerceDecision(
-  raw: unknown,
-  rosterIds: Set<string>,
-  fallbackOrder: number,
-): DinoTurnDecision | undefined {
-  if (typeof raw !== 'object' || raw === null) return undefined;
-  const obj = raw as Record<string, unknown>;
-  const dinoId = typeof obj['dinoId'] === 'string' ? obj['dinoId'] : undefined;
-  if (!dinoId || !rosterIds.has(dinoId)) return undefined;
-
-  const rawAction = obj['action'];
-  const action: DinoTurnDecision['action'] =
-    typeof rawAction === 'string' && VALID_ACTIONS.includes(rawAction as DinoTurnDecision['action'])
-      ? (rawAction as DinoTurnDecision['action'])
-      : 'silent';
-
-  const order = typeof obj['order'] === 'number' ? obj['order'] : fallbackOrder;
-  const decision: DinoTurnDecision = { dinoId, action, order };
-
-  if (action === 'react') {
-    const emoji = firstEmoji(obj['emoji']);
-    if (!emoji) return undefined; // a react with no emoji is meaningless — drop it
-    decision.emoji = emoji;
-  }
-  if (typeof obj['targetMessageId'] === 'string') decision.targetMessageId = obj['targetMessageId'];
-  if (typeof obj['respondingTo'] === 'string') decision.respondingTo = obj['respondingTo'];
-  return decision;
-}
-
-/**
- * Defensively parse the orchestrator's raw JSON plan: strip code fences,
- * JSON.parse, coerce/validate each decision against the roster, drop unknown
- * dinoIds, force `action` into the union, keep a single emoji on `react`, and
- * clamp `round2` to MAX_INTER_DINO_REPLIES. On ANY failure, return the safe
- * all-answer fallback plan so the group still responds.
- */
-export function parseOrchestratorPlan(raw: string, roster: Dino[]): GroupOrchestratorPlan {
-  const rosterIds = new Set(roster.map((d) => d.id));
-  try {
-    const stripped = raw.replace(/```(?:json)?/gi, '').trim();
-    const parsed: unknown = JSON.parse(stripped);
-    if (typeof parsed !== 'object' || parsed === null) return allAnswerPlan(roster);
-    const obj = parsed as Record<string, unknown>;
-
-    const round1Raw = Array.isArray(obj['round1']) ? (obj['round1'] as unknown[]) : [];
-    const round2Raw = Array.isArray(obj['round2']) ? (obj['round2'] as unknown[]) : [];
-
-    const round1 = round1Raw
-      .map((d, i) => coerceDecision(d, rosterIds, i))
-      .filter((d): d is DinoTurnDecision => d !== undefined);
-    const round2 = round2Raw
-      .map((d, i) => coerceDecision(d, rosterIds, i))
-      .filter((d): d is DinoTurnDecision => d !== undefined)
-      .slice(0, MAX_INTER_DINO_REPLIES);
-
-    if (round1.length === 0 && round2.length === 0) return allAnswerPlan(roster);
-    return { round1, round2 };
-  } catch {
-    return allAnswerPlan(roster);
-  }
-}
+const ALL_INTENTS: readonly SpeechIntent[] = [
+  'answer_user',
+  'agree_with_agent',
+  'disagree_with_agent',
+  'build_on_agent',
+  'correct_agent',
+  'ask_agent',
+  'admit_uncertainty',
+  'stay_silent',
+];
 
 /**
  * Convert the interleaved group transcript into the `ChatHistoryItem[]` a
- * specific answerer receives (D-09): the answerer's OWN prior dino messages map
- * to `assistant`; every other speaker (the user and other dinos) maps to a
+ * specific answerer receives: the answerer's OWN prior dino messages map to
+ * `assistant`; every other speaker (the user and other dinos) maps to a
  * label-prefixed `user` turn (`User: …` / `<Name>: …`). Reactions are appended
  * as a short note. Sliced to the most recent HISTORY_CAP turns.
  */
@@ -144,6 +83,37 @@ export function buildAttributedHistory(
   return items.slice(-HISTORY_CAP);
 }
 
+/** The per-turn directive appended to a dino's system prompt for HOW to speak. */
+export function buildDirective(
+  intent: SpeechIntent,
+  profile: AgentProfile,
+  targetName: string | undefined,
+  topic: TopicAnalysis,
+): string {
+  const who = targetName ?? 'the previous dino';
+  const bodies: Record<SpeechIntent, string> = {
+    answer_user:
+      "Answer the user's question directly from your strengths, and add a fresh angle the others haven't covered yet.",
+    build_on_agent: `Add a NEW point on top of what ${who} said — extend or sharpen it, don't restate it.`,
+    agree_with_agent: `You agree with ${who}, but you MUST add something: a reason, an example, or a caveat. Never just say "I agree".`,
+    disagree_with_agent: `You see it differently from ${who}. First concede what they got right, then state your specific disagreement and WHY. Stay respectful.`,
+    correct_agent: `${who} said something you believe is factually off. Correct that one specific point briefly and plainly — no smugness, no piling on.`,
+    ask_agent: `Ask ${who} a genuine, pointed question about the part they know best.`,
+    admit_uncertainty:
+      'This is outside your strong areas. Say so plainly, give only the practical take you are sure of, and name which dino is better suited for the rest.',
+    stay_silent: 'Say nothing.',
+  };
+  const topicNote =
+    topic.subtopics.length > 0 ? ` The discussion is about: ${topic.subtopics.join(', ')}.` : '';
+  return [
+    `## THIS GROUP-CHAT TURN`,
+    `You are ${profile.name}, one of several dinos in a live group chat with the user and other dinos. Stay fully in character (${profile.speakingStyle}).`,
+    `Keep it short and conversational — 1 to 3 sentences, like a real group chat, not an essay. Do NOT prefix your message with your own name.`,
+    `Your intent this turn: ${intent.replace(/_/g, ' ')}.${topicNote}`,
+    bodies[intent],
+  ].join('\n');
+}
+
 @Injectable()
 export class GroupAgentsService {
   private readonly logger = new Logger(GroupAgentsService.name);
@@ -164,12 +134,7 @@ export class GroupAgentsService {
     return roster;
   }
 
-  /**
-   * True for image-generation dinos (e.g. Vinci). Their output is an image,
-   * which the group stream does not surface (D-03), so a text `answer` slot
-   * would render blank and waste a paid image call. In group mode such a dino
-   * REACTS instead of answering.
-   */
+  /** True for image-generation dinos — they react instead of answering (no text). */
   private isImageGenDino(dinoId: string): boolean {
     return getDino(dinoId).imageGen === true;
   }
@@ -184,156 +149,193 @@ export class GroupAgentsService {
     return forced;
   }
 
+  /** Build the cheap director LLM (topic analysis + intent selection). */
+  private directorLlm(): ChatOpenAI {
+    return new ChatOpenAI({
+      model: DIRECTOR_MODEL,
+      apiKey: process.env['OPENROUTER_API_KEY'],
+      configuration: { baseURL: 'https://openrouter.ai/api/v1' },
+    });
+  }
+
+  private static parseJson(raw: string): unknown {
+    try {
+      return JSON.parse(raw.replace(/```(?:json)?/gi, '').trim());
+    } catch {
+      return undefined;
+    }
+  }
+
   /**
-   * One cheap orchestrator call producing the structured participation plan.
-   * On any failure, degrades to the all-answer fallback. After parsing, any
-   * @mentioned dino is FORCED to answer in Round 1 (override + append).
+   * One cheap call analyzing the user message: subtopics, the expertise it
+   * demands, whether it's genuinely contested, and the best-suited dinos. On any
+   * failure, degrade to a keyword heuristic so the turn still proceeds.
    */
-  private async runOrchestrator(
+  protected async analyzeTopic(
     message: string,
     roster: Dino[],
     transcript: GroupMessage[],
-    forcedIds: string[],
     signal: AbortSignal,
-  ): Promise<GroupOrchestratorPlan> {
-    let plan: GroupOrchestratorPlan;
+  ): Promise<TopicAnalysis> {
     try {
-      const rosterDesc = roster
-        .map((d) => `- ${d.name} (id: ${d.id}) — ${d.persona} Specialty: ${d.specialty}.`)
+      const profiles = roster.map((d) => getProfile(d.id));
+      const rosterDesc = profiles
+        .map((p) => `- ${p.name} (id: ${p.dinoId}) — strong: [${p.expertiseAreas.join(', ')}]`)
         .join('\n');
-      const transcriptText =
-        transcript.length > 0
-          ? transcript
-              .slice(-HISTORY_CAP)
-              .map((m) => `${m.role === 'user' ? 'User' : roster.find((d) => d.id === m.dinoId)?.name ?? 'Dino'}: ${m.text}`)
-              .join('\n')
-          : '(no prior messages)';
-      const forcedNames = forcedIds
-        .map((id) => roster.find((d) => d.id === id)?.name)
-        .filter((n): n is string => !!n);
-
       const system = new SystemMessage(
         [
-          'You are the orchestrator for a group chat of AI "dinos". Decide, per dino, how it participates this turn.',
-          'Return ONLY a JSON object (no prose, no code fences) with this exact shape:',
-          '{ "round1": [{ "dinoId": string, "action": "answer"|"react"|"silent", "emoji"?: string, "order": number }],',
-          '  "round2": [{ "dinoId": string, "action": "answer"|"react"|"silent", "emoji"?: string, "respondingTo"?: string, "order": number }] }',
-          'Rules:',
-          '- Each dino does EXACTLY ONE action per round: answer, react (a SINGLE emoji), or silent.',
-          '- Aim for a LIVELY group: every participant should usually do something visible. A dino that does not answer should almost always "react" with a fitting emoji; reserve "silent" only for when even a reaction would be pure noise.',
-          '- Round 1 = dinos that directly answer the user. Pick the 2-3 dinos whose specialties best fit (more than one perspective is good); the remaining dinos "react" (or, rarely, stay silent).',
-          `- Round 2 = up to ${MAX_INTER_DINO_REPLIES} dinos reacting to the Round-1 answers, to make it feel like a conversation. A dino either ANSWERS to build on, add to, or respectfully push back on a specific dino (set "respondingTo" to that dino's id), or REACTS with a single emoji to a specific dino's answer (also set "respondingTo"). STRONGLY favor a competent dino VOLUNTEERING when it has a genuinely different take, a disagreement, or a concrete useful addition. A dino with nothing distinct should react rather than echo, or stay silent.`,
-          forcedNames.length > 0
-            ? `- The user @mentioned these dinos; they MUST answer in Round 1: ${forcedNames.join(', ')}.`
-            : '- No dinos were @mentioned.',
-          '- A "react" decision MUST include a single emoji, chosen ONLY from this captioned set (pick the one whose meaning fits): ' +
-            Object.entries(REACTION_TOOLTIPS)
-              .map(([e, caption]) => `${e}=${caption}`)
-              .join(', ') +
-            '. "answer"/"silent" must NOT include an emoji.',
-          '- Order is ascending speaking order within the round.',
+          'You analyze a user message for a group of AI "dinos" so a director can run a natural discussion.',
+          'Return ONLY a JSON object (no prose, no code fences) of this exact shape:',
+          '{ "subtopics": string[], "requiredExpertise": string[], "isContested": boolean, "bestSuitedDinoIds": string[] }',
+          '- subtopics: the distinct askable parts of the question (e.g. ["fun","reliability","cost"]).',
+          '- requiredExpertise: lowercase tags the question demands; prefer tags drawn from the roster\'s strengths.',
+          '- isContested: true if reasonable experts would legitimately disagree.',
+          '- bestSuitedDinoIds: roster ids ranked best-first by fit to the question.',
+        ].join('\n'),
+      );
+      const human = new HumanMessage(
+        [`Roster:\n${rosterDesc}`, `User message:\n${message}`].join('\n\n'),
+      );
+      const res = (await this.directorLlm().invoke([system, human], { signal })) as AIMessage;
+      const content = typeof res.content === 'string' ? res.content : '';
+      const parsed = GroupAgentsService.parseJson(content) as Partial<TopicAnalysis> | undefined;
+      if (parsed && typeof parsed === 'object') {
+        const rosterIds = new Set(roster.map((d) => d.id));
+        return {
+          subtopics: Array.isArray(parsed.subtopics) ? parsed.subtopics.map(String).slice(0, 6) : [],
+          requiredExpertise: Array.isArray(parsed.requiredExpertise)
+            ? parsed.requiredExpertise.map((t) => String(t).toLowerCase()).slice(0, 8)
+            : [],
+          isContested: parsed.isContested === true,
+          bestSuitedDinoIds: Array.isArray(parsed.bestSuitedDinoIds)
+            ? parsed.bestSuitedDinoIds.map(String).filter((id) => rosterIds.has(id))
+            : [],
+        };
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Topic analysis failed (${err instanceof Error ? err.message : String(err)}); using heuristic.`,
+      );
+    }
+    return this.heuristicTopic(message, roster);
+  }
+
+  /** Keyword fallback: match message words against each profile's strong tags. */
+  private heuristicTopic(message: string, roster: Dino[]): TopicAnalysis {
+    const lower = message.toLowerCase();
+    const matched = new Set<string>();
+    const ranked = roster
+      .map((d) => {
+        const p = getProfile(d.id);
+        const hits = p.expertiseAreas.filter((t) => lower.includes(t.toLowerCase()));
+        hits.forEach((h) => matched.add(h.toLowerCase()));
+        return { id: d.id, score: hits.length + p.interactionBiases.talkativeness };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((r) => r.id);
+    return {
+      subtopics: [],
+      requiredExpertise: [...matched],
+      isContested: /\b(or|vs|versus|better|worse|best|should|wrong|right)\b/.test(lower),
+      bestSuitedDinoIds: ranked,
+    };
+  }
+
+  /**
+   * One cheap call choosing HOW the given dino speaks, constrained to `allowed`.
+   * On any failure, fall back to a profile-weighted heuristic. The returned
+   * decision is later run through the governor's `validateIntent`.
+   */
+  protected async decideIntent(
+    profile: AgentProfile,
+    state: ConversationState,
+    allowed: SpeechIntent[],
+    signal: AbortSignal,
+    roster: Dino[],
+  ): Promise<IntentDecision> {
+    const last = lastDinoMessage(state);
+    try {
+      const nameById = new Map(roster.map((d) => [d.id, d.name]));
+      const targetName = last?.dinoId ? nameById.get(last.dinoId) ?? 'a dino' : undefined;
+      const system = new SystemMessage(
+        [
+          `You decide HOW ${profile.name} should speak next in a group chat (not the words).`,
+          `Personality: ${profile.personality}. Debate style: ${profile.debateStyle}. Confidence: ${profile.confidence}.`,
+          `Strong areas: [${profile.expertiseAreas.join(', ')}]. Weak areas: [${profile.weakAreas.join(', ')}].`,
+          `Choose EXACTLY ONE intent from this allowed set: ${allowed.join(', ')}.`,
+          'Guidance:',
+          '- Pick disagree_with_agent / correct_agent ONLY with a real, expertise-backed point of difference — never to be contrarian.',
+          '- If the topic is in your weak areas, prefer admit_uncertainty or ask_agent over bluffing.',
+          "- Don't agree just to agree; if you'd only echo, choose stay_silent.",
+          'Return ONLY JSON: { "intent": <one of the allowed>, "targetAgentId"?: string, "confidence": number 0..1 }',
         ].join('\n'),
       );
       const human = new HumanMessage(
         [
-          `Participants:\n${rosterDesc}`,
-          `Recent transcript:\n${transcriptText}`,
-          `New user message:\n${message}`,
-          forcedNames.length > 0 ? `Forced (must answer): ${forcedNames.join(', ')}` : '',
-        ]
-          .filter((s) => s.length > 0)
-          .join('\n\n'),
+          `Topic subtopics: ${state.topic.subtopics.join(', ') || '(unknown)'}; contested: ${state.topic.isContested}.`,
+          last
+            ? `Most recent dino message — ${targetName} (${last.intent ?? 'answer'}): "${last.text}"`
+            : 'No dino has spoken yet this turn.',
+        ].join('\n'),
       );
-
-      const llm = new ChatOpenAI({
-        model: ORCHESTRATOR_MODEL,
-        apiKey: process.env['OPENROUTER_API_KEY'],
-        configuration: { baseURL: 'https://openrouter.ai/api/v1' },
-      });
-      const res = (await llm.invoke([system, human], { signal })) as AIMessage;
-      const content = typeof res.content === 'string' ? res.content : JSON.stringify(res.content);
-      plan = parseOrchestratorPlan(content, roster);
-    } catch (err) {
-      this.logger.warn(
-        `Orchestrator call failed (${err instanceof Error ? err.message : String(err)}); ` +
-          'falling back to all-answer plan.',
-      );
-      plan = allAnswerPlan(roster);
-    }
-
-    return plan;
-  }
-
-  /** Override forced dinos to `answer` in Round 1, appending any that are absent. */
-  private applyMentionForcing(plan: GroupOrchestratorPlan, forcedIds: string[]): GroupOrchestratorPlan {
-    if (forcedIds.length === 0) return plan;
-    const round1 = [...plan.round1];
-    let nextOrder = round1.reduce((max, d) => Math.max(max, d.order), -1) + 1;
-    for (const id of forcedIds) {
-      const existing = round1.find((d) => d.dinoId === id);
-      if (existing) {
-        if (existing.action !== 'answer') {
-          existing.action = 'answer';
-          delete existing.emoji;
-        }
-      } else {
-        round1.push({ dinoId: id, action: 'answer', order: nextOrder++ });
-      }
-    }
-    return { round1, round2: plan.round2 };
-  }
-
-  /**
-   * Run a single answerer through the unchanged single-dino loop, re-tagging
-   * its events with the dinoId. Returns the assembled response text.
-   */
-  private async *runAnswerer(
-    decision: DinoTurnDecision,
-    message: string,
-    transcript: GroupMessage[],
-    roster: Dino[],
-    userId: string | undefined,
-    signal: AbortSignal,
-  ): AsyncGenerator<GroupStreamEvent, string, void> {
-    const { dinoId } = decision;
-    const messageId = `${dinoId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const history = buildAttributedHistory(transcript, dinoId, roster);
-    let response = '';
-    try {
-      for await (const event of this.agentsService.streamAgent(
-        message,
-        `group-${dinoId}`,
-        undefined,
-        signal,
-        undefined,
-        dinoId,
-        userId,
-        history,
-        undefined,
-      )) {
-        if (event.type === 'token') {
-          response += event.text;
-          yield { type: 'dino_token', dinoId, text: event.text };
-        } else if (event.type === 'done') {
-          response = event.response;
-          yield { type: 'dino_done', dinoId, response: event.response, messageId };
-        } else if (event.type === 'error') {
-          yield { type: 'dino_error', dinoId, message: event.message };
-        }
-        // tool_call_*, reasoning_token, image events are not surfaced in group mode.
+      const res = (await this.directorLlm().invoke([system, human], { signal })) as AIMessage;
+      const content = typeof res.content === 'string' ? res.content : '';
+      const parsed = GroupAgentsService.parseJson(content) as
+        | { intent?: string; targetAgentId?: string; confidence?: number }
+        | undefined;
+      if (parsed && typeof parsed === 'object') {
+        const intent =
+          typeof parsed.intent === 'string' && ALL_INTENTS.includes(parsed.intent as SpeechIntent)
+            ? (parsed.intent as SpeechIntent)
+            : 'answer_user';
+        return {
+          intent,
+          targetAgentId:
+            typeof parsed.targetAgentId === 'string' ? parsed.targetAgentId : last?.dinoId,
+          confidence: typeof parsed.confidence === 'number' ? parsed.confidence : profile.confidence,
+        };
       }
     } catch (err) {
       this.logger.warn(
-        `Answerer ${dinoId} failed: ${err instanceof Error ? err.message : String(err)}`,
+        `Intent selection for ${profile.dinoId} failed (${err instanceof Error ? err.message : String(err)}); using heuristic.`,
       );
-      yield { type: 'dino_error', dinoId, message: 'This dino could not respond.' };
     }
-    return response;
+    return this.heuristicIntent(profile, state, allowed);
+  }
+
+  /** Deterministic intent fallback driven by the profile's biases. */
+  private heuristicIntent(
+    profile: AgentProfile,
+    state: ConversationState,
+    allowed: SpeechIntent[],
+  ): IntentDecision {
+    const has = (i: SpeechIntent): boolean => allowed.includes(i);
+    const last = lastDinoMessage(state);
+    const target = last?.dinoId;
+    const b = profile.interactionBiases;
+
+    if (topicHitsWeakArea(profile, state.topic) && profile.confidence < 0.7) {
+      if (has('admit_uncertainty')) return { intent: 'admit_uncertainty', confidence: 0.4 };
+      if (has('ask_agent')) return { intent: 'ask_agent', targetAgentId: target, confidence: 0.5 };
+    }
+    if (b.likesToChallenge >= 0.6 && has('disagree_with_agent')) {
+      return { intent: 'disagree_with_agent', targetAgentId: target, confidence: profile.confidence };
+    }
+    if (b.likesToSupport >= 0.6 && has('build_on_agent')) {
+      return { intent: 'build_on_agent', targetAgentId: target, confidence: profile.confidence };
+    }
+    if (has('build_on_agent') && last) {
+      return { intent: 'build_on_agent', targetAgentId: target, confidence: profile.confidence };
+    }
+    return { intent: 'answer_user', confidence: profile.confidence };
   }
 
   /**
-   * Drive the whole group turn over one SSE stream: orchestrator plan,
-   * concurrent Round 1, bounded sequential Round 2. Always ends with group_done.
+   * Drive the whole group turn as a dynamic discussion over one SSE stream:
+   *   topic analysis → loop { pick speaker → pick intent → generate } → done.
+   * Speakers are chosen by the governor (heuristic, no LLM); intents are cheap
+   * director calls constrained to the allowed set; only real speaking turns make
+   * an in-character generation call. Always ends with group_done.
    */
   async *streamGroup(
     message: string,
@@ -343,212 +345,146 @@ export class GroupAgentsService {
     signal: AbortSignal,
   ): AsyncGenerator<GroupStreamEvent, void, void> {
     const roster = this.resolveRoster(participantDinoIds);
-    const transcript: GroupMessage[] = [...(history ?? [])];
-
     if (roster.length === 0) {
       yield { type: 'group_done' };
       return;
     }
+    const profiles = roster.map((d) => getProfile(d.id));
+    const budget = defaultBudget(roster.length);
 
-    const forcedIds = this.parseMentions(message, roster);
-    const rawPlan = await this.runOrchestrator(message, roster, transcript, forcedIds, signal);
-    // @mention forcing is enforced by the engine (GRP2-02 / D-04) regardless of
-    // what the orchestrator returned: a forced dino is overridden to `answer`.
-    const plan = this.applyMentionForcing(rawPlan, forcedIds);
-    yield { type: 'plan', plan };
+    const topic = await this.analyzeTopic(message, roster, history ?? [], signal);
     if (signal.aborted) return;
 
+    const state = initConversationState(history ?? [], topic);
     // Record the user's message at the head of the working transcript.
-    const userMessageId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    transcript.push({
-      id: userMessageId,
-      role: 'user',
-      text: message,
-      createdAt: Date.now(),
-    });
+    const userMessageId = newMessageId('user');
+    state.transcript.push({ id: userMessageId, role: 'user', text: message, createdAt: Date.now() });
 
-    // Round 1 reactions cost no LLM call — emit them up front. An image-gen
-    // dino assigned `answer` is converted to a react here (it cannot show its
-    // image in the group stream) so it is still visibly present.
-    for (const decision of plan.round1) {
-      if (decision.action === 'react' && decision.emoji) {
-        yield {
-          type: 'reaction',
-          dinoId: decision.dinoId,
-          emoji: decision.emoji,
-          targetMessageId: decision.targetMessageId ?? userMessageId,
-        };
-      } else if (decision.action === 'answer' && this.isImageGenDino(decision.dinoId)) {
-        yield {
-          type: 'reaction',
-          dinoId: decision.dinoId,
-          emoji: ARTIST_DEFAULT_REACTION,
-          targetMessageId: userMessageId,
-        };
-      }
-    }
+    // Empty plan keeps the SSE "plan first" contract; the frontend lays out dino
+    // slots dynamically as token/done events arrive (no fixed rounds anymore).
+    yield { type: 'plan', plan: { round1: [], round2: [] } };
 
-    // --- Round 1: answerers run CONCURRENTLY, events multiplexed (D-03) ------
-    // Image-gen dinos are excluded (handled as reactions above).
-    const answerers = plan.round1
-      .filter((d) => d.action === 'answer' && !this.isImageGenDino(d.dinoId))
-      .sort((a, b) => a.order - b.order);
+    // @mentioned dinos are forced to answer the user first, in mention order.
+    const forcedQueue = this.parseMentions(message, roster);
 
-    const round1Answers = yield* this.runConcurrentStream(
-      answerers,
-      message,
-      transcript,
-      roster,
-      userId,
-      signal,
-    );
-    if (signal.aborted) return;
-    // Append completed Round-1 answers in PLAN order (not completion order) so
-    // Round 2 sees a stable, orchestrator-ordered transcript regardless of which
-    // dino finished streaming first.
-    for (const decision of answerers) {
-      const ans = round1Answers.find((a) => a.dinoId === decision.dinoId);
-      if (!ans) continue;
-      transcript.push({
-        id: ans.messageId,
-        role: 'dino',
-        dinoId: ans.dinoId,
-        text: ans.response,
-        createdAt: Date.now(),
-      });
-    }
-
-    // --- Round 2: SEQUENTIAL so each replier sees the Round-1 answers (D-02) -
-    // Defensive clamp: parseOrchestratorPlan already caps round2, but enforce the
-    // ceiling here too so the cost bound holds regardless of how the plan arrived.
-    const round2 = [...plan.round2]
-      .sort((a, b) => a.order - b.order)
-      .slice(0, MAX_INTER_DINO_REPLIES);
-    for (const decision of round2) {
+    while (canContinue(state, budget)) {
       if (signal.aborted) return;
-      if (decision.action === 'react' && decision.emoji) {
-        // A Round-2 reaction targets another dino's answer. The orchestrator
-        // cannot know message ids at plan time, so resolve `respondingTo`
-        // (a dinoId) to that dino's most recent message in the transcript;
-        // without a target the frontend silently drops the reaction.
-        const targetMessageId =
-          decision.targetMessageId ??
-          (decision.respondingTo
-            ? [...transcript].reverse().find((m) => m.dinoId === decision.respondingTo)?.id
-            : undefined);
-        yield {
-          type: 'reaction',
-          dinoId: decision.dinoId,
-          emoji: decision.emoji,
-          targetMessageId,
-        };
-        continue;
-      }
-      if (decision.action !== 'answer') continue;
 
-      // Image-gen dino can't surface an answer in the group stream — react to
-      // the dino it was responding to (or the user) instead of running a
-      // dropped, paid image call.
-      if (this.isImageGenDino(decision.dinoId)) {
-        const targetMessageId =
-          (decision.respondingTo
-            ? [...transcript].reverse().find((m) => m.dinoId === decision.respondingTo)?.id
-            : undefined) ?? userMessageId;
-        yield {
-          type: 'reaction',
-          dinoId: decision.dinoId,
-          emoji: ARTIST_DEFAULT_REACTION,
-          targetMessageId,
-        };
+      // --- (a) who speaks ----------------------------------------------------
+      const forcedId = forcedQueue.find((id) => (state.perAgentTurns[id] ?? 0) === 0);
+      if (forcedId) forcedQueue.splice(forcedQueue.indexOf(forcedId), 1);
+      const speakerId = forcedId ?? pickNextSpeaker(profiles, state, budget);
+      if (!speakerId) break;
+      const profile = getProfile(speakerId);
+
+      // --- (b) what intent ---------------------------------------------------
+      let decision: IntentDecision;
+      if (forcedId) {
+        decision = { intent: 'answer_user', confidence: profile.confidence };
+      } else {
+        const allowed = allowedIntents(profile, state, budget);
+        decision = await this.decideIntent(profile, state, allowed, signal, roster);
+      }
+      if (signal.aborted) return;
+      decision = validateIntent(profile, decision, state, budget);
+
+      // --- (c) silence: no generation call -----------------------------------
+      if (decision.intent === 'stay_silent') {
+        recordSilence(state, speakerId);
+        if (state.consecutiveSilences >= 2) break; // nobody has anything to add
         continue;
       }
 
-      const gen = this.runAnswerer(decision, message, transcript, roster, userId, signal);
-      let next = await gen.next();
-      while (!next.done) {
-        yield next.value;
-        next = await gen.next();
+      // --- Image-gen dino reacts (it cannot surface text in the group stream) -
+      if (this.isImageGenDino(speakerId)) {
+        const target = decision.targetMessageId ?? userMessageId;
+        yield { type: 'reaction', dinoId: speakerId, emoji: ARTIST_DEFAULT_REACTION, targetMessageId: target };
+        // Mark it as having taken its chance so it isn't re-picked forever.
+        state.perAgentTurns[speakerId] = (state.perAgentTurns[speakerId] ?? 0) + 1;
+        state.lastSpeaker = speakerId;
+        state.consecutiveSilences = 0;
+        continue;
       }
-      const response = next.value;
-      transcript.push({
-        id: `${decision.dinoId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+
+      // --- (d) generate the in-character message -----------------------------
+      const targetName = decision.targetAgentId
+        ? roster.find((d) => d.id === decision.targetAgentId)?.name
+        : undefined;
+      const directive = buildDirective(decision.intent, profile, targetName, topic);
+      const attributedHistory = buildAttributedHistory(state.transcript, speakerId, roster);
+      const messageId = newMessageId(speakerId);
+      let response = '';
+
+      try {
+        for await (const event of this.agentsService.streamAgent(
+          message,
+          `group-${speakerId}`,
+          undefined,
+          signal,
+          undefined,
+          speakerId,
+          userId,
+          attributedHistory,
+          undefined,
+          directive,
+        )) {
+          if (event.type === 'token') {
+            response += event.text;
+            yield { type: 'dino_token', dinoId: speakerId, text: event.text };
+          } else if (event.type === 'done') {
+            response = event.response;
+          } else if (event.type === 'error') {
+            yield { type: 'dino_error', dinoId: speakerId, message: event.message };
+          }
+          // tool_call_*, reasoning_token, image events are not surfaced here.
+        }
+      } catch (err) {
+        this.logger.warn(
+          `Answerer ${speakerId} failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        yield { type: 'dino_error', dinoId: speakerId, message: 'This dino could not respond.' };
+      }
+
+      if (signal.aborted) return;
+
+      // An empty response (e.g. the model returned nothing) shouldn't pollute the
+      // transcript or count as a real turn — treat it as a silent pass.
+      if (response.trim().length === 0) {
+        recordSilence(state, speakerId);
+        if (state.consecutiveSilences >= 2) break;
+        continue;
+      }
+
+      yield {
+        type: 'dino_done',
+        dinoId: speakerId,
+        response,
+        messageId,
+        intent: decision.intent,
+        replyToMessageId: decision.targetMessageId,
+        replyToAgentId: decision.targetAgentId,
+        confidence: decision.confidence,
+      };
+
+      state.transcript.push({
+        id: messageId,
         role: 'dino',
-        dinoId: decision.dinoId,
+        dinoId: speakerId,
         text: response,
         createdAt: Date.now(),
+        intent: decision.intent,
+        replyToMessageId: decision.targetMessageId,
+        replyToAgentId: decision.targetAgentId,
+        confidence: decision.confidence,
       });
+      recordTurn(state, speakerId, decision);
     }
 
     yield { type: 'group_done' };
   }
+}
 
-  /**
-   * Start every answerer's generator concurrently and multiplex their events
-   * onto the stream AS THEY ARRIVE (D-03): tokens from all Round-1 dinos
-   * interleave live rather than being buffered until the slowest one finishes.
-   * The frontend renders strictly in plan order via the dino-tagged events.
-   * Returns the assembled per-dino answers for the caller to fold into the
-   * transcript. On abort, stops draining and asks each still-pending generator
-   * to return so the underlying streamAgent calls unwind.
-   */
-  private async *runConcurrentStream(
-    decisions: DinoTurnDecision[],
-    message: string,
-    transcript: GroupMessage[],
-    roster: Dino[],
-    userId: string | undefined,
-    signal: AbortSignal,
-  ): AsyncGenerator<
-    GroupStreamEvent,
-    { dinoId: string; response: string; messageId: string }[],
-    void
-  > {
-    const answers: { dinoId: string; response: string; messageId: string }[] = [];
-    const states = decisions.map((decision) => ({
-      decision,
-      gen: this.runAnswerer(decision, message, transcript, roster, userId, signal),
-      messageId: '',
-    }));
-
-    // One in-flight next() promise per still-active generator, tagged with its
-    // index so Promise.race can tell us which generator produced the next event.
-    const pending = new Map<
-      number,
-      Promise<{ idx: number; res: IteratorResult<GroupStreamEvent, string> }>
-    >();
-    states.forEach((state, idx) => {
-      pending.set(idx, state.gen.next().then((res) => ({ idx, res })));
-    });
-
-    while (pending.size > 0) {
-      if (signal.aborted) break;
-      const { idx, res } = await Promise.race(pending.values());
-      if (res.done) {
-        pending.delete(idx);
-        const state = states[idx];
-        answers.push({
-          dinoId: state.decision.dinoId,
-          response: res.value,
-          messageId:
-            state.messageId ||
-            `${state.decision.dinoId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        });
-      } else {
-        const event = res.value;
-        if (event.type === 'dino_done') states[idx].messageId = event.messageId;
-        yield event;
-        pending.set(idx, states[idx].gen.next().then((r) => ({ idx, res: r })));
-      }
-    }
-
-    // Aborted mid-flight: unwind any generators still pending so their
-    // streamAgent calls stop instead of finishing in the background.
-    if (pending.size > 0) {
-      await Promise.allSettled(
-        [...pending.keys()].map((idx) => states[idx].gen.return('')),
-      );
-    }
-
-    return answers;
-  }
+/** Server-generated, collision-resistant message id. */
+function newMessageId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }

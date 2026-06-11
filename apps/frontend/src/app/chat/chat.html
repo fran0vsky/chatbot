@@ -206,6 +206,8 @@
                       [status]="msg.status ?? 'done'"
                       [error]="msg.error"
                       [reactions]="msg.reactions"
+                      [intent]="msg.intent"
+                      [respondingToName]="msg.replyToAgentId ? dinoNames()[msg.replyToAgentId] : undefined"
                       [dinoNames]="dinoNames()"
                     />
                   }

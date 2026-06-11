@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
-import { DinoSummary, GroupReaction, reactionLabel } from '@org/shared-types';
+import {
+  DinoSummary,
+  GroupReaction,
+  SpeechIntent,
+  intentLabel,
+  reactionLabel,
+} from '@org/shared-types';
 import { Mascot } from '../mascot/mascot.js';
 import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
 
@@ -37,8 +43,16 @@ export class GroupResponse {
   /** When set, shows a subtle "replying to {name}" affordance in the header (D-05). */
   @Input() respondingToName?: string;
 
+  /** The social role this message played (Phase 37), rendered as a small chip. */
+  @Input() intent?: SpeechIntent;
+
   /** Lookup of dinoId → display name, used to attribute reactions by name. */
   @Input() dinoNames?: Record<string, string>;
+
+  /** Short label for the intent chip, or undefined when there's nothing to show. */
+  get intentChip(): string | undefined {
+    return intentLabel(this.intent);
+  }
 
   /**
    * Full hover label for a reaction, attributed to the reacting dino —

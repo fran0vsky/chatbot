@@ -1,3 +1,5 @@
+import { SpeechIntent } from './group-social.js';
+
 // --- Conversational Group Chat contracts (Phase 35) ---
 // A turn-based group conversation. On each user message a single cheap
 // orchestrator call produces a structured plan deciding, per dino, whether to
@@ -44,6 +46,16 @@ export interface GroupMessage {
   text: string;
   reactions?: GroupReaction[];
   createdAt: number;
+  // --- Social metadata (Phase 37). All optional for back-compat with the old
+  // static-plan transcripts and with `user` rows. ---
+  /** The social role this dino message played (answer / agree / disagree / …). */
+  intent?: SpeechIntent;
+  /** The message this turn was a reply to (for the threaded reply stub). */
+  replyToMessageId?: string;
+  /** The dino this turn was addressed to. */
+  replyToAgentId?: string;
+  /** The speaker's self-reported confidence, 0..1. */
+  confidence?: number;
 }
 
 /** Request body for POST /api/agents/group. */
@@ -76,6 +88,12 @@ export interface GroupDinoDoneEvent {
   dinoId: string;
   response: string;
   messageId: string;
+  // --- Social metadata (Phase 37) — lets the UI label the message and draw the
+  // reply stub. Optional so older clients ignore them gracefully. ---
+  intent?: SpeechIntent;
+  replyToMessageId?: string;
+  replyToAgentId?: string;
+  confidence?: number;
 }
 
 /** A dino reacted with a single emoji to a target message (no LLM call). */

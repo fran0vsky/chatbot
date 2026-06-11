@@ -131,6 +131,7 @@ export class AgentsService {
     userId?: string,
     history?: ChatHistoryItem[],
     imageDataUrl?: string,
+    directive?: string,
   ): AsyncGenerator<StreamEvent, void, void> {
     // When a dinoId is present the dino owns the model, system prompt, and the
     // ceiling on which tools may be called — all resolved server-side. When it
@@ -177,7 +178,9 @@ export class AgentsService {
           this.memoryService.getSkills(userId, dino.id),
         ]);
       }
-      const systemPrompt = dino ? this.buildSystemPrompt(dino.systemPrompt, skills, memories) : undefined;
+      const systemPrompt = dino
+        ? this.buildSystemPrompt(dino.systemPrompt, skills, memories, directive)
+        : undefined;
 
       // Within-thread context: replay recent prior turns so follow-ups have
       // context. Four cases per ChatHistoryItem:
@@ -433,7 +436,12 @@ export class AgentsService {
    * instructions) → auto-extracted memories (facts). Skills are deliberately a
    * separate, higher-authority block from memories. Empty blocks are omitted.
    */
-  private buildSystemPrompt(basePrompt: string, skills: SkillView[], memories: string[]): string {
+  private buildSystemPrompt(
+    basePrompt: string,
+    skills: SkillView[],
+    memories: string[],
+    directive?: string,
+  ): string {
     let prompt = basePrompt;
     if (skills.length > 0) {
       const block = skills
@@ -448,6 +456,12 @@ export class AgentsService {
     if (memories.length > 0) {
       const block = memories.map((m) => `- ${m}`).join('\n');
       prompt += `\n\nWhat you remember about this user:\n${block}`;
+    }
+    // Per-turn group-chat directive (Phase 37): the engine's instruction for HOW
+    // this dino should speak this turn (its intent + who it's replying to). Last
+    // block so it has the most recency weight on the model.
+    if (directive && directive.trim().length > 0) {
+      prompt += `\n\n${directive.trim()}`;
     }
     return prompt;
   }

@@ -1,4 +1,5 @@
 import type { GroupReaction } from './group.types.js';
+import type { SpeechIntent } from './group-social.js';
 
 /**
  * A single prior turn sent so the backend has within-thread context.
@@ -84,6 +85,10 @@ export interface ChatMessage {
    * a persisted group transcript, so a saved group chat round-trips its chips.
    */
   reactions?: GroupReaction[];
+  /** Group social role this message played (Phase 37), for the intent chip. */
+  intent?: SpeechIntent;
+  /** The dino this message replied to (Phase 37), for the reply stub. */
+  replyToAgentId?: string;
 }
 
 export interface ConversationSession {
