@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, IMAGE_TOKEN_COST, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow } from '@org/shared-types';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, GroupReaction, IMAGE_TOKEN_COST, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow, reactionLabel } from '@org/shared-types';
 import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
 import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { AssistantService } from '../voice/assistant.service.js';
@@ -128,6 +128,10 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   readonly activeView = this.store.selectSignal(selectActiveView);
   readonly pickerOpen = this.store.selectSignal(selectPickerOpen);
   readonly dinos = this.store.selectSignal(selectRoster);
+  /** dinoId → display name lookup, used to attribute group-chat reactions by name. */
+  readonly dinoNames = computed<Record<string, string>>(() =>
+    Object.fromEntries(this.dinos().map((d) => [d.id, d.name])),
+  );
   readonly activeDinoId = this.store.selectSignal(selectActiveDinoId);
   readonly activeDino = this.store.selectSignal(selectActiveDino);
 
@@ -484,6 +488,11 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     this.store.dispatch(UiActions.closeHistory());
     this.closeMobileSidebar();
     this.cdr.markForCheck();
+  }
+
+  /** Attributed hover label for a reaction chip — e.g. "Nimbus thought that's brilliant". */
+  reactionLabel(reaction: GroupReaction): string {
+    return reactionLabel(this.dinoNames()[reaction.dinoId], reaction.emoji);
   }
 
   /** Retrieve a dino by id for template iteration over groupchat messages. */

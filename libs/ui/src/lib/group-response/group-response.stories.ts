@@ -89,6 +89,7 @@ export const WithReactions: Story = {
       { dinoId: 'veloce', emoji: '🔥' },
       { dinoId: 'philo', emoji: '👍' },
     ],
+    dinoNames: { veloce: 'Veloce', philo: 'Philo', rexford: 'Rexford' },
   },
 };
 
@@ -99,5 +100,6 @@ export const RespondingTo: Story = {
     status: 'done',
     respondingToName: 'Rexford',
     reactions: [{ dinoId: 'rexford', emoji: '🤝' }],
+    dinoNames: { rexford: 'Rexford', veloce: 'Veloce' },
   },
 };

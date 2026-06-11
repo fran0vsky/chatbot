@@ -180,9 +180,18 @@
                     @if (msg.reactions?.length) {
                       <div class="flex flex-wrap items-center gap-1.5 mt-2">
                         @for (reaction of msg.reactions; track $index) {
-                          <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/20">
+                          <span
+                            class="group relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/20 cursor-default"
+                            [attr.aria-label]="reactionLabel(reaction)">
                             <app-mascot [dinoId]="reaction.dinoId" size="sm" class="flex-shrink-0 w-4 h-4" />
                             <span class="text-sm leading-none" aria-hidden="true">{{ reaction.emoji }}</span>
+                            <!-- Hover plate -->
+                            <span
+                              role="tooltip"
+                              class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 translate-y-1 scale-95 whitespace-nowrap rounded-lg bg-jungle-ink/95 px-2.5 py-1 text-[11px] font-medium text-jungle-bg opacity-0 shadow-lg transition-all duration-150 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 dark:bg-jungle-night-surface dark:text-jungle-night-text dark:ring-1 dark:ring-jungle-night-border/50">
+                              {{ reactionLabel(reaction) }}
+                              <span class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-jungle-ink/95 dark:border-t-jungle-night-surface"></span>
+                            </span>
                           </span>
                         }
                       </div>
@@ -197,6 +206,7 @@
                       [status]="msg.status ?? 'done'"
                       [error]="msg.error"
                       [reactions]="msg.reactions"
+                      [dinoNames]="dinoNames()"
                     />
                   }
                 }

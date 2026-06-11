@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
-import { DinoSummary, GroupReaction, reactionTooltip } from '@org/shared-types';
+import { DinoSummary, GroupReaction, reactionLabel } from '@org/shared-types';
 import { Mascot } from '../mascot/mascot.js';
 import { TypingIndicator } from '../typing-indicator/typing-indicator.js';
 
@@ -37,8 +37,15 @@ export class GroupResponse {
   /** When set, shows a subtle "replying to {name}" affordance in the header (D-05). */
   @Input() respondingToName?: string;
 
-  /** Hover tooltip caption for a reaction emoji (e.g. 💡 → "thought that's clever"). */
-  reactionTooltip(emoji: string): string {
-    return reactionTooltip(emoji);
+  /** Lookup of dinoId → display name, used to attribute reactions by name. */
+  @Input() dinoNames?: Record<string, string>;
+
+  /**
+   * Full hover label for a reaction, attributed to the reacting dino —
+   * e.g. "Nimbus thought that's brilliant". Falls back to the bare caption
+   * when the reacting dino isn't in the provided name lookup.
+   */
+  reactionLabel(reaction: GroupReaction): string {
+    return reactionLabel(this.dinoNames?.[reaction.dinoId], reaction.emoji);
   }
 }

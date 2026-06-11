@@ -1,7 +1,8 @@
-<div class="flex flex-col rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/80 dark:bg-jungle-night-surface/80 backdrop-blur-sm overflow-hidden shadow-md">
+<div class="flex flex-col rounded-2xl border border-jungle-border/30 dark:border-jungle-night-border/40 bg-jungle-surface/80 dark:bg-jungle-night-surface/80 backdrop-blur-sm shadow-md">
 
-  <!-- Dino header: mascot + name + species -->
-  <div class="flex items-center gap-2.5 px-4 py-3 border-b border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40">
+  <!-- Dino header: mascot + name + species (rounded-t to clip its bg without
+       overflow-hidden on the card, which would otherwise clip reaction tooltips) -->
+  <div class="flex items-center gap-2.5 px-4 py-3 rounded-t-2xl border-b border-jungle-border/20 dark:border-jungle-night-border/30 bg-jungle-bg/40 dark:bg-jungle-night/40">
     <app-mascot [dinoId]="dino.id" size="sm" class="flex-shrink-0 w-8 h-8" />
     <div class="min-w-0">
       <p class="text-sm font-semibold text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</p>
@@ -50,16 +51,25 @@
     }
   </div>
 
-  <!-- Reaction chips (D-06): each = the reacting dino's mascot + emoji, pinned to this message -->
+  <!-- Reaction chips (D-06): each = the reacting dino's mascot + emoji, pinned to this message.
+       Hovering a chip reveals an attributed plate ("Nimbus thought that's brilliant"). -->
   @if (reactions?.length) {
     <div class="flex flex-wrap items-center gap-1.5 px-4 pb-3">
       @for (reaction of reactions; track $index) {
         <span
-          class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 border border-jungle-border/30 dark:border-jungle-night-border/40 cursor-default"
-          [title]="reactionTooltip(reaction.emoji)"
-          [attr.aria-label]="reactionTooltip(reaction.emoji)">
+          class="group relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-jungle-bg/60 dark:bg-jungle-night/60 border border-jungle-border/30 dark:border-jungle-night-border/40 cursor-default"
+          [attr.aria-label]="reactionLabel(reaction)">
           <app-mascot [dinoId]="reaction.dinoId" size="sm" class="flex-shrink-0 w-4 h-4" />
           <span class="text-sm leading-none" aria-hidden="true">{{ reaction.emoji }}</span>
+
+          <!-- Hover plate -->
+          <span
+            role="tooltip"
+            class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 translate-y-1 scale-95 whitespace-nowrap rounded-lg bg-jungle-ink/95 px-2.5 py-1 text-[11px] font-medium text-jungle-bg opacity-0 shadow-lg transition-all duration-150 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 dark:bg-jungle-night-surface dark:text-jungle-night-text dark:ring-1 dark:ring-jungle-night-border/50">
+            {{ reactionLabel(reaction) }}
+            <!-- caret -->
+            <span class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-jungle-ink/95 dark:border-t-jungle-night-surface"></span>
+          </span>
         </span>
       }
     </div>

@@ -71,3 +71,16 @@ export function reactionTooltip(emoji: string | undefined): string {
   if (!emoji) return 'reacted';
   return REACTION_TOOLTIPS[emoji] ?? 'reacted';
 }
+
+/**
+ * Full hover label for a reaction, prefixed with the reacting dino's name so it
+ * reads naturally — e.g. "Nimbus thought that's brilliant". Falls back to the
+ * bare caption when the name can't be resolved (off-roster dino).
+ */
+export function reactionLabel(
+  name: string | undefined,
+  emoji: string | undefined,
+): string {
+  const caption = reactionTooltip(emoji);
+  return name ? `${name} ${caption}` : caption;
+}
