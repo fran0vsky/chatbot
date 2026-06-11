@@ -41,6 +41,19 @@ const DIRECTOR_MODEL = 'openai/gpt-4o-mini';
 const MAX_GROUP_DINOS = 4;
 const HISTORY_CAP = 20;
 
+// Bystander reactions: ~38% chance a non-speaking dino reacts after a real turn.
+// Emojis are intentionally drawn from the shared REACTION_TOOLTIPS vocabulary.
+const REACTION_CHANCE = 0.38;
+const INTENT_REACTIONS: Partial<Record<SpeechIntent, readonly string[]>> = {
+  answer_user:         ['👍', '💡', '🧠', '🎯'],
+  agree_with_agent:    ['👍', '❤️', '🎯', '🙌'],
+  build_on_agent:      ['🔥', '🚀', '⚡', '✨'],
+  disagree_with_agent: ['🤔', '🤨', '⚔️', '🧐'],
+  correct_agent:       ['🤔', '🛑', '🔄'],
+  ask_agent:           ['❓', '👀'],
+  admit_uncertainty:   ['💭', '😅'],
+};
+
 const ALL_INTENTS: readonly SpeechIntent[] = [
   'answer_user',
   'agree_with_agent',
@@ -108,7 +121,7 @@ export function buildDirective(
   return [
     `## THIS GROUP-CHAT TURN`,
     `You are ${profile.name}, one of several dinos in a live group chat with the user and other dinos. Stay fully in character (${profile.speakingStyle}).`,
-    `Keep it short and conversational — 1 to 3 sentences, like a real group chat, not an essay. Do NOT prefix your message with your own name.`,
+    `Keep it short and conversational — 1 to 3 sentences, like a real group chat, not an essay. Do NOT prefix your message with your own name. Always respond in English.`,
     `Your intent this turn: ${intent.replace(/_/g, ' ')}.${topicNote}`,
     bodies[intent],
   ].join('\n');
@@ -478,6 +491,17 @@ export class GroupAgentsService {
         confidence: decision.confidence,
       });
       recordTurn(state, speakerId, decision);
+
+      // Bystander reaction: a random non-speaking text dino occasionally reacts.
+      const reactionOptions = INTENT_REACTIONS[decision.intent];
+      if (reactionOptions && Math.random() < REACTION_CHANCE) {
+        const bystanders = roster.filter((d) => d.id !== speakerId && !this.isImageGenDino(d.id));
+        if (bystanders.length > 0) {
+          const bystander = bystanders[Math.floor(Math.random() * bystanders.length)];
+          const emoji = reactionOptions[Math.floor(Math.random() * reactionOptions.length)];
+          yield { type: 'reaction', dinoId: bystander.id, emoji, targetMessageId: messageId };
+        }
+      }
     }
 
     yield { type: 'group_done' };

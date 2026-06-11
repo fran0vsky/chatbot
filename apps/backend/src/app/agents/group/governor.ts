@@ -186,8 +186,12 @@ export function allowedIntents(
   state: ConversationState,
   budget: TurnBudget,
 ): SpeechIntent[] {
-  const allowed = new Set<SpeechIntent>(['stay_silent', 'answer_user']);
   const hasPriorDino = state.transcript.some((m) => m.role === 'dino');
+  // stay_silent only makes sense when there's already been a prior dino turn —
+  // offering it on the very first speaker causes the cheap director LLM to
+  // choose silence when given sparse topic context, collapsing the turn.
+  const allowed = new Set<SpeechIntent>(['answer_user']);
+  if (hasPriorDino) allowed.add('stay_silent');
   const weak = topicHitsWeakArea(profile, state.topic);
 
   if (weak) {

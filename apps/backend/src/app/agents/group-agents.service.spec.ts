@@ -184,12 +184,18 @@ describe('GroupAgentsService.streamGroup (dynamic engine)', () => {
     expect(events.some((e) => e.type === 'reaction' && e.dinoId === 'vinci')).toBe(true);
   });
 
-  it('terminates without generation when every dino stays silent', async () => {
+  it('terminates without extra generation when every dino stays silent after first speaker', async () => {
+    // stay_silent is only in the allowed set once a prior dino has already spoken.
+    // Seed the history with a prior dino message so both rexford and veloce see
+    // hasPriorDino = true and validateIntent preserves stay_silent.
+    const priorHistory: GroupMessage[] = [
+      { id: 'h1', role: 'dino', dinoId: 'glyphos', text: 'hi', createdAt: 1 },
+    ];
     const { service, streamAgent } = makeService({
       decision: { intent: 'stay_silent', confidence: 0.5 },
     });
     const events = await collect(
-      service.streamGroup('go', ['rexford', 'veloce'], undefined, undefined, signal()),
+      service.streamGroup('go', ['rexford', 'veloce'], undefined, priorHistory, signal()),
     );
     expect(streamAgent).not.toHaveBeenCalled();
     expect(events[events.length - 1].type).toBe('group_done');

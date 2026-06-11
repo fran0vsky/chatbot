@@ -117,9 +117,10 @@ describe('pickNextSpeaker', () => {
 describe('allowedIntents', () => {
   const p = profile({ dinoId: 'a', expertiseAreas: ['cars'] });
 
-  it('first speaker can only answer or stay silent', () => {
+  it('first speaker can only answer (no stay_silent when no prior dino)', () => {
     const intents = allowedIntents(p, stateWith([]), defaultBudget(3));
-    expect(intents.sort()).toEqual(['answer_user', 'stay_silent']);
+    expect(intents).toEqual(['answer_user']);
+    expect(intents).not.toContain('stay_silent');
   });
 
   it('allows targeted intents once a dino has spoken', () => {
