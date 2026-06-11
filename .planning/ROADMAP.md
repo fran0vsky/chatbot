@@ -744,7 +744,7 @@ Plans:
   2. Which skill was pulled is observable (UI hint in "what it remembers" / Knowledge surface, or at minimum backend log)
   3. Teach, edit, and manage flows are unchanged; conversations with no relevant skill inject nothing
 **Scope note:** ⚠ The mentor note is ambiguous between *retrieval* cadence (pull one skill per conversation) and *extraction* cadence (save one skill per conversation) — confirm the intended reading at `/gsd-discuss-phase 40` before planning. Current behavior to audit first: what exactly gets injected per turn today.
-**Plans:** TBD (run `/gsd-plan-phase 40`)
+**Plans:** 40-01 (backend: single-skill scorer + injection + log + skill_active event), 40-02 (frontend: active-skill hint UI)
 **UI hint:** yes (small)
 
 ### Phase 41: Autonomous Dino Minds (Group Engine v3)
