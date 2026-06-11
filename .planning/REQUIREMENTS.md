@@ -163,6 +163,26 @@
 | Self-serve dino creation by end users | Dinos are curated by the maker in v2.0; user-authored dinos are a future idea |
 | Mobile native app | Web-first |
 
+---
+
+## v2.2 Requirements — Production Parity & Custom Dinos (ACTIVE)
+
+**Defined:** 2026-06-12
+**Scope:** Make the public website behave like localhost (parity + deploy truth), then land mentor-feedback features (skill recall cadence, autonomous per-dino group engine, custom dinos, when-to-react config) and a pre-launch UAT sweep. Derived from a live production investigation (2026-06-12) + the 2026-06-12 mentoring note.
+
+### Production Parity (Phase 38)
+
+- [ ] **PROD-01**: `web_search` returns real Tavily results on the production website — a `tavily-api-key` secret exists in Secret Manager and `scripts/vm-deploy.sh` fetches and injects `TAVILY_API_KEY` into the backend container (today the key is never passed, so search is dead on the site)
+- [ ] **PROD-02**: The backend accepts request bodies large enough for an attached downscaled image (~1024 px JPEG) plus a capped history — the Express default 100 kb JSON limit is raised to a documented cap (e.g. 10 MB) so image chats and long histories don't 413
+- [ ] **PROD-03**: A change to `apps/backend/src/app/database/schema.ts` reaches the production Cloud SQL database automatically on deploy (no manual column adds) — schema drift like the `when_to_activate` silent failure cannot recur
+
+### Deploy Truth & Smoke Checks (Phase 39)
+
+- [ ] **PROD-04**: CI runs a post-deploy smoke stage against https://dinoagents.duckdns.org that fails the pipeline if `/api/dinos` is not 200, a streamed chat probe does not complete, or `web_search` is not configured
+- [ ] **PROD-05**: There is exactly one documented, working frontend-serving path (the Docker-baked frontend behind Caddy); the vestigial GCS frontend deploy job is removed or repurposed, and the deployment runbooks describe the real Caddy/baked-frontend architecture
+
+> Mentor-feedback requirements (MEM2-01, GRP3-01..04, CDINO-01..04, UAT-01) for Phases 40–44 are captured in the ROADMAP phase details and will be formalized here when each phase is discussed/planned.
+
 ## Traceability (v2.0)
 
 | Requirement | Phase | Status |

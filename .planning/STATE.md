@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 ## Current Position
 
-Phase: 38 (production-runtime-parity) — NOT PLANNED
-Plan: —
-Status: v2.2 roadmap written (Phases 38–44; Phase 37 recorded retroactively). Prod investigation findings captured in ROADMAP v2.2 milestone notes.
-Last activity: 2026-06-12 - Live-probed production, confirmed web_search/TAVILY gap + body-limit + migration-drift risks; wrote v2.2 roadmap
+Phase: 38 (production-runtime-parity) — PLANNED (3 plans)
+Plan: 0 of 3 executed
+Status: 38-01 (body limit, Wave 1), 38-02 (Tavily secret + env contract, Wave 1), 38-03 (auto DB migrations at boot, Wave 2 dep 38-01) written. Ready for /gsd-execute-phase 38.
+Last activity: 2026-06-12 - Planned Phase 38 directly (no planner subagent, per feedback_gsd_agents); PROD-01..03 requirements registered
 
 ## Performance Metrics
 
