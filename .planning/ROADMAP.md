@@ -727,7 +727,10 @@ Plans:
   3. `INFRASTRUCTURE.md` + README deployment runbook describe the real architecture (Caddy container, baked-in frontend, Secret Manager secret list, vm-deploy flow); stale nginx/certbot/Firebase/Cloud Run content is removed
   4. `infra/caddy/Caddyfile` in the repo reflects the live VM config (domain templating documented)
 **Scope note:** In — CI smoke stage, deploy-job cleanup, doc refresh, Caddyfile truth. Out — new features. The smoke probe must be cheap (one short message, free-tier dino).
-**Plans:** TBD (run `/gsd-plan-phase 39`)
+**Plans:** 3 plans
+  - 39-01: Smoke-check readiness endpoint (PROD-04, Wave 1) — `GET /api/health` reporting `{ status, tools: { web_search } }` from `TAVILY_API_KEY` presence (no secret leak), wired into `AppModule`, unit-tested
+  - 39-02: CI post-deploy smoke stage + frontend-deploy cleanup (PROD-04, PROD-05, Wave 2 — depends on 39-01) — `smoke` job (`needs: deploy-backend`) asserting `/api/dinos` 200, an end-to-end streamed chat probe (free dino `rexford`, 429-tolerant), and `/api/health` `web_search==true`; removes vestigial `deploy-frontend`, repoints `deploy-storybook` to `needs: e2e`
+  - 39-03: Documentation truth (PROD-05, Wave 3 — depends on 39-02) — rewrite `INFRASTRUCTURE.md` to the live Caddy + baked-frontend + Secret Manager architecture (incl. `tavily-api-key`), verify/trim README Deployment, make `infra/caddy/Caddyfile` reflect live config with documented `{DOMAIN}` templating
 **UI hint:** no
 
 ### Phase 40: Skill Recall Cadence
