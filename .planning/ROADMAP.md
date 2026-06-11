@@ -60,6 +60,21 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 34: AI Memory Creator** - Brain → "thinking" modal suggests memorizable items from the conversation → auto-fills editable name/trigger/instruction form → creates or updates memory (completed 2026-06-07; HUMAN-UAT pending)
 - [x] **Phase 35: Conversational Group Chat** - Turn-based orchestrator (answer / emoji-react / stay silent), @mention forces a reply, inter-dino dialogue, persisted in history (supersedes Phase 23) (code complete 2026-06-07; HUMAN-UAT pending)
 - [x] **Phase 36: HTTPS / Let's Encrypt** - auto-renewing cert + HTTP→HTTPS redirect [independent infra track] — ✅ LIVE 2026-06-11 at https://dinoagents.duckdns.org. NOTE: shipped with a **Caddy container**, not nginx+certbot — the VM runs Container-Optimized OS (Docker-only, no apt) so the original nginx+certbot plan was incompatible. Actual config: [`infra/caddy/Caddyfile`](infra/caddy/Caddyfile).
+- [x] **Phase 37: Intent-Driven Group Engine** - dynamic turn-by-turn discussion engine: per-dino speech intents (answer/agree/disagree/build-on/correct/ask/admit-uncertainty/silent), governor-scheduled speakers, agent expertise profiles, intent chips + reply stubs in UI (shipped 2026-06-11 as commits 7961ed7 + e607473; recorded retroactively — work was executed outside roadmap tracking)
+
+## v2.2 — Production Parity & Custom Dinos (begins 2026-06-12)
+
+**Milestone goal:** Make the public website behave exactly like localhost — then land the mentor-feedback features: smarter skill recall, an autonomous per-dino group-chat engine, user-created custom dinos, and configurable reactions — closing with a production UAT sweep so the app is ready to show to real users.
+
+**Execution order:** 38 → 39 → 40 → 41 → 42 → 43 → 44. Parity first (38–39) so every later phase can be verified on the live site; mentor features next (40–43, with 41 → 42 → 43 sequential because custom dinos plug into the new engine and the reaction config covers both built-in and custom dinos); UAT sweep last.
+
+- [ ] **Phase 38: Production Runtime Parity** - close the localhost-vs-website runtime gaps: Tavily secret wired into the VM container, JSON body limit raised for image payloads, automated DB schema migration on deploy
+- [ ] **Phase 39: Deploy Truth & Smoke Checks** - CI post-deploy smoke stage against the live domain; remove the vestigial GCS frontend deploy; runbooks updated to the real Caddy architecture
+- [ ] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note)
+- [ ] **Phase 41: Autonomous Dino Minds (Group Engine v3)** - every incoming message triggers one decision call per participant dino on its own model — answer / reaction / no answer — with the user message + full thread in context before every action (mentor note)
+- [ ] **Phase 42: Custom Dino Creator** - add-a-dino flow: name, avatar image, description, personality/reaction prompt, tool subset; persisted per user; joins picker + group chat (mentor note)
+- [ ] **Phase 43: When-to-React Configuration** - user-facing group-chat config for when each dino reacts (built-in + custom dinos) (mentor note)
+- [ ] **Phase 44: Pre-Launch UAT Sweep** - burn down the pending HUMAN-UAT backlog on the production site, fix fallout, ready the app for first real users
 
 ## Phase Details
 
@@ -150,7 +165,16 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 33. Composer & Knowledge Reorg | 3/3 | Complete   | 2026-06-06 |
 | 34. AI Memory Creator | 1/2 | In Progress | - |
 | 35. Conversational Group Chat | 3/3 | Code Complete (HUMAN-UAT pending) | 2026-06-07 |
-| 36. HTTPS / Let's Encrypt | 1/1 | Code Complete (live VM issuance pending) | 2026-06-09 |
+| 36. HTTPS / Let's Encrypt | 1/1 | ✅ LIVE | 2026-06-11 |
+| 37. Intent-Driven Group Engine | 1/1 | Code Complete (recorded retroactively; HUMAN-UAT pending) | 2026-06-11 |
+| **— v2.2 Production Parity & Custom Dinos —** | | | |
+| 38. Production Runtime Parity | 0/TBD | Not planned | - |
+| 39. Deploy Truth & Smoke Checks | 0/TBD | Not planned | - |
+| 40. Skill Recall Cadence | 0/TBD | Not planned | - |
+| 41. Autonomous Dino Minds (Group Engine v3) | 0/TBD | Not planned | - |
+| 42. Custom Dino Creator | 0/TBD | Not planned | - |
+| 43. When-to-React Configuration | 0/TBD | Not planned | - |
+| 44. Pre-Launch UAT Sweep | 0/TBD | Not planned | - |
 
 ### Phase 4: Dark Theme and Visual Polish
 
@@ -659,4 +683,118 @@ Plans:
 **Scope note:** In — nginx reverse proxy, certbot issuance + auto-renew, HTTP→HTTPS redirect, any API base-URL/CORS updates for the HTTPS origin. Out — CDN, multi-domain, infra-as-code rewrite. Reflects the move from Cloud Run + Firebase to a VM.
 **Plans:** 1 plan
   - 36-01: Host-level nginx + certbot (INFRA-01) — original plan, SUPERSEDED at deploy time. The production VM runs Container-Optimized OS (Docker-only, no apt), so nginx+certbot could not be installed. HTTPS went live 2026-06-11 via a **Caddy container** ([`infra/caddy/Caddyfile`](../infra/caddy/Caddyfile)): `caddy:2` on host 80/443 → backend `spinochat:3000` over a `web` Docker network; Caddy auto-obtains + auto-renews the Let's Encrypt cert (persisted in the `caddy_data` volume), adds the 80→443 redirect, and `CORS_ORIGIN=https://dinoagents.duckdns.org`. The committed `infra/nginx/dinoagents.conf` is retained for reference only.
+**UI hint:** no
+
+### Phase 37: Intent-Driven Group Engine (retroactive record)
+**Goal:** Replace the static round1/round2 group-chat plan with a turn-by-turn discussion engine: dinos form a speech intent before speaking (answer / agree / disagree / build-on / correct / ask / admit-uncertainty / silent), reply to each other, and a governor schedules who speaks next.
+**Status:** ✅ Code complete 2026-06-11 (commits `7961ed7`, `e607473`) — executed outside roadmap tracking, recorded retroactively. HUMAN-UAT pending.
+**Delivered:** shared-types `SpeechIntent` + `AgentProfile` + `TopicAnalysis` contracts; backend `agent-profiles.ts` (per-dino expertise/debate-style/biases), `governor.ts` (budget, eligibility, speaker scoring, allowed-intent sets, anti-chaos rules) with full unit tests, engine rewrite reusing `streamAgent` via a per-turn directive; frontend intent chips + "replying to" stubs in group-response; probabilistic bystander reactions (~38%/turn); English-enforcement fix for nemotron.
+**UI hint:** yes
+
+---
+
+## v2.2 Milestone: Production Parity & Custom Dinos
+
+**Milestone goal:** Make the public website (https://dinoagents.duckdns.org) behave exactly like localhost, make CI green actually mean "the site works", then land the 2026-06-12 mentor-feedback features — smarter skill recall, an autonomous per-dino group-chat engine, user-created custom dinos, configurable reactions — and close with a production UAT sweep before showing the app to real users.
+
+**Investigation findings (2026-06-12, live-probed):** core chat SSE, group chat (Phase 37 engine), memory creator, skills/memories API, leaderboard, voice-assistant interpret, and paid image generation all WORK in production. Confirmed broken/fragile: (1) `web_search` returns "Search unavailable" — `TAVILY_API_KEY` is never passed by `scripts/vm-deploy.sh` and no `tavily-api-key` secret exists in Secret Manager; (2) no DB migration automation — Cloud SQL drifts behind `schema.ts` (the `when_to_activate` silent failure, fixed manually 2026-06-11, will recur); (3) Express default 100 kb JSON body limit — no override anywhere; attached images (~1024 px JPEG ≈ 150–500 KB base64) and long histories will 413 (affects both envs; Phase 25/26 UAT never ran); (4) no post-deploy verification in CI — config gaps are invisible; (5) the GCS frontend deploy job is vestigial — the domain serves the frontend baked into the Docker image, while the bucket receives a build with `apiUrl: ''` that cannot work from the bucket origin; runbooks still describe nginx+certbot instead of the live Caddy container.
+
+### Phase 38: Production Runtime Parity
+**Goal:** Every feature that works on localhost works on the website — close the runtime configuration gaps between the two environments.
+**Mode:** mvp
+**Depends on:** none (first v2.2 phase)
+**Requirements:** PROD-01, PROD-02, PROD-03
+**Success Criteria** (what must be TRUE):
+  1. `web_search` returns real Tavily results on the website: a `tavily-api-key` secret exists in Secret Manager, `scripts/vm-deploy.sh` fetches and injects it, and a live probe of a search-capable dino confirms results (PROD-01)
+  2. Sending a message with an attached image (downscaled ~1024 px JPEG) succeeds on the website — the JSON body limit is raised (with a documented cap, e.g. 10 MB) and long-history requests no longer risk 413 (PROD-02)
+  3. A change to `schema.ts` reaches Cloud SQL automatically on deploy (drizzle migration/push step in the pipeline or at boot) — manual column adds are never needed again (PROD-03)
+  4. The env contract is single-sourced: every var the backend reads exists in `.env.example` AND is provided by `vm-deploy.sh` (or documented why not)
+**Scope note:** In — Secret Manager secret creation, `vm-deploy.sh` env wiring, NestJS `bodyParser` limit, drizzle migration automation, env-contract audit. Out — CI smoke checks and doc updates (Phase 39).
+**Plans:** TBD (run `/gsd-plan-phase 38`)
+**UI hint:** no
+
+### Phase 39: Deploy Truth & Smoke Checks
+**Goal:** CI green guarantees the website works — post-deploy verification, removal of misleading deploy steps, and runbooks that match reality.
+**Mode:** mvp
+**Depends on:** Phase 38 (smoke checks assert the parity fixes hold)
+**Requirements:** PROD-04, PROD-05
+**Success Criteria** (what must be TRUE):
+  1. CI runs a post-deploy smoke stage against https://dinoagents.duckdns.org: `/api/dinos` returns 200, a streamed chat probe completes end-to-end, and a tool-configuration check confirms `web_search` is configured (PROD-04)
+  2. The vestigial GCS frontend deploy job is removed (or repurposed with a working `apiUrl`) — one documented serving path: the Docker-baked frontend behind Caddy (PROD-05)
+  3. `INFRASTRUCTURE.md` + README deployment runbook describe the real architecture (Caddy container, baked-in frontend, Secret Manager secret list, vm-deploy flow); stale nginx/certbot/Firebase/Cloud Run content is removed
+  4. `infra/caddy/Caddyfile` in the repo reflects the live VM config (domain templating documented)
+**Scope note:** In — CI smoke stage, deploy-job cleanup, doc refresh, Caddyfile truth. Out — new features. The smoke probe must be cheap (one short message, free-tier dino).
+**Plans:** TBD (run `/gsd-plan-phase 39`)
+**UI hint:** no
+
+### Phase 40: Skill Recall Cadence
+**Goal:** "What it remembers" follows the mentor's cadence: once per conversation, the dino pulls its single most relevant learned skill into context — instead of re-injecting on every turn.
+**Mode:** mvp
+**Depends on:** Phases 21–22 (memory + skill stores), Phase 33 (Knowledge view)
+**Requirements:** MEM2-01
+**Mentor note (raw):** "w 'what it remembers' raz na konwersację wyciąga jednego skilla"
+**Success Criteria** (what must be TRUE):
+  1. On the first turn of a thread, the dino retrieves exactly one skill — the one most relevant to the user's opening message — and keeps it for the rest of the conversation (no per-turn re-selection)
+  2. Which skill was pulled is observable (UI hint in "what it remembers" / Knowledge surface, or at minimum backend log)
+  3. Teach, edit, and manage flows are unchanged; conversations with no relevant skill inject nothing
+**Scope note:** ⚠ The mentor note is ambiguous between *retrieval* cadence (pull one skill per conversation) and *extraction* cadence (save one skill per conversation) — confirm the intended reading at `/gsd-discuss-phase 40` before planning. Current behavior to audit first: what exactly gets injected per turn today.
+**Plans:** TBD (run `/gsd-plan-phase 40`)
+**UI hint:** yes (small)
+
+### Phase 41: Autonomous Dino Minds (Group Engine v3)
+**Goal:** Group chat where every dino is an independent mind: each incoming message triggers one decision call per participant dino — on that dino's own model, with its own persona — choosing answer / emoji reaction / no answer; and every decision and answer is made with the user's message plus the full thread so far in context.
+**Mode:** mvp
+**Depends on:** Phase 37 (refactors the intent engine)
+**Requirements:** GRP3-01, GRP3-02, GRP3-03
+**Mentor notes (raw):** "wpada wiadomość → każdy dino musi wykonać zapytanie do swojego modelu — dostaje message i wybiera rodzaj odpowiedzi: answer, reaction i no answer" · "dino odpowiadają w formie wątku — moja wiadomość + wątek mają brać pod uwagę przed każdą kolejną akcją"
+**Success Criteria** (what must be TRUE):
+  1. On each user message, EVERY participant dino independently makes its own model call to decide answer / reaction / no-answer — no central director pre-selects who may speak (GRP3-01); the decision reflects the dino's own persona and model
+  2. Every decision and every generated answer receives the user message + the full thread (including other dinos' turns from the current round) — observable: a dino's reply references what another dino just said (GRP3-02)
+  3. One turn can yield any mix of answers, reactions, and silences; the thread reads top-to-bottom like a real chat with attribution (GRP3-03)
+  4. A documented cost ceiling replaces the Phase 37 governor budget (N decision calls + answer calls per turn, capped; MAX_DINOS respected)
+**Scope note:** In — per-dino decision architecture, thread-context plumbing for every call, cost-cap redesign, reuse of Phase 37 intents where they survive. Out — when-to-react configuration UI (Phase 43). Decide at planning what of the governor remains (anti-chaos caps likely stay; speaker pre-selection goes).
+**Plans:** TBD (run `/gsd-plan-phase 41`)
+**UI hint:** yes
+
+### Phase 42: Custom Dino Creator
+**Goal:** Users create their own dinos — name, avatar image, description, personality/reaction prompt, and tool subset — persisted per user, selectable in the picker, and able to join group chats.
+**Mode:** mvp
+**Depends on:** Phase 41 (custom dinos must plug into the autonomous engine); Phase 38 (body limit, if avatars upload as base64)
+**Requirements:** CDINO-01, CDINO-02, CDINO-03, CDINO-04
+**Mentor note (raw):** "opcja dodania nowego dino + obrazek plus opis i możliwość napisania promptu jak ma reagować i toole"
+**Success Criteria** (what must be TRUE):
+  1. An "add dino" flow lets the user supply name, avatar image, description, a personality prompt ("how it reacts"), and pick tools from the existing catalogue; the created dino appears in the dino picker (CDINO-01)
+  2. Chatting with a custom dino uses its authored prompt + selected tools, resolved server-side — the client still cannot widen a toolset, and a custom dino cannot reference tools outside the catalogue (CDINO-02)
+  3. Custom dinos persist in the DB scoped to the anonymous user id, and can be edited and deleted (CDINO-03)
+  4. A custom dino can be selected into a group chat and participates via the Phase 41 engine (CDINO-04)
+**Scope note:** In — DB table + CRUD API, creation/edit UI, registry-merge resolution (built-in registry + per-user custom dinos), avatar handling (storage decision — base64-in-DB vs bucket — made and documented in-phase), default model assignment (decide at discuss-phase whether users pick a model or get a default). Out — sharing dinos between users, marketplace, custom tool authoring.
+**Plans:** TBD (run `/gsd-plan-phase 42`)
+**UI hint:** yes
+
+### Phase 43: When-to-React Configuration
+**Goal:** The user controls when each dino reacts in group chat — a per-dino configuration that applies to built-in and custom dinos alike.
+**Mode:** mvp
+**Depends on:** Phase 41 (reaction decisions live in the engine), Phase 42 (config must cover custom dinos)
+**Requirements:** GRP3-04
+**Mentor note (raw):** "konfiguracje when to react w group chat"
+**Success Criteria** (what must be TRUE):
+  1. A group-chat settings surface exposes a per-dino "when to react" control (e.g. never / rarely / normal / chatty, or a short free-text rule fed to the decision prompt — pick at discuss-phase)
+  2. Changing the setting observably changes that dino's reaction frequency/behavior in subsequent turns
+  3. For custom dinos, the authored "how it reacts" prompt and this setting compose predictably (precedence documented)
+  4. Defaults preserve current behavior for users who never touch the setting
+**Scope note:** In — settings UI, engine hook into the Phase 41 per-dino decision call, persistence of the setting. Out — per-message reaction overrides, reaction analytics.
+**Plans:** TBD (run `/gsd-plan-phase 43`)
+**UI hint:** yes
+
+### Phase 44: Pre-Launch UAT Sweep
+**Goal:** Burn down the pending HUMAN-UAT backlog on the production website and fix the fallout, so the app is ready to be shown to real users.
+**Mode:** mvp
+**Depends on:** Phases 38–39 (prod must be trustworthy so UAT results are meaningful)
+**Requirements:** UAT-01
+**Success Criteria** (what must be TRUE):
+  1. Every pending HUMAN-UAT item (STATE.md Pending Todos — Phases 21, 22, 24, 25, 26, 27, 28, 29, 32, 34, 35, 37) is executed against https://dinoagents.duckdns.org and either passes or has its defect fixed in-phase (blockers) / filed to backlog (minor)
+  2. The five v2.0/v2.1 features users will touch first — single chat, group chat, image attach, image gen, voice assistant — each complete one happy-path run on the live site without errors
+  3. A short "known limitations" note exists for first users (browser support for voice, free-model 429 behavior, etc.)
+**Scope note:** In — running the documented UAT scripts on prod, triage, blocker fixes, limitations note. Out — new features. Use `/gsd-verify-work` per item where it fits.
+**Plans:** TBD (run `/gsd-plan-phase 44`)
 **UI hint:** no

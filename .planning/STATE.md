@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: — Dino Platform
-status: verifying
-stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
-last_updated: "2026-06-09T00:00:00.000Z"
-last_activity: 2026-06-09
+milestone: v2.2
+milestone_name: — Production Parity & Custom Dinos
+status: roadmapped
+stopped_at: v2.2 roadmap written (Phases 38-44) after live prod investigation; next is /gsd-plan-phase 38
+last_updated: "2026-06-12T00:00:00.000Z"
+last_activity: 2026-06-12
 progress:
   total_phases: 11
   completed_phases: 9
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 36 — https-lets-encrypt
+**Current focus:** v2.2 — Phase 38 (production-runtime-parity), not yet planned
 
 ## Current Position
 
-Phase: 36 (https-lets-encrypt) — CODE COMPLETE (live VM cert issuance manual/pending)
-Plan: 1 of 1
-Status: Deliverables committed — INFRA-01 live verification awaits the manual VM runbook (Task 4)
-Last activity: 2026-06-10 - Completed quick task 260610-vvn: broaden Iris & Vinci personas; image-gen dinos react (never blank-answer) in group
+Phase: 38 (production-runtime-parity) — NOT PLANNED
+Plan: —
+Status: v2.2 roadmap written (Phases 38–44; Phase 37 recorded retroactively). Prod investigation findings captured in ROADMAP v2.2 milestone notes.
+Last activity: 2026-06-12 - Live-probed production, confirmed web_search/TAVILY gap + body-limit + migration-drift risks; wrote v2.2 roadmap
 
 ## Performance Metrics
 
@@ -65,6 +65,15 @@ Last activity: 2026-06-10 - Completed quick task 260610-vvn: broaden Iris & Vinc
 - Phase 34 added: AI Memory Creator (conversation-derived suggestions → editable skill form)
 - Phase 35 added: Conversational Group Chat (turn-based orchestrator; supersedes Phase 23)
 - Phase 36 added: HTTPS / Let's Encrypt on the VM (nginx + certbot)
+- Phase 37 recorded retroactively (2026-06-12): Intent-Driven Group Engine — shipped 2026-06-11 as commits 7961ed7 + e607473 outside roadmap tracking
+- v2.2 milestone added (2026-06-12): Production Parity & Custom Dinos — from live prod investigation + 2026-06-12 mentor feedback note
+- Phase 38 added: Production Runtime Parity (Tavily secret on VM, JSON body limit, automated DB migrations, env contract)
+- Phase 39 added: Deploy Truth & Smoke Checks (CI post-deploy smoke stage, remove vestigial GCS frontend deploy, runbook refresh to Caddy reality)
+- Phase 40 added: Skill Recall Cadence (one most-relevant skill pulled once per conversation — mentor note; retrieval-vs-extraction ambiguity to resolve at discuss)
+- Phase 41 added: Autonomous Dino Minds / Group Engine v3 (per-dino independent answer/reaction/no-answer decision on own model; full thread context before every action — mentor note)
+- Phase 42 added: Custom Dino Creator (name + avatar + description + reaction prompt + tool subset, per-user persisted — mentor note)
+- Phase 43 added: When-to-React Configuration in group chat (mentor note)
+- Phase 44 added: Pre-Launch UAT Sweep (production UAT backlog burn-down before showing users)
 
 ### Decisions
 
