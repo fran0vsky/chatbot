@@ -5,7 +5,10 @@
 # and obtains + auto-renews the Let's Encrypt certificate on its own (no certbot,
 # no cron). See README "## Deployment" for the full runbook.
 #
-# Replace {DOMAIN} with the real hostname (e.g. dinoagents.duckdns.org).
+# Domain templating: {DOMAIN} is a placeholder. Copy this file to the VM and
+# replace {DOMAIN} with the real hostname before starting Caddy.
+# Live hostname: dinoagents.duckdns.org
+#
 # `spinochat` is the backend container name on the shared `web` Docker network;
 # it listens on 3000 internally and is NOT published to the host.
 
