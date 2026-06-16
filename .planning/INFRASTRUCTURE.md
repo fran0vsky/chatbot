@@ -1,195 +1,37 @@
-# SpinoChat Infrastructure — Architecture & Setup Runbook
+# DinoAgents Infrastructure — Architecture & Runbook
 
-**Status:** scaffolded, provisioning in progress
-**Last updated:** 2026-05-27
+**Status:** Live — https://dinoagents.duckdns.org
+**Last updated:** 2026-06-12
 
-## Architecture decisions
+## Architecture
 
-| Layer | Choice | Why |
+| Layer | Choice | Notes |
 |---|---|---|
-| Backend hosting | **Compute Engine** (e2-micro VM, Container-Optimized OS) | Mentor's explicit guidance. Cloud Run service from earlier work is deprecated and will be torn down once Compute path is live. |
-| Backend container | **Docker multi-stage** (`apps/backend/Dockerfile`) | Reproducible builds, slim runtime image, runs as non-root, tini for proper signal handling. |
-| Database | **Cloud SQL Postgres 17** (`db-f1-micro`, ~$7/mo) | Managed, automatic backups, mentor's "separate database" intent. First $300 GCP free trial covers ~3.5 years of this tier. |
-| ORM | **Drizzle** (`drizzle-orm` + `drizzle-kit`) | TypeScript-first, lightweight, type-safe queries. Schema lives at `apps/backend/src/app/database/schema.ts`. |
-| Frontend hosting | **GCS bucket** with static-website + public-read IAM | Mentor's explicit "no Firebase". Cheaper, GCP-native. HTTPS via storage.googleapis.com URL; custom domain + Cloud CDN added later. |
-| Storybook hosting | **Separate GCS bucket**, deployed after frontend | Mentor's ask. Same pattern as frontend. |
-| Secrets | **Secret Manager** (`openrouter-api-key`, `database-url`, `tavily-api-key`) | Runtime SA mounts at boot; never in env files committed to git. |
-| CI/CD | **GitHub Actions** with Workload Identity Federation | Already configured in `.github/workflows/ci.yml`. No service-account JSON keys in repo. |
-| Deploy trigger | Push to `main` | CI runs lint/test/e2e/build; on success, deploys backend (SSH+docker on VM) + frontend (rsync to GCS) + storybook (rsync to GCS). |
+| VM | **Compute Engine** `spinochat-backend` (e2-micro, Container-Optimized OS, `us-central1-a`) | COS is Docker-only — no `apt`, no host-level nginx/certbot. |
+| Backend container | **Docker multi-stage** (`apps/backend/Dockerfile`), named `spinochat`, port `3000` on internal `web` network | Reproducible builds, slim runtime image, runs as non-root, tini for PID-1. |
+| Frontend hosting | **Baked into the backend Docker image** — `Dockerfile` copies `dist/apps/frontend/browser` into `./dist/frontend`; `main.ts` serves it via `useStaticAssets` at the same origin as `/api/*` | No GCS bucket for the app frontend; serving is same-origin from `spinochat:3000`. |
+| TLS / Ingress | **Caddy container** (`caddy:2`) on ports `80`/`443`, reverse-proxying to `spinochat:3000` over the shared `web` Docker network; auto-obtains + auto-renews Let's Encrypt cert | No certbot, no cron. Backend does NOT publish port 80 — Caddy owns it. Config at `infra/caddy/Caddyfile`. |
+| Database | **Cloud SQL Postgres 17** (`db-f1-micro`), instance `spinochat-db` | Managed, automatic backups. Two databases: `spinochat` (prod), `spinochat_dev` (local dev). |
+| ORM | **Drizzle** (`drizzle-orm` + `drizzle-kit`) | TypeScript-first. Schema: `apps/backend/src/app/database/schema.ts`. Boot-time migration runner in `apps/backend/src/app/database/migrate.ts`. |
+| Secrets | **Secret Manager** — `openrouter-api-key`, `database-url`, `tavily-api-key` | Runtime SA reads via metadata service; never in git. |
+| CI/CD | **GitHub Actions** with Workload Identity Federation | No SA JSON keys in repo. Pipeline: `lint-test` → `e2e` → `build-image` → `deploy-backend` → `smoke`. |
+| Storybook | **Separate GCS bucket** `spinochat-storybook-chatbot-franek-2026`, deployed by CI `deploy-storybook` job (`continue-on-error: true`) | Best-effort; currently broken on Angular 21 per ci.yml comment. Does NOT share the app's serving path. |
 
-## Dev vs prod database (added 2026-06-04)
+> **Historical note:** An earlier Cloud Run service (`chatbot-backend`) was used during initial development and has been torn down. It is not the current serving path.
 
-The Cloud SQL instance `spinochat-db` hosts **two** databases so local development never pollutes production:
+> **nginx note:** `infra/nginx/dinoagents.conf` is retained for reference only — it does **not** apply to this VM (COS is Docker-only; nginx was never installed on the live host).
 
-| Database | Used by | Connection |
-|---|---|---|
-| `spinochat` | **Production** (Cloud Run/VM) | Secret Manager `database-url` |
-| `spinochat_dev` | **Local dev** (`nx serve backend`) | local `.env` `DATABASE_URL` (ends `/spinochat_dev`) |
-
-Both share the same instance, user (`spinochat-app`), and authorized-network allowlist — only the database name differs. Schema is identical (pushed from `apps/backend/src/app/database/schema.ts`). To re-create/refresh the dev schema after a schema change:
-
-```powershell
-# from repo root; export DDL from schema.ts and apply to spinochat_dev
-$env:DATABASE_URL = (Get-Content .env | Select-String '^DATABASE_URL=').ToString().Substring('DATABASE_URL='.Length)
-cd apps/backend; npx drizzle-kit export --dialect=postgresql --schema=./src/app/database/schema.ts
-# pipe the printed DDL into the spinochat_dev database (psql or a node pg client)
-```
-
-> **Local SSL note:** `database.module.ts` strips `sslmode`/`uselibpqcompat` from the URL and sets `ssl: { rejectUnauthorized: false }` for public-IP connections (Cloud SQL's per-instance CA isn't in the local trust store). Unix-socket (`/cloudsql/`) connections in prod are left untouched.
-
-## What's already in the repo
-
-| File | Purpose |
-|---|---|
-| `apps/backend/Dockerfile` | Multi-stage backend image build |
-| `.dockerignore` | Excludes frontend/planning/etc from backend builds |
-| `apps/backend/drizzle.config.ts` | Drizzle migration config |
-| `apps/backend/src/app/database/schema.ts` | Sessions + messages tables |
-| `apps/backend/src/app/database/database.module.ts` | NestJS module providing Drizzle client via `DATABASE_CONNECTION` token |
-| `scripts/setup-gcp.ps1` | Bootstrap: Artifact Registry, Secret Manager, github-deployer SA, WIF. **Already ran once.** |
-| `scripts/setup-postgres.ps1` | Cloud SQL instance + db + user + secret. **NEW.** |
-| `scripts/setup-gcs-frontend.ps1` | GCS buckets for frontend + storybook. **NEW.** |
-| `scripts/setup-compute.ps1` | Compute Engine VM + firewall + SSH access for deploy. **NEW.** |
-| `scripts/vm-deploy.sh` | Installed on VM at `/opt/chatbot/deploy.sh`; CI invokes via SSH. **NEW.** |
-| `.github/workflows/ci.yml` | Full pipeline: lint/test/e2e → build-image → deploy-backend (GCE) + deploy-frontend (GCS) + deploy-storybook (GCS). |
-
-## Runbook — first-time setup
-
-### Prerequisites
-
-- `gcloud` CLI authenticated (`gcloud auth login` done — confirmed `franekkaminski@gmail.com` active)
-- GCP project `chatbot-franek-2026` exists (confirmed)
-- OpenRouter API key already in local `.env` and Secret Manager (confirmed)
-
-### Step 1 — Add Drizzle deps to backend
-
-```powershell
-npm install -w apps/backend drizzle-orm pg
-npm install -w apps/backend -D drizzle-kit @types/pg
-```
-
-### Step 2 — Provision Postgres
-
-```powershell
-.\scripts\setup-postgres.ps1
-```
-
-Takes ~3-5 minutes. Output prints:
-- The Cloud SQL connection name
-- The auto-generated `DATABASE_URL` to paste into local `.env`
-- The Secret Manager secret name (`database-url`) for runtime use
-
-After it finishes, paste the printed `DATABASE_URL` into your local `.env`.
-
-### Step 3 — Generate initial Drizzle migration
-
-```powershell
-npx drizzle-kit generate --config=apps/backend/drizzle.config.ts
-npx drizzle-kit push --config=apps/backend/drizzle.config.ts
-```
-
-This creates `apps/backend/drizzle/` with SQL migration files and applies them to Cloud SQL.
-
-### Step 4 — Provision GCS buckets
-
-```powershell
-.\scripts\setup-gcs-frontend.ps1
-```
-
-Creates `spinochat-frontend-chatbot-franek-2026` and `spinochat-storybook-chatbot-franek-2026`. Grants `github-deployer` SA write access.
-
-### Step 5 — Provision Compute Engine VM
-
-```powershell
-.\scripts\setup-compute.ps1
-```
-
-Provisions:
-- e2-micro VM in `us-central1-a` (free tier) — set `$UseFreeRegion = $false` in the script to use `europe-west1-b` with e2-small (~$13/mo) for EU latency.
-- Static external IP
-- Firewall rule for HTTP/HTTPS
-- VM service account with Secret/Registry/Logging access
-- `/opt/chatbot/deploy.sh` installed via startup-script
-
-Note the printed external IP — needed for frontend env config.
-
-### Step 6 — Set GitHub Actions repository variables
-
-In GitHub → repo Settings → Secrets and variables → Actions → **Variables** tab:
-
-| Variable | Value |
-|---|---|
-| `GCP_PROJECT_ID` | `chatbot-franek-2026` |
-| `GCP_REGION` | `europe-west1` (or `us-central1` if you used free region) |
-| `GCP_ARTIFACT_REPO` | `chatbot` |
-| `GCP_WIF_PROVIDER` | (from setup-gcp.ps1 output) |
-| `GCP_WIF_SERVICE_ACCOUNT` | `github-deployer@chatbot-franek-2026.iam.gserviceaccount.com` |
-| `GCE_INSTANCE` | `spinochat-backend` |
-| `GCE_ZONE` | `us-central1-a` (or whatever the setup-compute.ps1 output shows) |
-| `FRONTEND_BUCKET` | `spinochat-frontend-chatbot-franek-2026` |
-| `STORYBOOK_BUCKET` | `spinochat-storybook-chatbot-franek-2026` |
-| `FRONTEND_URL` | `https://storage.googleapis.com/spinochat-frontend-chatbot-franek-2026/index.html` |
-
-And **Secrets** tab:
-
-| Secret | Value |
-|---|---|
-| `OPENROUTER_API_KEY` | (already set from previous setup) |
-
-### Step 7 — Update frontend production env
-
-Edit `apps/frontend/src/environments/environment.prod.ts`:
-
-```ts
-export const environment = {
-  production: true,
-  apiUrl: 'http://<external-ip-from-step-5>',
-};
-```
-
-(HTTPS comes later via Load Balancer + managed SSL cert.)
-
-### Step 8 — First deploy
-
-Push to `main`. The CI workflow runs in order:
-
-1. `lint-test` — Nx affected lint/test/build
-2. `e2e` — Playwright
-3. In parallel: `build-backend-image` (Docker build + push to Artifact Registry)
-4. `deploy-backend` (SSH into VM, run `/opt/chatbot/deploy.sh`)
-5. `deploy-frontend` (build Angular prod, rsync to GCS bucket)
-6. `deploy-storybook` (build storybook, rsync to its bucket)
-
-If everything passes, after ~5-8 minutes:
-- Backend live at `http://<external-ip>`
-- Frontend live at `https://storage.googleapis.com/spinochat-frontend-chatbot-franek-2026/index.html`
-- Storybook live at `https://storage.googleapis.com/spinochat-storybook-chatbot-franek-2026/index.html`
-
-### Step 9 — Verify and cleanup old infra
-
-After live deploy succeeds:
-
-```powershell
-# Verify backend health
-curl http://<external-ip>/health  # adjust path to whatever AppController exposes
-
-# Tear down deprecated Cloud Run service
-gcloud run services delete chatbot-backend --region=europe-west1
-
-# Delete .firebaserc (no longer needed)
-git rm .firebaserc
-git commit -m "chore: remove Firebase config (replaced by GCS bucket)"
-```
+---
 
 ## Secret Manager secrets
 
-All secrets are read by `vm-deploy.sh` via the VM runtime service account. The deploy degrades gracefully when a secret is absent (empty value returned, no abort).
+All three secrets are fetched by `scripts/vm-deploy.sh` via the VM runtime service account (`fetch_secret` calls). The deploy degrades gracefully when a secret is absent (empty value, no abort).
 
 | Secret name | What it holds | Created |
 |---|---|---|
 | `openrouter-api-key` | OpenRouter API key for LLM calls | Phase 3 |
 | `database-url` | Cloud SQL `postgresql://…` connection string | Phase 3 |
-| `tavily-api-key` | Tavily Search API key for `web_search` tool | **One-time task — see below** |
+| `tavily-api-key` | Tavily Search API key for `web_search` tool | Phase 38 |
 
 ### One-time: create the `tavily-api-key` secret
 
@@ -213,16 +55,66 @@ printf %s "$TAVILY_API_KEY" | gcloud secrets versions add tavily-api-key \
   --data-file=-
 ```
 
-`vm-deploy.sh` reads the secret with `fetch_secret tavily-api-key 2>/dev/null || echo ""` — if the secret
-does not exist yet, the deploy still succeeds and `web_search` returns its existing "Search unavailable:
-TAVILY_API_KEY is not configured." message. The key activates search on the next deploy after the secret
-is created, with no code change required.
+`vm-deploy.sh` reads the secret with `fetch_secret tavily-api-key 2>/dev/null || echo ""` — if the secret does not exist yet, the deploy still succeeds and `web_search` returns its existing "Search unavailable: TAVILY_API_KEY is not configured." message.
 
-## Deferred / next steps
+---
 
-- **HTTPS for backend**: HTTPS Load Balancer + managed SSL cert in front of the Compute VM (~30 min, separate cost)
-- **Custom domain**: Same Load Balancer + DNS A record + managed cert
-- **Cloud SQL Auth Proxy on VM**: Currently the VM connects to Cloud SQL over public IP with authorized-networks. Auth Proxy would be cleaner and more secure
-- **Backup strategy**: Cloud SQL has automatic backups but no off-site copy. Could add scheduled export to GCS
-- **Monitoring**: Cloud Logging is wired (VM SA has logWriter); add Cloud Monitoring uptime checks + alerting later
-- **Compute autoscaling**: e2-micro is fine for v1.1 traffic. If it saturates, switch to instance group with autoscale, or move back to Cloud Run
+## CI deploy flow
+
+On push to `main`, GitHub Actions runs:
+
+1. `lint-test` — Nx affected lint/test/build
+2. `e2e` — Playwright
+3. `build-image` — Docker multi-stage build (bakes frontend SPA into image) → push to Artifact Registry
+4. `deploy-backend` — SSH into VM, pipe `scripts/vm-deploy.sh` over stdin; pulls new image, stops/removes old container, starts new `spinochat` container on the `web` network (no port 80 publish — Caddy owns it)
+5. `smoke` — curl probes `/api/dinos`, `/api/agents/chat` (SSE end-to-end), and `/api/health` (checks `tools.web_search == true`) against `https://dinoagents.duckdns.org`
+6. `deploy-storybook` — best-effort GCS rsync (`continue-on-error: true`)
+
+> For the Caddy runbook and manual first-time setup, see **README.md "## Deployment"**.
+
+---
+
+## Dev vs prod database
+
+The Cloud SQL instance `spinochat-db` hosts **two** databases so local development never pollutes production:
+
+| Database | Used by | Connection |
+|---|---|---|
+| `spinochat` | **Production** (VM) | Secret Manager `database-url` |
+| `spinochat_dev` | **Local dev** (`nx serve backend`) | local `.env` `DATABASE_URL` (ends `/spinochat_dev`) |
+
+Both share the same instance, user (`spinochat-app`), and authorized-network allowlist — only the database name differs. Schema is identical (pushed from `apps/backend/src/app/database/schema.ts`). To re-create/refresh the dev schema after a schema change:
+
+```powershell
+# from repo root; export DDL from schema.ts and apply to spinochat_dev
+$env:DATABASE_URL = (Get-Content .env | Select-String '^DATABASE_URL=').ToString().Substring('DATABASE_URL='.Length)
+cd apps/backend; npx drizzle-kit export --dialect=postgresql --schema=./src/app/database/schema.ts
+# pipe the printed DDL into the spinochat_dev database (psql or a node pg client)
+```
+
+> **Local SSL note:** `database.module.ts` strips `sslmode`/`uselibpqcompat` from the URL and sets `ssl: { rejectUnauthorized: false }` for public-IP connections (Cloud SQL's per-instance CA isn't in the local trust store). Unix-socket (`/cloudsql/`) connections in prod are left untouched.
+
+---
+
+## Infrastructure inventory
+
+| Resource | Name | Notes |
+|---|---|---|
+| GCP project | `chatbot-franek-2026` | |
+| Artifact Registry repo | `chatbot` (`europe-west1`) | Backend images |
+| Compute Engine VM | `spinochat-backend` (`us-central1-a`) | COS, e2-micro |
+| Cloud SQL instance | `spinochat-db` | Postgres 17, db-f1-micro |
+| Storybook GCS bucket | `spinochat-storybook-chatbot-franek-2026` | Best-effort |
+| WIF provider | (set in GitHub Actions `GCP_WIF_PROVIDER`) | No SA JSON keys |
+| Live URL | https://dinoagents.duckdns.org | Caddy TLS, Let's Encrypt auto-renew |
+
+> **Naming note:** All `spinochat-*` infra resource names were set during initial provisioning and must NOT be renamed without re-provisioning.
+
+---
+
+## Monitoring / next steps
+
+- **Cloud Logging** is wired (VM SA has logWriter). Add Cloud Monitoring uptime checks + alerting as traffic grows.
+- **Cloud SQL Auth Proxy**: currently the VM connects to Cloud SQL over public IP with authorized-networks. Auth Proxy would be cleaner.
+- **Backup strategy**: Cloud SQL has automatic backups but no off-site copy; add scheduled export to GCS if needed.
+- **Scaling**: e2-micro is fine for current traffic. If it saturates, switch to an instance group with autoscale, or move back to Cloud Run.
