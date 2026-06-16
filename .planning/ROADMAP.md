@@ -69,7 +69,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Execution order:** 38 → 39 → 40 → 41 → 42 → 43 → 44. Parity first (38–39) so every later phase can be verified on the live site; mentor features next (40–43, with 41 → 42 → 43 sequential because custom dinos plug into the new engine and the reaction config covers both built-in and custom dinos); UAT sweep last.
 
 - [x] **Phase 38: Production Runtime Parity** - close the localhost-vs-website runtime gaps: Tavily secret wired into the VM container, JSON body limit raised for image payloads, automated DB schema migration on deploy (completed 2026-06-16)
-- [ ] **Phase 39: Deploy Truth & Smoke Checks** - CI post-deploy smoke stage against the live domain; remove the vestigial GCS frontend deploy; runbooks updated to the real Caddy architecture
+- [x] **Phase 39: Deploy Truth & Smoke Checks** - CI post-deploy smoke stage against the live domain; remove the vestigial GCS frontend deploy; runbooks updated to the real Caddy architecture (completed 2026-06-16)
 - [ ] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note)
 - [ ] **Phase 41: Autonomous Dino Minds (Group Engine v3)** - every incoming message triggers one decision call per participant dino on its own model — answer / reaction / no answer — with the user message + full thread in context before every action (mentor note)
 - [ ] **Phase 42: Custom Dino Creator** - add-a-dino flow: name, avatar image, description, personality/reaction prompt, tool subset; persisted per user; joins picker + group chat (mentor note)
@@ -169,7 +169,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 37. Intent-Driven Group Engine | 1/1 | Code Complete (recorded retroactively; HUMAN-UAT pending) | 2026-06-11 |
 | **— v2.2 Production Parity & Custom Dinos —** | | | |
 | 38. Production Runtime Parity | 3/3 | Complete   | 2026-06-16 |
-| 39. Deploy Truth & Smoke Checks | 2/3 | In Progress|  |
+| 39. Deploy Truth & Smoke Checks | 3/3 | Complete   | 2026-06-16 |
 | 40. Skill Recall Cadence | 0/TBD | Not planned | - |
 | 41. Autonomous Dino Minds (Group Engine v3) | 0/TBD | Not planned | - |
 | 42. Custom Dino Creator | 0/TBD | Not planned | - |
@@ -727,7 +727,7 @@ Plans:
   3. `INFRASTRUCTURE.md` + README deployment runbook describe the real architecture (Caddy container, baked-in frontend, Secret Manager secret list, vm-deploy flow); stale nginx/certbot/Firebase/Cloud Run content is removed
   4. `infra/caddy/Caddyfile` in the repo reflects the live VM config (domain templating documented)
 **Scope note:** In — CI smoke stage, deploy-job cleanup, doc refresh, Caddyfile truth. Out — new features. The smoke probe must be cheap (one short message, free-tier dino).
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
   - 39-01: Smoke-check readiness endpoint (PROD-04, Wave 1) — `GET /api/health` reporting `{ status, tools: { web_search } }` from `TAVILY_API_KEY` presence (no secret leak), wired into `AppModule`, unit-tested
   - 39-02: CI post-deploy smoke stage + frontend-deploy cleanup (PROD-04, PROD-05, Wave 2 — depends on 39-01) — `smoke` job (`needs: deploy-backend`) asserting `/api/dinos` 200, an end-to-end streamed chat probe (free dino `rexford`, 429-tolerant), and `/api/health` `web_search==true`; removes vestigial `deploy-frontend`, repoints `deploy-storybook` to `needs: e2e`
   - 39-03: Documentation truth (PROD-05, Wave 3 — depends on 39-02) — rewrite `INFRASTRUCTURE.md` to the live Caddy + baked-frontend + Secret Manager architecture (incl. `tavily-api-key`), verify/trim README Deployment, make `infra/caddy/Caddyfile` reflect live config with documented `{DOMAIN}` templating
