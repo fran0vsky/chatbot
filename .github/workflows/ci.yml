@@ -164,60 +164,14 @@ jobs:
             --command="sudo bash -s -- '$IMAGE' '$FRONTEND_URL'" \
             < scripts/vm-deploy.sh
 
-  # ── Deploy Angular frontend to GCS ──────────────────────────────────────────
-  deploy-frontend:
-    runs-on: ubuntu-latest
-    needs: e2e
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Build frontend (production)
-        run: npx nx build frontend --configuration=production
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-          service_account: ${{ vars.GCP_WIF_SERVICE_ACCOUNT }}
-
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Sync frontend to GCS
-        env:
-          FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
-        run: |
-          FRONTEND_BUCKET="${FRONTEND_BUCKET//[[:space:]]/}"
-          gcloud storage rsync dist/apps/frontend/browser \
-            "gs://$FRONTEND_BUCKET" \
-            --recursive --delete-unmatched-destination-objects
-
-          # index.html must never be served from cache so users get the latest shell
-          gcloud storage objects update \
-            "gs://$FRONTEND_BUCKET/index.html" \
-            --cache-control="no-cache, no-store, must-revalidate"
-
-  # ── Deploy Storybook to GCS (after frontend succeeds) ───────────────────────
+  # ── Deploy Storybook to GCS (after e2e passes) ─────────────────────────────
   # NOTE: @storybook/angular@8 doesn't yet support Angular 21's @angular/build
   # builder. Throws AngularLegacyBuildOptionsError. Real fix is to migrate
   # Storybook to v9 or wire the @storybook/angular:build-storybook executor in
   # a project.json. Marked continue-on-error so it doesn't block app deploys.
   deploy-storybook:
     runs-on: ubuntu-latest
-    needs: deploy-frontend
+    needs: e2e
     if: github.ref == 'refs/heads/main'
     continue-on-error: true
     permissions:
@@ -255,3 +209,73 @@ jobs:
           gcloud storage rsync dist/storybook/ui \
             "gs://$STORYBOOK_BUCKET" \
             --recursive --delete-unmatched-destination-objects
+
+  # ── Post-deploy smoke checks (after backend deploy) ─────────────────────────
+  smoke:
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Smoke-test live deploy
+        run: |
+          set -euo pipefail
+          URL="https://dinoagents.duckdns.org"
+
+          # ── Check 1: /api/dinos returns 200 and a non-empty JSON array ────────
+          echo "Checking /api/dinos..."
+          DINOS=$(curl -fsS "$URL/api/dinos")
+          if echo "$DINOS" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
+            echo "✓ /api/dinos returned a non-empty JSON array"
+          else
+            echo "✗ /api/dinos did not return a non-empty JSON array"
+            echo "Response: $DINOS"
+            exit 1
+          fi
+
+          # ── Check 2: streamed chat probe yields token + done events ───────────
+          echo "Checking /api/agents/chat (SSE stream)..."
+          CHAT_OK=false
+          for attempt in 1 2 3; do
+            echo "  Attempt $attempt/3..."
+            STREAM=$(curl -fsS -N --max-time 60 \
+              -H "Content-Type: application/json" \
+              -d '{"message":"Reply with exactly the word PONG.","dinoId":"rexford"}' \
+              "$URL/api/agents/chat" 2>&1 || true)
+
+            # Check for HTTP 429 (rate limit) — retry
+            if echo "$STREAM" | grep -q '"type":"error"' && echo "$STREAM" | grep -qi '429'; then
+              echo "  Got 429 rate limit, sleeping 10s before retry..."
+              sleep 10
+              continue
+            fi
+
+            HAS_TOKEN=$(echo "$STREAM" | grep -c '"type":"token"' || true)
+            HAS_DONE=$(echo "$STREAM" | grep -c '"type":"done"' || true)
+
+            if [ "$HAS_TOKEN" -gt 0 ] && [ "$HAS_DONE" -gt 0 ]; then
+              echo "✓ /api/agents/chat streamed token events and a done event"
+              CHAT_OK=true
+              break
+            else
+              echo "  Missing expected events (token=$HAS_TOKEN done=$HAS_DONE), sleeping 10s..."
+              sleep 10
+            fi
+          done
+
+          if [ "$CHAT_OK" != "true" ]; then
+            echo "✗ /api/agents/chat did not yield a complete SSE stream after 3 attempts"
+            exit 1
+          fi
+
+          # ── Check 3: /api/health reports web_search == true ──────────────────
+          echo "Checking /api/health..."
+          HEALTH=$(curl -fsS "$URL/api/health")
+          if echo "$HEALTH" | jq -e '.tools.web_search == true' > /dev/null 2>&1; then
+            echo "✓ /api/health reports web_search: true"
+          else
+            echo "✗ /api/health did not report web_search: true"
+            echo "Response: $HEALTH"
+            exit 1
+          fi
+
+          echo "All smoke checks passed."
