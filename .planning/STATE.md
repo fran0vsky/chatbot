@@ -4,7 +4,7 @@ milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
 status: executing
 stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
-last_updated: "2026-06-16T21:26:05.191Z"
+last_updated: "2026-06-16T21:28:52.677Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 11
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 ## Current Position
 
 Phase: 39 (deploy-truth-and-smoke-checks) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-16
 
@@ -157,6 +157,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-16T21:26:05.184Z
+Last session: 2026-06-16T21:28:52.670Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None

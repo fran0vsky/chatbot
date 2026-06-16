@@ -169,7 +169,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 37. Intent-Driven Group Engine | 1/1 | Code Complete (recorded retroactively; HUMAN-UAT pending) | 2026-06-11 |
 | **— v2.2 Production Parity & Custom Dinos —** | | | |
 | 38. Production Runtime Parity | 3/3 | Complete   | 2026-06-16 |
-| 39. Deploy Truth & Smoke Checks | 1/3 | In Progress|  |
+| 39. Deploy Truth & Smoke Checks | 2/3 | In Progress|  |
 | 40. Skill Recall Cadence | 0/TBD | Not planned | - |
 | 41. Autonomous Dino Minds (Group Engine v3) | 0/TBD | Not planned | - |
 | 42. Custom Dino Creator | 0/TBD | Not planned | - |
@@ -727,7 +727,7 @@ Plans:
   3. `INFRASTRUCTURE.md` + README deployment runbook describe the real architecture (Caddy container, baked-in frontend, Secret Manager secret list, vm-deploy flow); stale nginx/certbot/Firebase/Cloud Run content is removed
   4. `infra/caddy/Caddyfile` in the repo reflects the live VM config (domain templating documented)
 **Scope note:** In — CI smoke stage, deploy-job cleanup, doc refresh, Caddyfile truth. Out — new features. The smoke probe must be cheap (one short message, free-tier dino).
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
   - 39-01: Smoke-check readiness endpoint (PROD-04, Wave 1) — `GET /api/health` reporting `{ status, tools: { web_search } }` from `TAVILY_API_KEY` presence (no secret leak), wired into `AppModule`, unit-tested
   - 39-02: CI post-deploy smoke stage + frontend-deploy cleanup (PROD-04, PROD-05, Wave 2 — depends on 39-01) — `smoke` job (`needs: deploy-backend`) asserting `/api/dinos` 200, an end-to-end streamed chat probe (free dino `rexford`, 429-tolerant), and `/api/health` `web_search==true`; removes vestigial `deploy-frontend`, repoints `deploy-storybook` to `needs: e2e`
   - 39-03: Documentation truth (PROD-05, Wave 3 — depends on 39-02) — rewrite `INFRASTRUCTURE.md` to the live Caddy + baked-frontend + Secret Manager architecture (incl. `tavily-api-key`), verify/trim README Deployment, make `infra/caddy/Caddyfile` reflect live config with documented `{DOMAIN}` templating
