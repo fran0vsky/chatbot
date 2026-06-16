@@ -13,7 +13,7 @@
 | ORM | **Drizzle** (`drizzle-orm` + `drizzle-kit`) | TypeScript-first, lightweight, type-safe queries. Schema lives at `apps/backend/src/app/database/schema.ts`. |
 | Frontend hosting | **GCS bucket** with static-website + public-read IAM | Mentor's explicit "no Firebase". Cheaper, GCP-native. HTTPS via storage.googleapis.com URL; custom domain + Cloud CDN added later. |
 | Storybook hosting | **Separate GCS bucket**, deployed after frontend | Mentor's ask. Same pattern as frontend. |
-| Secrets | **Secret Manager** (`openrouter-api-key`, `database-url`) | Runtime SA mounts at boot; never in env files committed to git. |
+| Secrets | **Secret Manager** (`openrouter-api-key`, `database-url`, `tavily-api-key`) | Runtime SA mounts at boot; never in env files committed to git. |
 | CI/CD | **GitHub Actions** with Workload Identity Federation | Already configured in `.github/workflows/ci.yml`. No service-account JSON keys in repo. |
 | Deploy trigger | Push to `main` | CI runs lint/test/e2e/build; on success, deploys backend (SSH+docker on VM) + frontend (rsync to GCS) + storybook (rsync to GCS). |
 
@@ -180,6 +180,43 @@ gcloud run services delete chatbot-backend --region=europe-west1
 git rm .firebaserc
 git commit -m "chore: remove Firebase config (replaced by GCS bucket)"
 ```
+
+## Secret Manager secrets
+
+All secrets are read by `vm-deploy.sh` via the VM runtime service account. The deploy degrades gracefully when a secret is absent (empty value returned, no abort).
+
+| Secret name | What it holds | Created |
+|---|---|---|
+| `openrouter-api-key` | OpenRouter API key for LLM calls | Phase 3 |
+| `database-url` | Cloud SQL `postgresql://…` connection string | Phase 3 |
+| `tavily-api-key` | Tavily Search API key for `web_search` tool | **One-time task — see below** |
+
+### One-time: create the `tavily-api-key` secret
+
+Obtain a free key at https://tavily.com (free tier — 1000 searches/month), then run:
+
+```bash
+# Create the secret (first time)
+printf %s "$TAVILY_API_KEY" | gcloud secrets create tavily-api-key \
+  --project=chatbot-franek-2026 \
+  --data-file=-
+
+# Grant the VM runtime SA access (if not already covered by project-wide grant)
+gcloud secrets add-iam-policy-binding tavily-api-key \
+  --project=chatbot-franek-2026 \
+  --member="serviceAccount:<vm-runtime-sa>@chatbot-franek-2026.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
+# If the secret already exists and you want to rotate the value:
+printf %s "$TAVILY_API_KEY" | gcloud secrets versions add tavily-api-key \
+  --project=chatbot-franek-2026 \
+  --data-file=-
+```
+
+`vm-deploy.sh` reads the secret with `fetch_secret tavily-api-key 2>/dev/null || echo ""` — if the secret
+does not exist yet, the deploy still succeeds and `web_search` returns its existing "Search unavailable:
+TAVILY_API_KEY is not configured." message. The key activates search on the next deploy after the secret
+is created, with no code change required.
 
 ## Deferred / next steps
 
