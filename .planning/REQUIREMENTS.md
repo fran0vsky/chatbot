@@ -178,7 +178,7 @@
 
 ### Deploy Truth & Smoke Checks (Phase 39)
 
-- [ ] **PROD-04**: CI runs a post-deploy smoke stage against https://dinoagents.duckdns.org that fails the pipeline if `/api/dinos` is not 200, a streamed chat probe does not complete, or `web_search` is not configured
+- [x] **PROD-04**: CI runs a post-deploy smoke stage against https://dinoagents.duckdns.org that fails the pipeline if `/api/dinos` is not 200, a streamed chat probe does not complete, or `web_search` is not configured
 - [ ] **PROD-05**: There is exactly one documented, working frontend-serving path (the Docker-baked frontend behind Caddy); the vestigial GCS frontend deploy job is removed or repurposed, and the deployment runbooks describe the real Caddy/baked-frontend architecture
 
 > Mentor-feedback requirements (MEM2-01, GRP3-01..04, CDINO-01..04, UAT-01) for Phases 40–44 are captured in the ROADMAP phase details and will be formalized here when each phase is discussed/planned.

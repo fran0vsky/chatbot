@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
-status: verifying
+status: executing
 stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
-last_updated: "2026-06-16T20:55:33.592Z"
+last_updated: "2026-06-16T21:26:05.191Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 11
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 38 — production-runtime-parity
+**Current focus:** Phase 39 — deploy-truth-and-smoke-checks
 
 ## Current Position
 
-Phase: 38 (production-runtime-parity) — VERIFIED (code-complete; 3 HUMAN-UAT smoke tests pending)
-Plan: 3 of 3 executed
-Status: PROD-01/02/03 delivered + backend build passes; live confirmation blocked on human VM/UAT. Next: /gsd-execute-phase 39.
+Phase: 39 (deploy-truth-and-smoke-checks) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-06-16
 
 ## Performance Metrics
@@ -157,6 +157,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-16T20:55:33.584Z
+Last session: 2026-06-16T21:26:05.184Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None
