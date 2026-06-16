@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { AppModule } from './app/app.module';
+import { runMigrations } from './app/database/migrate';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -29,6 +30,8 @@ async function bootstrap() {
     app.useStaticAssets(frontendDir);
     Logger.log(`Serving static frontend from ${frontendDir}`);
   }
+
+  await runMigrations();
 
   const port = process.env['PORT'] || 3000;
   await app.listen(port);

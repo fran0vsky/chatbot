@@ -36,6 +36,7 @@ RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=builder --chown=app:app /app/apps/backend/dist ./dist
 COPY --from=builder --chown=app:app /app/dist/apps/frontend/browser ./dist/frontend
+COPY --from=builder --chown=app:app /app/apps/backend/drizzle ./drizzle
 COPY --from=builder --chown=app:app /app/package*.json ./
 
 RUN npm ci --omit=dev --ignore-scripts --legacy-peer-deps && npm cache clean --force && \
