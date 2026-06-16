@@ -6,10 +6,11 @@ import { ArenaModule } from './arena/arena.module';
 import { AssistantModule } from './assistant/assistant.module';
 import { DatabaseModule } from './database/database.module';
 import { MemoryModule } from './memory/memory.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [DatabaseModule, MemoryModule, AgentsModule, ArenaModule, AssistantModule],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}
