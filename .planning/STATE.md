@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
 status: executing
-stopped_at: Completed 38-01-PLAN.md (body-parser limit raised to BODY_LIMIT env var default 10mb; Task 3 manual smoke test pending)
-last_updated: "2026-06-16T20:47:17.389Z"
-last_activity: 2026-06-16 -- Phase 38 plan 01 complete (body limit raised)
+stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
+last_updated: "2026-06-16T20:50:13.559Z"
+last_activity: 2026-06-16
 progress:
   total_phases: 11
   completed_phases: 9
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 ## Current Position
 
 Phase: 38 (production-runtime-parity) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-16
 
@@ -157,6 +157,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-16T20:47:17.381Z
+Last session: 2026-06-16T20:50:13.552Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None
