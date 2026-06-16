@@ -68,7 +68,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Execution order:** 38 → 39 → 40 → 41 → 42 → 43 → 44. Parity first (38–39) so every later phase can be verified on the live site; mentor features next (40–43, with 41 → 42 → 43 sequential because custom dinos plug into the new engine and the reaction config covers both built-in and custom dinos); UAT sweep last.
 
-- [ ] **Phase 38: Production Runtime Parity** - close the localhost-vs-website runtime gaps: Tavily secret wired into the VM container, JSON body limit raised for image payloads, automated DB schema migration on deploy
+- [x] **Phase 38: Production Runtime Parity** - close the localhost-vs-website runtime gaps: Tavily secret wired into the VM container, JSON body limit raised for image payloads, automated DB schema migration on deploy (completed 2026-06-16)
 - [ ] **Phase 39: Deploy Truth & Smoke Checks** - CI post-deploy smoke stage against the live domain; remove the vestigial GCS frontend deploy; runbooks updated to the real Caddy architecture
 - [ ] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note)
 - [ ] **Phase 41: Autonomous Dino Minds (Group Engine v3)** - every incoming message triggers one decision call per participant dino on its own model — answer / reaction / no answer — with the user message + full thread in context before every action (mentor note)
@@ -168,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 36. HTTPS / Let's Encrypt | 1/1 | ✅ LIVE | 2026-06-11 |
 | 37. Intent-Driven Group Engine | 1/1 | Code Complete (recorded retroactively; HUMAN-UAT pending) | 2026-06-11 |
 | **— v2.2 Production Parity & Custom Dinos —** | | | |
-| 38. Production Runtime Parity | 2/3 | In Progress|  |
+| 38. Production Runtime Parity | 3/3 | Complete   | 2026-06-16 |
 | 39. Deploy Truth & Smoke Checks | 0/TBD | Not planned | - |
 | 40. Skill Recall Cadence | 0/TBD | Not planned | - |
 | 41. Autonomous Dino Minds (Group Engine v3) | 0/TBD | Not planned | - |
@@ -710,7 +710,7 @@ Plans:
   3. A change to `schema.ts` reaches Cloud SQL automatically on deploy (drizzle migration/push step in the pipeline or at boot) — manual column adds are never needed again (PROD-03)
   4. The env contract is single-sourced: every var the backend reads exists in `.env.example` AND is provided by `vm-deploy.sh` (or documented why not)
 **Scope note:** In — Secret Manager secret creation, `vm-deploy.sh` env wiring, NestJS `bodyParser` limit, drizzle migration automation, env-contract audit. Out — CI smoke checks and doc updates (Phase 39).
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
   - 38-01: Request body-size limit (PROD-02, Wave 1) — `useBodyParser` json+urlencoded, `BODY_LIMIT` env (default 10mb), `.env.example`
   - 38-02: Tavily secret + env contract (PROD-01, Wave 1) — `tavily-api-key` fetched+injected in `vm-deploy.sh`, env-contract audit, INFRASTRUCTURE.md secret doc
   - 38-03: Automated DB migrations at boot (PROD-03, Wave 2 — depends on 38-01) — shared `buildPoolConfig`, `runMigrations()` via drizzle migrator, IF-NOT-EXISTS baseline for the existing prod DB, Dockerfile copies `drizzle/`
