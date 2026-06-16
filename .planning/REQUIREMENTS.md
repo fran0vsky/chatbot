@@ -173,7 +173,7 @@
 ### Production Parity (Phase 38)
 
 - [ ] **PROD-01**: `web_search` returns real Tavily results on the production website — a `tavily-api-key` secret exists in Secret Manager and `scripts/vm-deploy.sh` fetches and injects `TAVILY_API_KEY` into the backend container (today the key is never passed, so search is dead on the site)
-- [ ] **PROD-02**: The backend accepts request bodies large enough for an attached downscaled image (~1024 px JPEG) plus a capped history — the Express default 100 kb JSON limit is raised to a documented cap (e.g. 10 MB) so image chats and long histories don't 413
+- [x] **PROD-02**: The backend accepts request bodies large enough for an attached downscaled image (~1024 px JPEG) plus a capped history — the Express default 100 kb JSON limit is raised to a documented cap (e.g. 10 MB) so image chats and long histories don't 413
 - [ ] **PROD-03**: A change to `apps/backend/src/app/database/schema.ts` reaches the production Cloud SQL database automatically on deploy (no manual column adds) — schema drift like the `when_to_activate` silent failure cannot recur
 
 ### Deploy Truth & Smoke Checks (Phase 39)

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
-status: roadmapped
-stopped_at: v2.2 roadmap written (Phases 38-44) after live prod investigation; next is /gsd-plan-phase 38
-last_updated: "2026-06-12T00:00:00.000Z"
-last_activity: 2026-06-12
+status: executing
+stopped_at: Completed 38-01-PLAN.md (body-parser limit raised to BODY_LIMIT env var default 10mb; Task 3 manual smoke test pending)
+last_updated: "2026-06-16T20:47:17.389Z"
+last_activity: 2026-06-16 -- Phase 38 plan 01 complete (body limit raised)
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 33
+  completed_plans: 32
   percent: 82
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** v2.2 — Phase 38 (production-runtime-parity), not yet planned
+**Current focus:** Phase 38 — production-runtime-parity
 
 ## Current Position
 
-Phase: 38 (production-runtime-parity) — PLANNED (3 plans)
-Plan: 0 of 3 executed
-Status: 38-01 (body limit, Wave 1), 38-02 (Tavily secret + env contract, Wave 1), 38-03 (auto DB migrations at boot, Wave 2 dep 38-01) written. Ready for /gsd-execute-phase 38.
-Last activity: 2026-06-12 - Planned Phase 38 directly (no planner subagent, per feedback_gsd_agents); PROD-01..03 requirements registered
+Phase: 38 (production-runtime-parity) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-16
 
 ## Performance Metrics
 
@@ -157,6 +157,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-09T00:00:00.000Z
+Last session: 2026-06-16T20:47:17.381Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None
