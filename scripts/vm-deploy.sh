@@ -56,6 +56,7 @@ fetch_secret() {
 echo "[deploy] Reading secrets from Secret Manager"
 OPENROUTER_KEY=$(fetch_secret openrouter-api-key)
 DATABASE_URL=$(fetch_secret database-url 2>/dev/null || echo "")
+TAVILY_KEY=$(fetch_secret tavily-api-key 2>/dev/null || echo "")
 
 echo "[deploy] Stopping previous container (if running)"
 docker stop "$CONTAINER_NAME" 2>/dev/null || true
@@ -77,6 +78,7 @@ docker run -d \
     -e PORT=3000 \
     -e NODE_ENV=production \
     -e OPENROUTER_API_KEY="$OPENROUTER_KEY" \
+    -e TAVILY_API_KEY="$TAVILY_KEY" \
     -e DATABASE_URL="$DATABASE_URL" \
     -e CORS_ORIGIN="$FRONTEND_URL" \
     "$IMAGE_PATH"
