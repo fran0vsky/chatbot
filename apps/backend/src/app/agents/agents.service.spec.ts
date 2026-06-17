@@ -59,9 +59,22 @@ describe('resolveActiveTools', () => {
 //
 // Strategy: mock ChatOpenAI so its invoke() captures the messages array and
 // immediately returns a minimal response (no tool_calls) so the loop exits.
+//
+// The mock is configurable: mockNextScorerResponse controls what the *scorer*
+// (selectRelevantSkill) ChatOpenAI instance returns. The main LLM always returns
+// 'mock response' (no tool_calls). We differentiate scorer vs main by call order
+// within a turn — selectRelevantSkill fires before the main agent invoke().
 // ---------------------------------------------------------------------------
 
-const captured = vi.hoisted(() => ({ messages: [] as unknown[] }));
+const captured = vi.hoisted(() => ({
+  // Last captured messages array (for history reconstruction tests).
+  messages: [] as unknown[],
+  // All invocation messages arrays, in call order.
+  allInvocations: [] as unknown[][],
+  // Responses queue: each invoke() drains from this queue; falls back
+  // to the default 'mock response' answer when the queue is empty.
+  responseQueue: [] as string[],
+}));
 
 vi.mock('@langchain/openai', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@langchain/openai')>();
@@ -72,7 +85,12 @@ vi.mock('@langchain/openai', async (importOriginal) => {
       bindTools() { return this; },
       invoke(messages: unknown[]) {
         captured.messages = [...messages];
-        return Promise.resolve({ content: 'mock response', tool_calls: [] });
+        captured.allInvocations.push([...messages]);
+        const reply =
+          captured.responseQueue.length > 0
+            ? captured.responseQueue.shift()!
+            : 'mock response';
+        return Promise.resolve({ content: reply, tool_calls: [] });
       },
     };
   }
@@ -106,6 +124,8 @@ describe('streamAgent — history reconstruction', () => {
 
   beforeEach(() => {
     captured.messages = [];
+    captured.allInvocations = [];
+    captured.responseQueue = [];
     service = new AgentsService(memoryStub as never);
   });
 
@@ -254,5 +274,159 @@ describe('streamAgent — history reconstruction', () => {
 
     expect(helloMsg).toBeDefined();
     expect(hiMsg).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// streamAgent — single-skill recall (MEM2-01)
+// ---------------------------------------------------------------------------
+// Test the new skill recall cadence: selectRelevantSkill picks one skill and
+// buildSystemPrompt injects at most one. A `skill_active` event is emitted.
+//
+// `rexford` is a dino present in the registry; we provide skills via getSkills
+// stub. The scorer (first ChatOpenAI invoke) receives the response queue entry;
+// the main LLM (second invoke) always gets 'mock response'.
+// ---------------------------------------------------------------------------
+
+describe('streamAgent — single-skill recall', () => {
+  let service: InstanceType<typeof AgentsService>;
+
+  beforeEach(() => {
+    captured.messages = [];
+    captured.allInvocations = [];
+    captured.responseQueue = [];
+    memoryStub.getMemories.mockResolvedValue([]);
+    memoryStub.getSkills.mockResolvedValue([]);
+    service = new AgentsService(memoryStub as never);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('emits skill_active and injects only the selected skill when scorer picks one', async () => {
+    // Two skills; scorer returns '1' → first skill selected.
+    const skills = [
+      { id: 'skill-1', title: 'Be concise', instruction: 'Keep responses short.', whenToActivate: 'always' },
+      { id: 'skill-2', title: 'Use metaphors', instruction: 'Explain with analogies.', whenToActivate: 'when teaching' },
+    ];
+    memoryStub.getSkills.mockResolvedValue(skills);
+    // Queue: first invoke = scorer reply ('1'), second = main LLM answer.
+    captured.responseQueue = ['1'];
+
+    const events = await collectEvents(
+      service.streamAgent(
+        'Explain quantum entanglement',
+        'thread-skill-1',
+        'openai/gpt-4o-mini',
+        new AbortController().signal,
+        [],
+        'rexford', // dino required to trigger skill recall
+        'user-abc',
+      ),
+    );
+
+    // A skill_active event must be emitted.
+    const skillActiveEvent = events.find(
+      (e) =>
+        typeof e === 'object' && e !== null && (e as Record<string, unknown>)['type'] === 'skill_active',
+    );
+    expect(skillActiveEvent).toBeDefined();
+    expect((skillActiveEvent as Record<string, unknown>)['skillId']).toBe('skill-1');
+    expect((skillActiveEvent as Record<string, unknown>)['skillTitle']).toBe('Be concise');
+
+    // The main LLM invocation is the SECOND invoke call (index 1):
+    //   index 0 = scorer (selectRelevantSkill)
+    //   index 1 = main LLM (streamAgent agent loop)
+    //   index 2 = extractAndStoreMemories (fire-and-forget, may or may not complete)
+    // The system message is always first in the main LLM's messages array.
+    const mainLlmMessages = captured.allInvocations[1] ?? [];
+    const systemMsg = mainLlmMessages.find(
+      (m) =>
+        typeof m === 'object' &&
+        m !== null &&
+        typeof (m as Record<string, unknown>)['content'] === 'string' &&
+        ((m as Record<string, unknown>)['content'] as string).includes('STANDING INSTRUCTION'),
+    );
+    expect(systemMsg).toBeDefined();
+    const sysContent = (systemMsg as Record<string, unknown>)['content'] as string;
+    expect(sysContent).toContain('Be concise');
+    expect(sysContent).not.toContain('Use metaphors');
+    expect(sysContent).not.toContain('apply ALL of them');
+  });
+
+  it('injects no standing-instruction block when scorer returns NONE', async () => {
+    const skills = [
+      { id: 'skill-1', title: 'Be concise', instruction: 'Keep responses short.', whenToActivate: null },
+    ];
+    memoryStub.getSkills.mockResolvedValue(skills);
+    // Scorer returns NONE → no skill selected.
+    captured.responseQueue = ['NONE'];
+
+    const events = await collectEvents(
+      service.streamAgent(
+        'Hello',
+        'thread-skill-none',
+        'openai/gpt-4o-mini',
+        new AbortController().signal,
+        [],
+        'rexford',
+        'user-abc',
+      ),
+    );
+
+    // No skill_active event should be emitted.
+    const skillActiveEvent = events.find(
+      (e) =>
+        typeof e === 'object' && e !== null && (e as Record<string, unknown>)['type'] === 'skill_active',
+    );
+    expect(skillActiveEvent).toBeUndefined();
+
+    // For NONE: scorer is invocation 0, main LLM is invocation 1.
+    // No invocation should contain 'STANDING INSTRUCTION'.
+    const allMessages = (captured.allInvocations[1] ?? []);
+    const systemMsg = allMessages.find(
+      (m) =>
+        typeof m === 'object' &&
+        m !== null &&
+        typeof (m as Record<string, unknown>)['content'] === 'string' &&
+        ((m as Record<string, unknown>)['content'] as string).includes('STANDING INSTRUCTION'),
+    );
+    expect(systemMsg).toBeUndefined();
+  });
+
+  it('injects no standing-instruction block when there are zero skills', async () => {
+    memoryStub.getSkills.mockResolvedValue([]);
+    // No scorer call expected (early-return when skills.length === 0).
+    // Main LLM is the first (and only) invocation (index 0).
+
+    const events = await collectEvents(
+      service.streamAgent(
+        'Hello',
+        'thread-skill-empty',
+        'openai/gpt-4o-mini',
+        new AbortController().signal,
+        [],
+        'rexford',
+        'user-abc',
+      ),
+    );
+
+    const skillActiveEvent = events.find(
+      (e) =>
+        typeof e === 'object' && e !== null && (e as Record<string, unknown>)['type'] === 'skill_active',
+    );
+    expect(skillActiveEvent).toBeUndefined();
+
+    // No invocation should have a STANDING INSTRUCTION system message.
+    const allMessages = captured.allInvocations.flat();
+    const systemMsg = allMessages.find(
+      (m) =>
+        typeof m === 'object' &&
+        m !== null &&
+        typeof (m as Record<string, unknown>)['content'] === 'string' &&
+        ((m as Record<string, unknown>)['content'] as string).includes('STANDING INSTRUCTION'),
+    );
+    expect(systemMsg).toBeUndefined();
   });
 });
