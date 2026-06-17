@@ -148,11 +148,19 @@ export interface StreamImageEvent {
   imageDataUrl: string;
 }
 
+/** Emitted once per turn when a taught skill has been selected for this conversation (MEM2-01). */
+export interface StreamSkillActiveEvent {
+  type: 'skill_active';
+  skillId: string;
+  skillTitle: string;
+}
+
 export type StreamEvent =
   | StreamTokenEvent
   | StreamReasoningTokenEvent
   | StreamToolCallStartEvent
   | StreamToolCallResultEvent
   | StreamImageEvent
+  | StreamSkillActiveEvent
   | StreamDoneEvent
   | StreamErrorEvent;
