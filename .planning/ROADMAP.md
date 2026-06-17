@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 38. Production Runtime Parity | 3/3 | Complete   | 2026-06-16 |
 | 39. Deploy Truth & Smoke Checks | 3/3 | Complete   | 2026-06-16 |
 | 40. Skill Recall Cadence | 2/2 | Complete   | 2026-06-17 |
-| 41. Autonomous Dino Minds (Group Engine v3) | 1/3 | In Progress|  |
+| 41. Autonomous Dino Minds (Group Engine v3) | 2/3 | In Progress|  |
 | 42. Custom Dino Creator | 0/TBD | Not planned | - |
 | 43. When-to-React Configuration | 0/TBD | Not planned | - |
 | 44. Pre-Launch UAT Sweep | 0/TBD | Not planned | - |
@@ -759,7 +759,7 @@ Plans:
   3. One turn can yield any mix of answers, reactions, and silences; the thread reads top-to-bottom like a real chat with attribution (GRP3-03)
   4. A documented cost ceiling replaces the Phase 37 governor budget (N decision calls + answer calls per turn, capped; MAX_DINOS respected)
 **Scope note:** In — per-dino decision architecture, thread-context plumbing for every call, cost-cap redesign, reuse of Phase 37 intents where they survive. Out — when-to-react configuration UI (Phase 43). Decide at planning what of the governor remains (anti-chaos caps likely stay; speaker pre-selection goes).
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 **UI hint:** yes
 
 ### Phase 42: Custom Dino Creator

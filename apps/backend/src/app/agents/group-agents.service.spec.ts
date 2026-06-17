@@ -9,12 +9,12 @@ import { getDino } from './dinos';
 import { getProfile } from './group/agent-profiles';
 import type {
   Dino,
+  DinoDecision,
   GroupMessage,
   GroupStreamEvent,
   StreamEvent,
-  TopicAnalysis,
 } from '@org/shared-types';
-import type { IntentDecision } from './group/governor';
+import { MAX_ROUNDS, MAX_TOTAL_ANSWERS } from './group/decision';
 
 const rexford = getDino('rexford');
 const veloce = getDino('veloce');
@@ -30,40 +30,35 @@ function fakeStreamAgent(text = 'hi'): AsyncGenerator<StreamEvent, void, void> {
   return gen();
 }
 
-const baseTopic = (over: Partial<TopicAnalysis> = {}): TopicAnalysis => ({
-  subtopics: ['cars'],
-  requiredExpertise: ['cars'],
-  isContested: true,
-  bestSuitedDinoIds: ['rexford', 'veloce', 'glyphos'],
-  ...over,
-});
-
 /**
- * Build a service with a mocked AgentsService and stubbed director seams
- * (analyzeTopic + decideIntent) so tests never hit OpenRouter and the
- * discussion is deterministic.
+ * Build a service with a mocked AgentsService and a stubbed `decideAction` seam
+ * so tests never hit OpenRouter and the autonomous loop is deterministic. The
+ * `decision` factory receives the deciding dino's id so a test can script
+ * per-dino actions.
  */
 function makeService(opts: {
-  topic?: TopicAnalysis;
-  decision?: IntentDecision | (() => IntentDecision);
+  decision?: DinoDecision | ((dinoId: string) => DinoDecision);
   answerText?: string;
-}): { service: GroupAgentsService; streamAgent: ReturnType<typeof vi.fn> } {
+}): {
+  service: GroupAgentsService;
+  streamAgent: ReturnType<typeof vi.fn>;
+  decideAction: ReturnType<typeof vi.fn>;
+} {
   const streamAgent = vi.fn(() => fakeStreamAgent(opts.answerText));
   const agents = { streamAgent } as unknown as AgentsService;
   const service = new GroupAgentsService(agents);
 
+  const decide = opts.decision ?? ({ action: 'answer', intent: 'answer_user', confidence: 0.7 } as DinoDecision);
+  const decideAction = vi.fn(async (...args: unknown[]) => {
+    const dino = args[1] as Dino;
+    return typeof decide === 'function' ? decide(dino.id) : decide;
+  });
   vi.spyOn(
-    service as unknown as { analyzeTopic: () => Promise<TopicAnalysis> },
-    'analyzeTopic',
-  ).mockResolvedValue(opts.topic ?? baseTopic());
+    service as unknown as { decideAction: typeof decideAction },
+    'decideAction',
+  ).mockImplementation(decideAction);
 
-  const decide = opts.decision ?? ({ intent: 'answer_user', confidence: 0.7 } as IntentDecision);
-  vi.spyOn(
-    service as unknown as { decideIntent: () => Promise<IntentDecision> },
-    'decideIntent',
-  ).mockImplementation(async () => (typeof decide === 'function' ? decide() : decide));
-
-  return { service, streamAgent };
+  return { service, streamAgent, decideAction };
 }
 
 async function collect(gen: AsyncGenerator<GroupStreamEvent, void, void>): Promise<GroupStreamEvent[]> {
@@ -71,6 +66,8 @@ async function collect(gen: AsyncGenerator<GroupStreamEvent, void, void>): Promi
   for await (const ev of gen) out.push(ev);
   return out;
 }
+
+const signal = (): AbortSignal => new AbortController().signal;
 
 describe('buildAttributedHistory', () => {
   const transcript: GroupMessage[] = [
@@ -103,77 +100,133 @@ describe('buildAttributedHistory', () => {
   });
 });
 
-describe('buildDirective', () => {
+describe('buildDirective (v3 — takes a DinoDecision)', () => {
   const p = getProfile('rexford');
   it('names the target for a disagreement', () => {
-    const d = buildDirective('disagree_with_agent', p, 'Veloce', baseTopic());
+    const d = buildDirective({ action: 'answer', intent: 'disagree_with_agent' }, p, 'Veloce');
     expect(d).toContain('Veloce');
     expect(d.toLowerCase()).toContain('disagree');
   });
   it('tells an uncertain dino to defer to someone better suited', () => {
-    const d = buildDirective('admit_uncertainty', p, undefined, baseTopic());
+    const d = buildDirective({ action: 'answer', intent: 'admit_uncertainty' }, p, undefined);
     expect(d.toLowerCase()).toContain('better suited');
+  });
+  it('defaults a missing intent to answer_user', () => {
+    const d = buildDirective({ action: 'answer' }, p, undefined);
+    expect(d.toLowerCase()).toContain('answer user');
   });
 });
 
-describe('GroupAgentsService.streamGroup (dynamic engine)', () => {
-  const signal = (): AbortSignal => new AbortController().signal;
-
+describe('GroupAgentsService.streamGroup (v3 autonomous loop)', () => {
   it('emits a plan event first and group_done last', async () => {
-    const { service } = makeService({});
+    const { service } = makeService({ decision: { action: 'silent' } });
     const events = await collect(service.streamGroup('hi', ['rexford'], undefined, undefined, signal()));
     expect(events[0].type).toBe('plan');
     expect(events[events.length - 1].type).toBe('group_done');
   });
 
-  it('only real speaking turns call streamAgent, with a per-turn directive', async () => {
-    const { service, streamAgent } = makeService({});
-    await collect(service.streamGroup('cars?', ['rexford'], undefined, undefined, signal()));
-    expect(streamAgent).toHaveBeenCalled();
-    // arg[5] = dinoId, arg[9] = directive
-    expect(streamAgent.mock.calls[0][5]).toBe('rexford');
-    expect(typeof streamAgent.mock.calls[0][9]).toBe('string');
-  });
-
-  it('never exceeds the per-turn message budget', async () => {
-    const { service, streamAgent } = makeService({});
+  it('consults every participant dino once in round 0 (no central pre-selection)', async () => {
+    // All silent → exactly one round runs (zero answers stops the loop).
+    const { service, decideAction } = makeService({ decision: { action: 'silent' } });
     await collect(
       service.streamGroup('go', ['rexford', 'veloce', 'glyphos'], undefined, undefined, signal()),
     );
-    // budget.maxAgentMessages for 3 dinos = min(8, max(3, 6)) = 6.
-    expect(streamAgent.mock.calls.length).toBeLessThanOrEqual(6);
+    const consulted = decideAction.mock.calls.map((c) => (c[1] as Dino).id);
+    expect(consulted).toEqual(['rexford', 'veloce', 'glyphos']);
   });
 
-  it('forces an @mentioned dino to answer', async () => {
-    const { service, streamAgent } = makeService({});
+  it('an answer decision yields dino_token + dino_done and routes through the dino own model', async () => {
+    // Only rexford answers; the rest stay silent so the loop stops after round 0.
+    const { service, streamAgent } = makeService({
+      decision: (id) =>
+        id === 'rexford'
+          ? { action: 'answer', intent: 'answer_user', confidence: 0.8 }
+          : { action: 'silent' },
+      answerText: 'petrol still wins',
+    });
+    const events = await collect(
+      service.streamGroup('cars?', ['rexford', 'veloce'], undefined, undefined, signal()),
+    );
+    expect(events.some((e) => e.type === 'dino_token' && e.dinoId === 'rexford')).toBe(true);
+    const done = events.find(
+      (e): e is Extract<GroupStreamEvent, { type: 'dino_done' }> =>
+        e.type === 'dino_done' && e.dinoId === 'rexford',
+    );
+    expect(done?.response).toBe('petrol still wins');
+    // arg[5] = dinoId → own-model routing happens server-side in streamAgent.
+    // Only rexford ever generates (veloce is always silent); rexford may take a
+    // follow-up round, so assert every generation routed to rexford's id.
+    const generators = streamAgent.mock.calls.map((c) => c[5]);
+    expect(generators.length).toBeGreaterThan(0);
+    expect(generators.every((id: unknown) => id === 'rexford')).toBe(true);
+  });
+
+  it('a react decision yields a reaction event with NO generation call', async () => {
+    const { service, streamAgent } = makeService({
+      decision: { action: 'react', emoji: '🔥' },
+    });
+    const events = await collect(
+      service.streamGroup('go', ['rexford', 'veloce'], undefined, undefined, signal()),
+    );
+    expect(streamAgent).not.toHaveBeenCalled();
+    const reaction = events.find(
+      (e): e is Extract<GroupStreamEvent, { type: 'reaction' }> => e.type === 'reaction',
+    );
+    expect(reaction?.emoji).toBe('🔥');
+    expect(reaction?.targetMessageId).toBeDefined();
+  });
+
+  it('a silent decision yields nothing but plan + group_done', async () => {
+    const { service, streamAgent } = makeService({ decision: { action: 'silent' } });
+    const events = await collect(
+      service.streamGroup('go', ['rexford', 'veloce'], undefined, undefined, signal()),
+    );
+    expect(streamAgent).not.toHaveBeenCalled();
+    expect(events.map((e) => e.type)).toEqual(['plan', 'group_done']);
+  });
+
+  it('pushes each answer onto the transcript before the next dino decides (sequential context)', async () => {
+    // veloce answers in round 0; by the time glyphos decides, rexford+veloce
+    // turns should already be in the thread the decision call receives.
+    const seen: number[] = [];
+    const streamAgent = vi.fn(() => fakeStreamAgent('a'));
+    const service = new GroupAgentsService({ streamAgent } as unknown as AgentsService);
+    vi.spyOn(
+      service as unknown as { decideAction: (...a: unknown[]) => Promise<DinoDecision> },
+      'decideAction',
+    ).mockImplementation(async (...args: unknown[]) => {
+      const state = args[2] as { transcript: GroupMessage[] };
+      seen.push(state.transcript.filter((m) => m.role === 'dino').length);
+      return { action: 'answer', intent: 'answer_user', confidence: 0.7 };
+    });
+    await collect(
+      service.streamGroup('go', ['rexford', 'veloce', 'glyphos'], undefined, undefined, signal()),
+    );
+    // First three consults (round 0) see 0, 1, 2 prior dino messages respectively.
+    expect(seen.slice(0, 3)).toEqual([0, 1, 2]);
+  });
+
+  it('forces an @mentioned dino to answer in round 0 (skips its decision call)', async () => {
+    const { service, streamAgent, decideAction } = makeService({
+      decision: { action: 'silent' },
+    });
     await collect(
       service.streamGroup('hey @Veloce help', ['rexford', 'veloce'], undefined, undefined, signal()),
     );
+    // veloce was forced → it answered (streamAgent) and was NOT consulted in round 0.
     expect(streamAgent.mock.calls.map((c) => c[5])).toContain('veloce');
+    const round0Consulted = decideAction.mock.calls
+      .slice(0, 2)
+      .map((c) => (c[1] as Dino).id);
+    expect(round0Consulted).not.toContain('veloce');
   });
 
-  it('attaches intent + reply metadata to a targeted reply', async () => {
-    // Every intent call returns "disagree with rexford"; only valid once a dino
-    // has spoken, so the first speaker is coerced to answer_user by the governor.
-    const { service } = makeService({
-      topic: baseTopic({ bestSuitedDinoIds: ['rexford', 'veloce'] }),
-      decision: { intent: 'disagree_with_agent', targetAgentId: 'rexford', confidence: 0.8 },
-    });
-    const events = await collect(
-      service.streamGroup('petrol vs electric?', ['rexford', 'veloce'], undefined, undefined, signal()),
-    );
-    const veloceDone = events.find(
-      (e): e is Extract<GroupStreamEvent, { type: 'dino_done' }> =>
-        e.type === 'dino_done' && e.dinoId === 'veloce',
-    );
-    expect(veloceDone?.intent).toBe('disagree_with_agent');
-    expect(veloceDone?.replyToAgentId).toBe('rexford');
-    expect(veloceDone?.replyToMessageId).toBeDefined();
-  });
-
-  it('lets an image-gen dino react instead of answering (never calls streamAgent)', async () => {
+  it('lets an image-gen dino react instead of answering (never calls streamAgent for it)', async () => {
     const { service, streamAgent } = makeService({
-      topic: baseTopic({ bestSuitedDinoIds: ['rexford', 'vinci'] }),
+      decision: (id) =>
+        id === 'rexford'
+          ? { action: 'answer', intent: 'answer_user', confidence: 0.8 }
+          : { action: 'silent' },
     });
     const events = await collect(
       service.streamGroup('draw a car', ['rexford', 'vinci'], undefined, undefined, signal()),
@@ -184,20 +237,32 @@ describe('GroupAgentsService.streamGroup (dynamic engine)', () => {
     expect(events.some((e) => e.type === 'reaction' && e.dinoId === 'vinci')).toBe(true);
   });
 
-  it('terminates without extra generation when every dino stays silent after first speaker', async () => {
-    // stay_silent is only in the allowed set once a prior dino has already spoken.
-    // Seed the history with a prior dino message so both rexford and veloce see
-    // hasPriorDino = true and validateIntent preserves stay_silent.
-    const priorHistory: GroupMessage[] = [
-      { id: 'h1', role: 'dino', dinoId: 'glyphos', text: 'hi', createdAt: 1 },
-    ];
-    const { service, streamAgent } = makeService({
-      decision: { intent: 'stay_silent', confidence: 0.5 },
+  it('enforces the cost ceiling: total answers <= MAX_TOTAL_ANSWERS and rounds <= MAX_ROUNDS', async () => {
+    // Every dino always wants to answer → caps must bound the run.
+    const { service, streamAgent, decideAction } = makeService({
+      decision: { action: 'answer', intent: 'answer_user', confidence: 0.9 },
     });
-    const events = await collect(
-      service.streamGroup('go', ['rexford', 'veloce'], undefined, priorHistory, signal()),
+    await collect(
+      service.streamGroup(
+        'go',
+        ['rexford', 'veloce', 'glyphos', 'nimbus'],
+        undefined,
+        undefined,
+        signal(),
+      ),
     );
-    expect(streamAgent).not.toHaveBeenCalled();
-    expect(events[events.length - 1].type).toBe('group_done');
+    // Answers (streamAgent generation calls) never exceed the hard total ceiling.
+    expect(streamAgent.mock.calls.length).toBeLessThanOrEqual(MAX_TOTAL_ANSWERS);
+    // decideAction runs at most MAX_GROUP_DINOS (4) × MAX_ROUNDS per turn.
+    expect(decideAction.mock.calls.length).toBeLessThanOrEqual(4 * MAX_ROUNDS);
+  });
+
+  it('stops after a zero-answer round (everyone reacts/stays silent)', async () => {
+    const { service, decideAction } = makeService({ decision: { action: 'react', emoji: '👍' } });
+    await collect(
+      service.streamGroup('go', ['rexford', 'veloce'], undefined, undefined, signal()),
+    );
+    // Round 0 produced zero answers → only one round of consults (2 dinos).
+    expect(decideAction.mock.calls.length).toBe(2);
   });
 });

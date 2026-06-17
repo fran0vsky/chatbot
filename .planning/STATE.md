@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
 status: executing
-stopped_at: Completed 41-01-PLAN.md (autonomous decision primitive — DinoDecision type + LLM-free group/decision.ts + unit tests; not yet wired into streamGroup)
-last_updated: "2026-06-17T19:49:00.773Z"
-last_activity: 2026-06-17 -- Phase 41 Plan 01 complete
+stopped_at: Completed 41-02-PLAN.md (Group Engine v3 — streamGroup rewritten as the multi-round autonomous own-model per-dino loop; central director removed; cost ceiling enforced; governor pruned; 154 backend tests green)
+last_updated: "2026-06-17T19:57:53.547Z"
+last_activity: 2026-06-17 -- Phase 41 Plan 02 complete
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 32
+  completed_plans: 33
   percent: 82
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 ## Current Position
 
 Phase: 41 (Autonomous Dino Minds (Group Engine v3)) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-06-17
+Plan: 3 of 3
+Status: Ready to execute (41-01 + 41-02 complete; 41-03 = frontend render + cost-cap docs + UAT)
+Last activity: 2026-06-17 -- Phase 41 Plan 02 complete
 
 ## Performance Metrics
 
@@ -158,6 +158,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-17T19:49:00.737Z
+Last session: 2026-06-17T19:57:53.535Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None
