@@ -262,6 +262,86 @@ describe('GroupchatService (turn-based)', () => {
     expect(resaved.id).toBe(first.id);
   });
 
+  // ─── Group Engine v3 autonomous stream (Phase 41 / GRP3-03) ───
+  //
+  // v3 emits an EMPTY `plan` (round1: [], round2: []) — no pre-created slots —
+  // and then drives the transcript purely from `dino_token`/`dino_done`
+  // (slots created dynamically) plus first-class autonomous `reaction` events.
+  // This drives a scripted multi-round mixed turn and proves the existing
+  // applyEvent routing renders it unchanged: ordered answers, reply attribution,
+  // a targeted reaction chip, and streaming cleared at the end.
+  it('renders the v3 autonomous stream: empty plan, ordered answers, a targeted reaction, group_done', async () => {
+    let userId = '';
+    streamGroup.mockImplementation(() => {
+      userId = service.messages()[0].id;
+      return makeEvents([
+        // v3 sends an EMPTY plan — no premature slots must be created.
+        { type: 'plan', plan: { round1: [], round2: [] } },
+        // Dino A answers the user.
+        { type: 'dino_token', dinoId: 'rex', text: 'Spinosaurus ' },
+        { type: 'dino_token', dinoId: 'rex', text: 'were aquatic.' },
+        {
+          type: 'dino_done',
+          dinoId: 'rex',
+          response: 'Spinosaurus were aquatic.',
+          messageId: 's-rex',
+          intent: 'answer_user',
+          replyToMessageId: userId,
+        },
+        // Dino B answers LATER, replying to A (GRP3-02 attribution).
+        { type: 'dino_token', dinoId: 'philo', text: 'I disagree, ' },
+        { type: 'dino_token', dinoId: 'philo', text: 'they waded.' },
+        {
+          type: 'dino_done',
+          dinoId: 'philo',
+          response: 'I disagree, they waded.',
+          messageId: 's-philo',
+          intent: 'disagree_with_agent',
+          replyToMessageId: 's-rex',
+          replyToAgentId: 'rex',
+        },
+        // Dino C reacts to B's message (autonomous first-class reaction).
+        { type: 'reaction', dinoId: 'glyphos', emoji: '🤔', targetMessageId: 's-philo' },
+        { type: 'group_done' },
+      ]);
+    });
+
+    service.send('Were Spinosaurus aquatic?', ['rex', 'philo', 'glyphos']);
+    await tick();
+
+    const msgs = service.messages();
+    const dinoMsgs = msgs.filter((m) => m.role === 'dino');
+
+    // The empty plan created NO premature slots — only the two answering dinos
+    // produced bubbles, in arrival order (A before B).
+    expect(dinoMsgs.map((m) => m.dinoId)).toEqual(['rex', 'philo']);
+
+    // Transcript order overall: user, then A, then B (top-to-bottom).
+    expect(msgs.map((m) => m.role)).toEqual(['user', 'dino', 'dino']);
+
+    const rex = dino(msgs, 'rex');
+    const philo = dino(msgs, 'philo');
+
+    expect(rex?.text).toBe('Spinosaurus were aquatic.');
+    expect(rex?.status).toBe('done');
+    expect(rex?.intent).toBe('answer_user');
+
+    // B carries its reply metadata (intent chip + reply stub source).
+    expect(philo?.text).toBe('I disagree, they waded.');
+    expect(philo?.status).toBe('done');
+    expect(philo?.intent).toBe('disagree_with_agent');
+    expect(philo?.replyToAgentId).toBe('rex');
+    expect(philo?.replyToMessageId).toBe('s-rex');
+
+    // C's reaction chip is pinned to B's message (matched by serverMessageId).
+    expect(philo?.reactions).toEqual([{ dinoId: 'glyphos', emoji: '🤔' }]);
+    // The reaction added NO extra transcript line.
+    expect(dinoMsgs).toHaveLength(2);
+
+    // The turn is fully settled.
+    expect(service.streaming()).toBe(false);
+  });
+
   it('stopAll aborts the in-flight stream and clears streaming', async () => {
     let captured: AbortSignal | undefined;
     async function* neverEnds(

@@ -13,11 +13,26 @@ import {
 // unit-tested functions with zero network/LLM dependency. The engine (Plan 02)
 // is the only caller; it runs the model and drives the round loop with these.
 
-// --- Cost ceiling (D-02) -----------------------------------------------------
-// Flat hard caps replacing the Phase 37 governor's `TurnBudget`/`defaultBudget`.
-// One source of truth for both the engine (Plan 02) and the docs. Worst-case
-// per user turn ≈ (MAX_GROUP_DINOS × MAX_ROUNDS) decision calls + MAX_TOTAL_ANSWERS
-// answer calls, keeping cost near the old `1 + 4 + 3` budget.
+// --- Cost ceiling (D-02 / Phase 41 Success Criterion #4) ---------------------
+// Flat hard caps that REPLACE the Phase 37 governor's `TurnBudget`/`defaultBudget`
+// (the central speaker-scheduling budget that capped a director-driven turn). In
+// Group Engine v3 there is no director: every participant dino independently makes
+// ONE decision call on its own model each round, so the ceiling is enforced as
+// flat per-turn limits here instead of a scheduler budget.
+//
+// This block is the SINGLE SOURCE OF TRUTH for the cost ceiling, consumed by both
+// the engine (Plan 02 `streamGroup`) and the docs / HUMAN-UAT.
+//
+// Worst-case LLM calls per user turn:
+//   decision calls ≤ MAX_GROUP_DINOS × MAX_ROUNDS = 4 × 3 = 12  (one per dino per round)
+//   answer  calls  ≤ MAX_TOTAL_ANSWERS            = 8           (hard generation ceiling)
+//   ────────────────────────────────────────────────────────────
+//   ≤ 20 calls/turn absolute worst case, but the round loop terminates early when a
+//   whole round produces zero answers (`shouldStopRounds`), so typical turns are far
+//   lower. Decision calls are tiny JSON classifications (cheap even on a dino's own
+//   larger model); only the ≤ 8 answer calls generate full responses. This keeps the
+//   real-world cost near the old Phase 37 `1 (director) + 4 + 3` budget while making
+//   every dino a faithful, independently-deciding mind.
 
 /** Max participant dinos in one group conversation. */
 export const MAX_GROUP_DINOS = 4;

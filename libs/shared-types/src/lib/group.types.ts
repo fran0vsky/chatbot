@@ -8,7 +8,15 @@ import { SpeechIntent } from './group-social.js';
 // and "silent" dinos cost no LLM call. These contracts are shared by the
 // backend orchestrator engine and the frontend group client.
 
-/** A single dino's action for one round, as decided by the orchestrator. */
+/**
+ * @deprecated Phase 35 orchestrator-plan contract — superseded by the autonomous
+ * per-dino `DinoDecision` (Group Engine v3, Phase 41). In v3 there is NO central
+ * director assigning per-dino actions; every dino makes its own `DinoDecision` on
+ * its own model. This type is retained ONLY because the engine still emits an
+ * empty `plan` event (`GroupOrchestratorPlan` with `round1: []`, `round2: []`)
+ * for SSE-contract stability — the frontend keys its slot-layout assumptions off
+ * that event. Do not use for new decision logic; use `DinoDecision` instead.
+ */
 export interface DinoTurnDecision {
   dinoId: string;
   /** Exactly one action per dino per round (D-07). */
@@ -23,7 +31,14 @@ export interface DinoTurnDecision {
   order: number;
 }
 
-/** The orchestrator's structured plan for a single user turn. */
+/**
+ * @deprecated Phase 35 orchestrator-plan contract — superseded by the autonomous
+ * per-dino `DinoDecision` (Group Engine v3, Phase 41). The central director that
+ * produced this plan is gone. Retained because the engine still emits an EMPTY
+ * instance of this shape as the leading `plan` event so the SSE contract (and the
+ * frontend's dynamic slot creation from `dino_token`) stays stable. The live
+ * decision contract is `DinoDecision`.
+ */
 export interface GroupOrchestratorPlan {
   /** Dinos answering the user message. */
   round1: DinoTurnDecision[];

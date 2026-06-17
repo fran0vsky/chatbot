@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
-status: executing
-stopped_at: Completed 41-02-PLAN.md (Group Engine v3 — streamGroup rewritten as the multi-round autonomous own-model per-dino loop; central director removed; cost ceiling enforced; governor pruned; 154 backend tests green)
-last_updated: "2026-06-17T19:57:53.547Z"
-last_activity: 2026-06-17 -- Phase 41 Plan 02 complete
+status: verifying
+stopped_at: Completed 41-03-PLAN.md (Group Engine v3 closed — frontend renders the autonomous stream unchanged with a scripted v3 regression test; legacy plan types marked @deprecated; cost-ceiling doc expanded; 41-HUMAN-UAT.md written; Phase 41 complete, ready for verification)
+last_updated: "2026-06-17T20:04:04.788Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 11
   completed_phases: 9
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 Phase: 41 (Autonomous Dino Minds (Group Engine v3)) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute (41-01 + 41-02 complete; 41-03 = frontend render + cost-cap docs + UAT)
-Last activity: 2026-06-17 -- Phase 41 Plan 02 complete
+Status: Phase complete — ready for verification
+Last activity: 2026-06-17
 
 ## Performance Metrics
 
@@ -105,6 +105,7 @@ Recent decisions affecting current work:
 - Phase 35-01: Backend group orchestrator = new GroupAgentsService + GroupAgentsController (POST /api/agents/group SSE), reusing AgentsService.streamAgent UNCHANGED per answerer. One cheap gpt-4o-mini orchestrator call returns a defensively-parsed per-dino answer/react/silent plan; Round 1 concurrent (multiplexed, dino-tagged on one SSE stream), Round 2 bounded+sequential (≤MAX_INTER_DINO_REPLIES=2). @mention forcing moved to engine level (streamGroup, not runOrchestrator) so it holds independent of the LLM plan and is unit-testable. Reactions cost zero LLM calls; documented hard ceiling 1+4+2=7 calls/turn. parseOrchestratorPlan + buildAttributedHistory (D-09 speaker-labelled history) exported as pure helpers. shared-types has a `typecheck` target, not `build`.
 - Phase 34-01: Memory Creator backend = standalone MemoryCreatorService reusing agents.service paid-fallback shape (FALLBACK_MODEL=gpt-4o-mini) WITHOUT importing agents.service.ts (D-02); writes DinoSkills only via addSkill/updateSkill (no new persistence endpoint, D-08); reconcile is a separate server-side LLM call returning 'new' or an existing skill id (D-07, decision never surfaced); imageGen dinos use FALLBACK_MODEL; all creator LLM failures degrade (suggest→[], synthesize→raw input) and never 500 the chat; parseSynthesized/parseReconcile exported as pure unit-testable helpers
 - Phase 36-01: HTTPS/TLS = host-level nginx + certbot (D-01), NOT dockerized. Ship `infra/nginx/dinoagents.conf` as an HTTP-only port-80 server block reverse-proxying `{DOMAIN}` → `http://localhost:3000`; `sudo certbot --nginx -d {DOMAIN}` augments the file in place (adds the `443 ssl` server + 80→443 301 redirect + systemd renew timer), sidestepping the cert/nginx chicken-and-egg (D-02). SSE streaming preserved via `proxy_buffering off` + `proxy_read_timeout/proxy_send_timeout 3600s` (backend already sends `X-Accel-Buffering: no`); `client_max_body_size 25m` for pasted screenshots (D-04). `CORS_ORIGIN=${CORS_ORIGIN:-https://{DOMAIN}}` added to compose backend env + `.env.example` (replaced the localhost dev default, D-05). README `## Deployment` fully rewritten VM+nginx+certbot (Cloud Run/Artifact Registry/WIF/Firebase Hosting content removed, D-06). `{DOMAIN}` placeholder only — no real host/cert committed (D-03). Live cert issuance + browser/streaming verification is a manual VM task (Task 4 — HUMAN-UAT, blocks INFRA-01 live confirmation). Docker not installed locally, so compose validity checked via `yaml` parse, not `docker compose config`.
+- Phase 41-03: Group Engine v3 closed (frontend render proof + legacy marking + cost doc + UAT) = the v3 autonomous SSE stream renders UNCHANGED on the frontend — `applyEvent`'s `plan` case already returns early when `answerers.length === 0` (the empty v3 plan) and slots are created dynamically from `dino_token` via `findOpenSlot`, so `groupchat.service.ts` needed NO patch (D-01 validated). Added a scripted v3-sequence regression test to `groupchat.service.spec.ts` (empty `plan` → ordered `dino_token`/`dino_done` answers → a `reaction` chip on the later answer by `serverMessageId` → `group_done`; asserts arrival order, reply/intent metadata, chip-not-line, `streaming=false`). Marked Phase 35 `DinoTurnDecision`/`GroupOrchestratorPlan` `@deprecated` (kept ONLY for the still-emitted empty `plan` event; live contract is `DinoDecision`). Expanded `decision.ts` cost-ceiling doc with the worst-case call count (≤ MAX_GROUP_DINOS×MAX_ROUNDS=4×3=12 decision calls + ≤ MAX_TOTAL_ANSWERS=8 answer calls, early-stop via `shouldStopRounds`) and that it REPLACES the Phase 37 governor `TurnBudget` (Success Criterion #4 doc half). Wrote `41-HUMAN-UAT.md` (PENDING checks for GRP3-01 independent per-dino own-model decisions/no fixed fan-out, GRP3-02 threaded inter-dino attribution, GRP3-03 mixed answers/reactions/silences top-to-bottom, cost ceiling + @mention forcing, single-dino/Arena regression — on localhost AND https://dinoagents.duckdns.org). Gate: backend 14 files/154 tests green, frontend lint+build green; `frontend:test` still hits the pre-existing Windows bundle-gen crash (env bug, not this plan — logged to deferred-items.md). Frontend Nx project id is `frontend`, not `@org/frontend` (plan's verify commands used the wrong id; logged). GRP3-03 is a roadmap-level mentor requirement not yet formalized in REQUIREMENTS.md, so no requirement checkbox to flip.
 - Phase 41-01: Autonomous decision primitive (foundation of Group Engine v3) = new shared `DinoDecision { action: 'answer'|'react'|'silent'; intent?: SpeechIntent; emoji?; replyToMessageId?; replyToAgentId?; confidence? }` in group.types.ts (reuses SpeechIntent; Phase 35 DinoTurnDecision/GroupOrchestratorPlan documented v3-vestigial, kept only for the empty `plan` event) + new LLM-free `apps/backend/src/app/agents/group/decision.ts` mirroring governor.ts: flat cost-ceiling constants (MAX_GROUP_DINOS=4, MAX_ROUNDS=3, MAX_ANSWERS_PER_DINO=2, MAX_TOTAL_ANSWERS=8) replacing the governor TurnBudget; `buildDecisionPrompt(profile, attributedThreadText, hasPriorDinoThisRound)` → pure {system,human} strings (no Message objects); `parseDecision(raw)` → validated DinoDecision (fence-strip from GroupAgentsService.parseJson, never throws — failure/unknown-action/react-without-emoji → silent, unknown answer intent → answer_user, confidence clamped); `heuristicDecision(profile, hasPrior)` bias-driven deterministic fallback (always valid shape, emoji iff react); RoundCounters + dinoAtAnswerCap/atTotalAnswerCap/shouldStopRounds (stop when answersThisRound===0 OR roundIndex+1>=MAX_ROUNDS) predicates. Fully unit-tested (backend 14 files/166 tests green). NOT wired into streamGroup — Plan 02's scope. Pre-existing unused-import lint error (`TurnBudget` in group-agents.service.ts:20, from Phase 37 e607473) is out of scope, logged to deferred-items.md, resolves naturally in Plan 02.
 - Phase 32-01: Image cap N=2 in buildHistory() — last 2 image-bearing user turns retain imageDataUrl; older stripped (D-01/D-02); flatMap for historyMessages — tool items yield AIMessage(tool_calls)+ToolMessage pair with synthetic id replay-{toolName}-{index}; HISTORY_CAP=20 applied to conversational turns only, tool messages ride within window (D-04/D-05/D-06)
 
@@ -158,6 +159,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-17T19:57:53.535Z
+Last session: 2026-06-17T20:04:04.779Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None
