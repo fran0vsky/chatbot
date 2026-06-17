@@ -31,6 +31,32 @@ export interface GroupOrchestratorPlan {
   round2: DinoTurnDecision[];
 }
 
+/**
+ * The autonomous per-dino decision output (Group Engine v3, Phase 41).
+ *
+ * Unlike the Phase 35 `DinoTurnDecision`/`GroupOrchestratorPlan` — where a single
+ * central director pre-selected who speaks and how — in v3 EVERY participant dino
+ * makes its OWN decision call on its OWN model, in full persona, choosing exactly
+ * one action. The Phase 35 orchestrator-plan types are superseded for decision
+ * making and kept only for the still-emitted (now empty) `plan` SSE event, which
+ * preserves the frontend contract. This `DinoDecision` is the single output of
+ * one dino's autonomous decision.
+ */
+export interface DinoDecision {
+  /** The one action this dino chose this round. */
+  action: 'answer' | 'react' | 'silent';
+  /** The dino's own stance — present only when `action === 'answer'` (default `answer_user`). */
+  intent?: SpeechIntent;
+  /** A single emoji — present (and required) only when `action === 'react'`. */
+  emoji?: string;
+  /** The prior message this turn is responding to (enables the threaded reply stub). */
+  replyToMessageId?: string;
+  /** The prior dino this turn is addressed to. */
+  replyToAgentId?: string;
+  /** The dino's self-reported confidence, 0..1. */
+  confidence?: number;
+}
+
 /** An emoji reaction by a dino, pinned to a target message (D-06). */
 export interface GroupReaction {
   dinoId: string;
