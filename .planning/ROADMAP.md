@@ -70,7 +70,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 38: Production Runtime Parity** - close the localhost-vs-website runtime gaps: Tavily secret wired into the VM container, JSON body limit raised for image payloads, automated DB schema migration on deploy (completed 2026-06-16)
 - [x] **Phase 39: Deploy Truth & Smoke Checks** - CI post-deploy smoke stage against the live domain; remove the vestigial GCS frontend deploy; runbooks updated to the real Caddy architecture (completed 2026-06-16)
-- [ ] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note)
+- [x] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note) (completed 2026-06-17)
 - [ ] **Phase 41: Autonomous Dino Minds (Group Engine v3)** - every incoming message triggers one decision call per participant dino on its own model — answer / reaction / no answer — with the user message + full thread in context before every action (mentor note)
 - [ ] **Phase 42: Custom Dino Creator** - add-a-dino flow: name, avatar image, description, personality/reaction prompt, tool subset; persisted per user; joins picker + group chat (mentor note)
 - [ ] **Phase 43: When-to-React Configuration** - user-facing group-chat config for when each dino reacts (built-in + custom dinos) (mentor note)
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | **— v2.2 Production Parity & Custom Dinos —** | | | |
 | 38. Production Runtime Parity | 3/3 | Complete   | 2026-06-16 |
 | 39. Deploy Truth & Smoke Checks | 3/3 | Complete   | 2026-06-16 |
-| 40. Skill Recall Cadence | 1/2 | In Progress|  |
+| 40. Skill Recall Cadence | 2/2 | Complete   | 2026-06-17 |
 | 41. Autonomous Dino Minds (Group Engine v3) | 0/TBD | Not planned | - |
 | 42. Custom Dino Creator | 0/TBD | Not planned | - |
 | 43. When-to-React Configuration | 0/TBD | Not planned | - |
@@ -744,7 +744,7 @@ Plans:
   2. Which skill was pulled is observable (UI hint in "what it remembers" / Knowledge surface, or at minimum backend log)
   3. Teach, edit, and manage flows are unchanged; conversations with no relevant skill inject nothing
 **Scope note:** ⚠ The mentor note is ambiguous between *retrieval* cadence (pull one skill per conversation) and *extraction* cadence (save one skill per conversation) — confirm the intended reading at `/gsd-discuss-phase 40` before planning. Current behavior to audit first: what exactly gets injected per turn today.
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 **UI hint:** yes (small)
 
 ### Phase 41: Autonomous Dino Minds (Group Engine v3)
