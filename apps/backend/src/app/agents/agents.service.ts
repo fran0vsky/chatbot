@@ -467,6 +467,62 @@ export class AgentsService {
   }
 
   /**
+   * Cheap-LLM single-skill scorer. Given the conversation's opening user message
+   * and the full list of taught skills, returns the single most relevant skill or
+   * null. Selection is bounded, never throws, and degrades to null on any failure
+   * so the chat always continues unaffected (T-40-01-01).
+   */
+  private async selectRelevantSkill(
+    openingMessage: string,
+    skills: SkillView[],
+    signal?: AbortSignal,
+  ): Promise<SkillView | null> {
+    if (skills.length === 0) return null;
+    try {
+      const scorer = new ChatOpenAI({
+        model: MEMORY_EXTRACTION_MODEL,
+        apiKey: process.env['OPENROUTER_API_KEY'],
+        configuration: { baseURL: 'https://openrouter.ai/api/v1' },
+      });
+
+      const skillList = skills
+        .map(
+          (s, i) =>
+            `${i + 1}. ${s.title} — use when: ${s.whenToActivate ?? 'always'}`,
+        )
+        .join('\n');
+
+      const instruction =
+        'You are a skill selector. Given the user message and a numbered list of skills, ' +
+        'reply with ONLY the integer index (e.g. "2") of the single most relevant skill, ' +
+        'or reply with exactly NONE if no skill is relevant. Do not explain — just the number or NONE.';
+
+      const prompt =
+        `User message:\n${openingMessage}\n\nAvailable skills:\n${skillList}`;
+
+      const res = (await Promise.race([
+        scorer.invoke([new SystemMessage(instruction), new HumanMessage(prompt)], {
+          signal,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SCORER_TIMEOUT')), 8_000),
+        ),
+      ])) as AIMessage;
+
+      const raw = typeof res.content === 'string' ? res.content.trim() : '';
+      if (raw.toUpperCase() === 'NONE' || raw === '') return null;
+      const index = parseInt(raw, 10);
+      if (isNaN(index) || index < 1 || index > skills.length) return null;
+      return skills[index - 1];
+    } catch (err) {
+      this.logger.warn(
+        `Skill selection failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return null;
+    }
+  }
+
+  /**
    * Best-effort durable-fact extraction. Uses a small cheap model to pull 0–3
    * long-term facts about the USER from the just-finished turn and stores them.
    * Never throws — a failure here must never affect the chat.
