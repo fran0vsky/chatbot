@@ -178,9 +178,40 @@ export class AgentsService {
           this.memoryService.getSkills(userId, dino.id),
         ]);
       }
+
+      // Skill recall cadence (MEM2-01): select exactly ONE most-relevant skill for
+      // this conversation. Scoring against the opening message (first user turn or
+      // the current message on turn 1) keeps the choice stable across the whole
+      // thread without persistence.
+      const openingMessage =
+        history?.find((h) => h.role === 'user')?.text ?? message;
+      const selectedSkill = dino
+        ? await this.selectRelevantSkill(openingMessage, skills, signal)
+        : null;
+
+      if (dino) {
+        if (selectedSkill) {
+          this.logger.log(
+            `Skill recall: selected ${selectedSkill.id} (${selectedSkill.title})`,
+          );
+        } else {
+          this.logger.log('Skill recall: no skill selected');
+        }
+      }
+
       const systemPrompt = dino
-        ? this.buildSystemPrompt(dino.systemPrompt, null, memories, directive)
+        ? this.buildSystemPrompt(dino.systemPrompt, selectedSkill, memories, directive)
         : undefined;
+
+      // Emit the active-skill hint before the token stream starts so the UI can
+      // surface it early. Only emitted when a skill is actually selected (D-04).
+      if (selectedSkill) {
+        yield {
+          type: 'skill_active',
+          skillId: selectedSkill.id,
+          skillTitle: selectedSkill.title,
+        };
+      }
 
       // Within-thread context: replay recent prior turns so follow-ups have
       // context. Four cases per ChatHistoryItem:
