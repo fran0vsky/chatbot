@@ -179,7 +179,7 @@ export class AgentsService {
         ]);
       }
       const systemPrompt = dino
-        ? this.buildSystemPrompt(dino.systemPrompt, skills, memories, directive)
+        ? this.buildSystemPrompt(dino.systemPrompt, null, memories, directive)
         : undefined;
 
       // Within-thread context: replay recent prior turns so follow-ups have
@@ -432,26 +432,22 @@ export class AgentsService {
   }
 
   /**
-   * Assemble the dino system prompt: base persona → user-taught skills (standing
-   * instructions) → auto-extracted memories (facts). Skills are deliberately a
-   * separate, higher-authority block from memories. Empty blocks are omitted.
+   * Assemble the dino system prompt: base persona → single selected skill (standing
+   * instruction) → auto-extracted memories (facts). At most one skill is injected —
+   * the one chosen by selectRelevantSkill for this conversation. Empty blocks are omitted.
    */
   private buildSystemPrompt(
     basePrompt: string,
-    skills: SkillView[],
+    skill: SkillView | null,
     memories: string[],
     directive?: string,
   ): string {
     let prompt = basePrompt;
-    if (skills.length > 0) {
-      const block = skills
-        .map((s) =>
-          s.whenToActivate
-            ? `- ${s.title} (use when: ${s.whenToActivate}): ${s.instruction}`
-            : `- ${s.title}: ${s.instruction}`,
-        )
-        .join('\n');
-      prompt += `\n\n## MANDATORY STANDING INSTRUCTIONS\nThe user has configured the following behaviors. You MUST apply ALL of them in every single response, without exception, regardless of context:\n${block}`;
+    if (skill) {
+      const trigger = skill.whenToActivate
+        ? ` (use when: ${skill.whenToActivate})`
+        : '';
+      prompt += `\n\n## STANDING INSTRUCTION FOR THIS CONVERSATION\nThe user has configured the following behavior. Apply it throughout this conversation:\n- ${skill.title}${trigger}: ${skill.instruction}`;
     }
     if (memories.length > 0) {
       const block = memories.map((m) => `- ${m}`).join('\n');
