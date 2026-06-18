@@ -72,7 +72,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 39: Deploy Truth & Smoke Checks** - CI post-deploy smoke stage against the live domain; remove the vestigial GCS frontend deploy; runbooks updated to the real Caddy architecture (completed 2026-06-16)
 - [x] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note) (completed 2026-06-17)
 - [x] **Phase 41: Autonomous Dino Minds (Group Engine v3)** - every incoming message triggers one decision call per participant dino on its own model — answer / reaction / no answer — with the user message + full thread in context before every action (mentor note) (completed 2026-06-17)
-- [x] **Phase 42: Custom Dino Creator** - add-a-dino flow: name, avatar image, description, personality/reaction prompt, tool subset; persisted per user; joins picker + group chat (mentor note) (completed 2026-06-18)
+- [ ] **Phase 42: Custom Dino Creator** - add-a-dino flow: name, avatar image, description, personality/reaction prompt, tool subset; persisted per user; joins picker + group chat (mentor note) (in progress: data+API layer done; gaps_found — needs avatar upload, chat-loop resolution, creation UI plans)
 - [ ] **Phase 43: When-to-React Configuration** - user-facing group-chat config for when each dino reacts (built-in + custom dinos) (mentor note)
 - [ ] **Phase 44: Pre-Launch UAT Sweep** - burn down the pending HUMAN-UAT backlog on the production site, fix fallout, ready the app for first real users
 
@@ -172,7 +172,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 39. Deploy Truth & Smoke Checks | 3/3 | Complete   | 2026-06-16 |
 | 40. Skill Recall Cadence | 2/2 | Complete   | 2026-06-17 |
 | 41. Autonomous Dino Minds (Group Engine v3) | 3/3 | Complete   | 2026-06-17 |
-| 42. Custom Dino Creator | 1/1 | Complete   | 2026-06-18 |
+| 42. Custom Dino Creator | 1/4 | In Progress (gaps planned: 02–04) | 2026-06-18 |
 | 43. When-to-React Configuration | 0/TBD | Not planned | - |
 | 44. Pre-Launch UAT Sweep | 0/TBD | Not planned | - |
 
@@ -774,7 +774,7 @@ Plans:
   3. Custom dinos persist in the DB scoped to the anonymous user id, and can be edited and deleted (CDINO-03)
   4. A custom dino can be selected into a group chat and participates via the Phase 41 engine (CDINO-04)
 **Scope note:** In — DB table + CRUD API, creation/edit UI, registry-merge resolution (built-in registry + per-user custom dinos), avatar handling (storage decision — base64-in-DB vs bucket — made and documented in-phase), default model assignment (decide at discuss-phase whether users pick a model or get a default). Out — sharing dinos between users, marketplace, custom tool authoring.
-**Plans:** 1/1 plans complete
+**Plans:** 4 planned — 01 executed (data+API layer); 02 (avatar upload), 03 (chat-loop resolution + /api/dinos merge), 04 (creation/edit/delete UI) planned via /gsd:plan-phase 42 --gaps to close VERIFICATION gaps
 **UI hint:** yes
 
 ### Phase 43: When-to-React Configuration
@@ -802,5 +802,5 @@ Plans:
   2. The five v2.0/v2.1 features users will touch first — single chat, group chat, image attach, image gen, voice assistant — each complete one happy-path run on the live site without errors
   3. A short "known limitations" note exists for first users (browser support for voice, free-model 429 behavior, etc.)
 **Scope note:** In — running the documented UAT scripts on prod, triage, blocker fixes, limitations note. Out — new features. Use `/gsd-verify-work` per item where it fits.
-**Plans:** TBD (run `/gsd-plan-phase 44`)
+**Plans:** 4 — 01 Prod UAT runbook (consolidated checklist), 02 Known-limitations note, 03 Human-gated prod sweep + triage, 04 Contingent blocker remediation
 **UI hint:** no

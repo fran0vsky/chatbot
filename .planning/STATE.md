@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
 status: verifying
-stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
-last_updated: "2026-06-18T08:43:16.264Z"
+stopped_at: Phase 43 context gathered
+last_updated: "2026-06-18T22:49:02.294Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 11
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 ## Current Position
 
-Phase: 42 (custom-dino-creator) — COMPLETE
-Plan: 1 of 1
-Status: Phase 42 complete — all plans executed; UAT pending
+Phase: 42 (custom-dino-creator) — IN PROGRESS (gaps_found)
+Plan: 1 of 1 executed (data + contract layer only)
+Status: Phase 42 plan 01 complete, but phase goal NOT met — verifier reports gaps_found (0/4 must-haves; CDINO-03 backend-only). Plans for avatar upload, chat-loop resolution (custom: id resolver in agents.service + group-agents.service), and creation/edit UI were never written. Next: /gsd:plan-phase 42 --gaps. SECURITY: a custom:* dinoId in chat currently resolves to undefined → no system prompt + ungated tools (T-42-01-02 not mitigated at runtime).
 Last activity: 2026-06-18
 
 ## Performance Metrics
@@ -160,6 +160,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-18T08:43:16.256Z
-Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
-Resume file: None
+Last session: 2026-06-18T22:49:02.286Z
+Stopped at: Phase 43 context gathered
+Resume file: .planning/phases/43-when-to-react-configuration/43-CONTEXT.md
