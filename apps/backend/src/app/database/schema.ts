@@ -96,6 +96,33 @@ export const dinoRatings = pgTable('dino_ratings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// User-authored custom dinos. Each row is a user-created dino that resolves the same
+// way as a built-in: model + system prompt + tool subset, looked up server-side so the
+// client can never read the prompt or widen the toolset.
+// Identity is the same anonymous per-device userId used by userMemories / dinoSkills.
+// The public id exposed to the client is `custom:<uuid>` (prefix applied in the service).
+export const customDinos = pgTable(
+  'custom_dinos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    species: text('species'),
+    avatarUrl: text('avatar_url'),
+    blurb: text('blurb'),
+    persona: text('persona'),
+    systemPrompt: text('system_prompt').notNull(),
+    model: text('model').notNull(),
+    toolNames: jsonb('tool_names').notNull().default([]),
+    accent: text('accent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('custom_dinos_user_idx').on(table.userId),
+  }),
+);
+
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Message = typeof messages.$inferSelect;
@@ -106,3 +133,5 @@ export type DinoSkill = typeof dinoSkills.$inferSelect;
 export type NewDinoSkill = typeof dinoSkills.$inferInsert;
 export type DinoRatingRow = typeof dinoRatings.$inferSelect;
 export type NewDinoRatingRow = typeof dinoRatings.$inferInsert;
+export type CustomDinoRow = typeof customDinos.$inferSelect;
+export type NewCustomDinoRow = typeof customDinos.$inferInsert;

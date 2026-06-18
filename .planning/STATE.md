@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
 status: verifying
-stopped_at: Completed 41-03-PLAN.md (Group Engine v3 closed — frontend renders the autonomous stream unchanged with a scripted v3 regression test; legacy plan types marked @deprecated; cost-ceiling doc expanded; 41-HUMAN-UAT.md written; Phase 41 complete, ready for verification)
-last_updated: "2026-06-17T20:04:04.788Z"
-last_activity: 2026-06-17
+stopped_at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
+last_updated: "2026-06-18T08:43:16.264Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 33
+  completed_plans: 32
   percent: 82
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 41 — Autonomous Dino Minds (Group Engine v3)
+**Current focus:** Phase 42 — custom-dino-creator
 
 ## Current Position
 
-Phase: 41 (Autonomous Dino Minds (Group Engine v3)) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-17
+Phase: 42 (custom-dino-creator) — COMPLETE
+Plan: 1 of 1
+Status: Phase 42 complete — all plans executed; UAT pending
+Last activity: 2026-06-18
 
 ## Performance Metrics
 
@@ -107,6 +107,7 @@ Recent decisions affecting current work:
 - Phase 36-01: HTTPS/TLS = host-level nginx + certbot (D-01), NOT dockerized. Ship `infra/nginx/dinoagents.conf` as an HTTP-only port-80 server block reverse-proxying `{DOMAIN}` → `http://localhost:3000`; `sudo certbot --nginx -d {DOMAIN}` augments the file in place (adds the `443 ssl` server + 80→443 301 redirect + systemd renew timer), sidestepping the cert/nginx chicken-and-egg (D-02). SSE streaming preserved via `proxy_buffering off` + `proxy_read_timeout/proxy_send_timeout 3600s` (backend already sends `X-Accel-Buffering: no`); `client_max_body_size 25m` for pasted screenshots (D-04). `CORS_ORIGIN=${CORS_ORIGIN:-https://{DOMAIN}}` added to compose backend env + `.env.example` (replaced the localhost dev default, D-05). README `## Deployment` fully rewritten VM+nginx+certbot (Cloud Run/Artifact Registry/WIF/Firebase Hosting content removed, D-06). `{DOMAIN}` placeholder only — no real host/cert committed (D-03). Live cert issuance + browser/streaming verification is a manual VM task (Task 4 — HUMAN-UAT, blocks INFRA-01 live confirmation). Docker not installed locally, so compose validity checked via `yaml` parse, not `docker compose config`.
 - Phase 41-03: Group Engine v3 closed (frontend render proof + legacy marking + cost doc + UAT) = the v3 autonomous SSE stream renders UNCHANGED on the frontend — `applyEvent`'s `plan` case already returns early when `answerers.length === 0` (the empty v3 plan) and slots are created dynamically from `dino_token` via `findOpenSlot`, so `groupchat.service.ts` needed NO patch (D-01 validated). Added a scripted v3-sequence regression test to `groupchat.service.spec.ts` (empty `plan` → ordered `dino_token`/`dino_done` answers → a `reaction` chip on the later answer by `serverMessageId` → `group_done`; asserts arrival order, reply/intent metadata, chip-not-line, `streaming=false`). Marked Phase 35 `DinoTurnDecision`/`GroupOrchestratorPlan` `@deprecated` (kept ONLY for the still-emitted empty `plan` event; live contract is `DinoDecision`). Expanded `decision.ts` cost-ceiling doc with the worst-case call count (≤ MAX_GROUP_DINOS×MAX_ROUNDS=4×3=12 decision calls + ≤ MAX_TOTAL_ANSWERS=8 answer calls, early-stop via `shouldStopRounds`) and that it REPLACES the Phase 37 governor `TurnBudget` (Success Criterion #4 doc half). Wrote `41-HUMAN-UAT.md` (PENDING checks for GRP3-01 independent per-dino own-model decisions/no fixed fan-out, GRP3-02 threaded inter-dino attribution, GRP3-03 mixed answers/reactions/silences top-to-bottom, cost ceiling + @mention forcing, single-dino/Arena regression — on localhost AND https://dinoagents.duckdns.org). Gate: backend 14 files/154 tests green, frontend lint+build green; `frontend:test` still hits the pre-existing Windows bundle-gen crash (env bug, not this plan — logged to deferred-items.md). Frontend Nx project id is `frontend`, not `@org/frontend` (plan's verify commands used the wrong id; logged). GRP3-03 is a roadmap-level mentor requirement not yet formalized in REQUIREMENTS.md, so no requirement checkbox to flip.
 - Phase 41-01: Autonomous decision primitive (foundation of Group Engine v3) = new shared `DinoDecision { action: 'answer'|'react'|'silent'; intent?: SpeechIntent; emoji?; replyToMessageId?; replyToAgentId?; confidence? }` in group.types.ts (reuses SpeechIntent; Phase 35 DinoTurnDecision/GroupOrchestratorPlan documented v3-vestigial, kept only for the empty `plan` event) + new LLM-free `apps/backend/src/app/agents/group/decision.ts` mirroring governor.ts: flat cost-ceiling constants (MAX_GROUP_DINOS=4, MAX_ROUNDS=3, MAX_ANSWERS_PER_DINO=2, MAX_TOTAL_ANSWERS=8) replacing the governor TurnBudget; `buildDecisionPrompt(profile, attributedThreadText, hasPriorDinoThisRound)` → pure {system,human} strings (no Message objects); `parseDecision(raw)` → validated DinoDecision (fence-strip from GroupAgentsService.parseJson, never throws — failure/unknown-action/react-without-emoji → silent, unknown answer intent → answer_user, confidence clamped); `heuristicDecision(profile, hasPrior)` bias-driven deterministic fallback (always valid shape, emoji iff react); RoundCounters + dinoAtAnswerCap/atTotalAnswerCap/shouldStopRounds (stop when answersThisRound===0 OR roundIndex+1>=MAX_ROUNDS) predicates. Fully unit-tested (backend 14 files/166 tests green). NOT wired into streamGroup — Plan 02's scope. Pre-existing unused-import lint error (`TurnBudget` in group-agents.service.ts:20, from Phase 37 e607473) is out of scope, logged to deferred-items.md, resolves naturally in Plan 02.
+- Phase 42-01: Custom dino persistence foundation = custom_dinos pgTable (schema.ts) + CustomDinoService CRUD scoped by userId (null-db graceful degradation mirrors MemoryService) + CustomDinosController REST endpoints (POST/GET/PUT/DELETE /custom-dinos + GET /models) + MODEL_CATALOGUE of 5 free/cheap OpenRouter models + isAllowedModel guard + shared types (CustomDino / CreateCustomDinoRequest / UpdateCustomDinoRequest / CuratedModel). Custom id namespace: raw uuid in DB, public id = `custom:<uuid>` (D-02). toCustomDinoSummary projection uses explicit allowlist — systemPrompt can never leak (D-05). AVATAR_BUCKET documented in .env.example (Plan 02 consumes it). 15 test files / 175 tests green.
 - Phase 32-01: Image cap N=2 in buildHistory() — last 2 image-bearing user turns retain imageDataUrl; older stripped (D-01/D-02); flatMap for historyMessages — tool items yield AIMessage(tool_calls)+ToolMessage pair with synthetic id replay-{toolName}-{index}; HISTORY_CAP=20 applied to conversational turns only, tool messages ride within window (D-04/D-05/D-06)
 
 ### Pending Todos
@@ -159,6 +160,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-06-17T20:04:04.779Z
+Last session: 2026-06-18T08:43:16.256Z
 Stopped at: Completed 36-01-PLAN.md (HTTPS/Let's Encrypt — nginx config + CORS bump + README runbook committed; live VM cert issuance manual/pending)
 Resume file: None

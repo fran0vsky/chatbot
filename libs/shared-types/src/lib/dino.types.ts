@@ -119,3 +119,66 @@ export interface SaveCreatedSkillResponse {
   skill: DinoSkill;
   action: 'created' | 'updated';
 }
+
+// --- Custom Dino Creator contracts (Phase 42) ---
+// A custom dino is the same shape as a built-in — model + system prompt + tool subset —
+// persisted per anonymous user, selectable in the picker, and resolvable in the chat loop.
+// The system prompt and toolset are resolved server-side; the client never sends them directly.
+
+/**
+ * A curated OpenRouter model entry selectable when creating a custom dino.
+ * Only the allowed free/cheap models are exposed via GET /api/models.
+ */
+export interface CuratedModel {
+  id: string;
+  label: string;
+}
+
+/**
+ * Full persisted shape of a user-authored dino (returned after create/update).
+ * `systemPrompt` is included in the server-to-server shape but NEVER included
+ * in the public projection (`toCustomDinoSummary`).
+ */
+export interface CustomDino {
+  /** Public id: `custom:<uuid>` — cannot collide with built-in registry ids. */
+  id: string;
+  userId: string;
+  name: string;
+  species?: string;
+  avatarUrl?: string;
+  blurb?: string;
+  persona?: string;
+  systemPrompt: string;
+  model: string;
+  toolNames: string[];
+  accent?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Request body for POST /api/custom-dinos. */
+export interface CreateCustomDinoRequest {
+  userId: string;
+  name: string;
+  species?: string;
+  avatarUrl?: string;
+  blurb?: string;
+  persona?: string;
+  systemPrompt: string;
+  model: string;
+  toolNames: string[];
+  accent?: string;
+}
+
+/** Request body for PUT /api/custom-dinos/:id. All editable fields; userId is NOT editable. */
+export interface UpdateCustomDinoRequest {
+  name?: string;
+  species?: string;
+  avatarUrl?: string;
+  blurb?: string;
+  persona?: string;
+  systemPrompt?: string;
+  model?: string;
+  toolNames?: string[];
+  accent?: string;
+}
