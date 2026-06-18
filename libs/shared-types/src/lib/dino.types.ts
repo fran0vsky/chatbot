@@ -53,6 +53,8 @@ export interface Dino {
   accent?: string;
   /** Optional voice character for TTS read-aloud (VOX-01/02). */
   voiceProfile?: VoiceProfile;
+  /** Optional uploaded avatar URL (custom dinos). Built-ins use the mascot pipeline. */
+  avatarUrl?: string;
 }
 
 /** Frontend-safe projection — omits the raw system prompt. */

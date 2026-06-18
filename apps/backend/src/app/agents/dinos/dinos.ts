@@ -140,5 +140,6 @@ export function toDinoSummary(dino: Dino): DinoSummary {
     imageGen: dino.imageGen,
     accent: dino.accent,
     voiceProfile: dino.voiceProfile,
+    avatarUrl: dino.avatarUrl,
   };
 }

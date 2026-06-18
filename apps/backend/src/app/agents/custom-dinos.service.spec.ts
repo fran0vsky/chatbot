@@ -269,3 +269,112 @@ describe('CustomDinoService — toCustomDinoSummary projection', () => {
     expect(summary.toolNames).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tests: 42-REVIEW fix — CR-02: update() rejects empty patch
+// ---------------------------------------------------------------------------
+
+describe('CustomDinoService — CR-02: update rejects empty patch', () => {
+  it('throws BadRequestException when update request has no defined fields', async () => {
+    const fakeDb = {
+      update: () => ({ set: () => ({ where: () => ({ returning: async () => [] }) }) }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    await expect(svc.update('custom:abc123', 'user-1', {})).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('does not reject when at least one field is provided', async () => {
+    const fakeDb = {
+      update: () => ({ set: () => ({ where: () => ({ returning: async () => [] }) }) }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    // Returns null (no row returned by fake DB) but does not throw
+    await expect(svc.update('custom:abc123', 'user-1', { name: 'New name' })).resolves.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: 42-REVIEW fix — WR-01: validation errors are not swallowed to null
+// ---------------------------------------------------------------------------
+
+describe('CustomDinoService — WR-01: catch block re-throws HttpException', () => {
+  it('create() re-throws BadRequestException from validation (model check)', async () => {
+    // Even if a future code path throws inside the try block, it must surface
+    // as a 400. We simulate this with a fakeDb whose .insert() throws a BadRequestException.
+    const fakeDb = {
+      insert: () => ({
+        values: () => ({
+          returning: async () => {
+            throw new BadRequestException('injected validation error');
+          },
+        }),
+      }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    await expect(svc.create(VALID_CREATE)).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('update() re-throws BadRequestException thrown inside try block', async () => {
+    const fakeDb = {
+      update: () => ({
+        set: () => ({
+          where: () => ({
+            returning: async () => {
+              throw new BadRequestException('injected validation error');
+            },
+          }),
+        }),
+      }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    // Provide a non-empty patch so CR-02 guard does not fire
+    await expect(svc.update('custom:abc123', 'user-1', { name: 'X' })).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests: 42-REVIEW fix — WR-03: invalid avatarUrl rejected on create
+// ---------------------------------------------------------------------------
+
+describe('CustomDinoService — WR-03: avatarUrl validation', () => {
+  it('rejects a javascript: avatarUrl on create', async () => {
+    const fakeDb = {
+      insert: () => ({ values: () => ({ returning: async () => [] }) }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    await expect(
+      svc.create({ ...VALID_CREATE, avatarUrl: 'javascript:alert(1)' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects a non-URL string on create', async () => {
+    const fakeDb = {
+      insert: () => ({ values: () => ({ returning: async () => [] }) }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    await expect(
+      svc.create({ ...VALID_CREATE, avatarUrl: 'not-a-url' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('accepts a valid https avatarUrl on create', async () => {
+    const fakeDb = {
+      insert: () => ({ values: () => ({ returning: async () => [] }) }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    // Returns null (empty returning array) but does NOT throw
+    await expect(
+      svc.create({ ...VALID_CREATE, avatarUrl: 'https://cdn.example.com/avatar.png' }),
+    ).resolves.toBeNull();
+  });
+
+  it('rejects a javascript: avatarUrl on update', async () => {
+    const fakeDb = {
+      update: () => ({ set: () => ({ where: () => ({ returning: async () => [] }) }) }),
+    };
+    const svc = new CustomDinoService({ db: fakeDb, pool: null } as never);
+    await expect(
+      svc.update('custom:abc123', 'user-1', { avatarUrl: 'javascript:alert(1)' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});

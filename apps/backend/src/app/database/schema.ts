@@ -116,7 +116,7 @@ export const customDinos = pgTable(
     toolNames: jsonb('tool_names').notNull().default([]),
     accent: text('accent'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
   },
   (table) => ({
     userIdx: index('custom_dinos_user_idx').on(table.userId),

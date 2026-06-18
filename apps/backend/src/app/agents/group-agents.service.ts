@@ -11,8 +11,9 @@ import {
   SpeechIntent,
   ARTIST_DEFAULT_REACTION,
 } from '@org/shared-types';
-import { DINOS, getDino } from './dinos';
 import { AgentsService } from './agents.service';
+import { resolveDino } from './dino-resolver';
+import { CustomDinoService } from './custom-dinos.service';
 import { getProfile } from './group/agent-profiles';
 import { ConversationState, initConversationState } from './group/governor';
 import {
@@ -106,25 +107,32 @@ export function buildDirective(
 export class GroupAgentsService {
   private readonly logger = new Logger(GroupAgentsService.name);
 
-  constructor(private readonly agentsService: AgentsService) {}
+  constructor(
+    private readonly agentsService: AgentsService,
+    private readonly customDinoService: CustomDinoService,
+  ) {}
 
-  /** Resolve participant ids to real, unique dinos, capped to MAX_GROUP_DINOS. */
-  private resolveRoster(participantDinoIds: string[]): Dino[] {
-    const known = new Set(DINOS.map((d) => d.id));
+  /**
+   * Resolve participant ids to real, unique dinos, capped to MAX_GROUP_DINOS.
+   * Supports both built-in ids and `custom:<uuid>` ids via the async resolver.
+   * Ids that resolve to undefined (unknown custom dino, wrong userId, etc.) are
+   * silently dropped — they do not block the rest of the roster from participating.
+   */
+  private async resolveRoster(
+    participantDinoIds: string[],
+    userId: string | undefined,
+  ): Promise<Dino[]> {
     const seen = new Set<string>();
     const roster: Dino[] = [];
     for (const id of participantDinoIds) {
-      if (!known.has(id) || seen.has(id)) continue;
+      if (seen.has(id)) continue;
       seen.add(id);
-      roster.push(getDino(id));
+      const dino = await resolveDino(id, userId, this.customDinoService);
+      if (!dino) continue;
+      roster.push(dino);
       if (roster.length >= MAX_GROUP_DINOS) break;
     }
     return roster;
-  }
-
-  /** True for image-generation dinos — they react instead of answering (no text). */
-  private isImageGenDino(dinoId: string): boolean {
-    return getDino(dinoId).imageGen === true;
   }
 
   /** Forced dinoIds from `@<name>` mentions, matched case-insensitively. */
@@ -208,7 +216,7 @@ export class GroupAgentsService {
     history: GroupMessage[] | undefined,
     signal: AbortSignal,
   ): AsyncGenerator<GroupStreamEvent, void, void> {
-    const roster = this.resolveRoster(participantDinoIds);
+    const roster = await this.resolveRoster(participantDinoIds, userId);
     if (roster.length === 0) {
       yield { type: 'group_done' };
       return;
@@ -260,7 +268,7 @@ export class GroupAgentsService {
 
         // --- decide -----------------------------------------------------------
         let decision: DinoDecision;
-        if (this.isImageGenDino(dino.id)) {
+        if (dino.imageGen === true) {
           decision = this.imageGenDecision(state);
         } else if (isForcedAnswer) {
           decision = { action: 'answer', intent: 'answer_user', confidence: profile.confidence };

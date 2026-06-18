@@ -9,8 +9,9 @@ import {
 } from '@langchain/core/messages';
 import { ChatHistoryItem, Dino, StreamEvent, ToolCallRecord } from '@org/shared-types';
 import { tools } from './tools';
-import { getDino } from './dinos';
 import { MemoryService, SkillView } from '../memory/memory.service';
+import { resolveDino } from './dino-resolver';
+import { CustomDinoService } from './custom-dinos.service';
 
 const MAX_TOOL_ITERATIONS = 5;
 const LLM_TIMEOUT_MS = 20_000;
@@ -64,7 +65,10 @@ export function resolveActiveTools(
 export class AgentsService {
   private readonly logger = new Logger(AgentsService.name);
 
-  constructor(private readonly memoryService: MemoryService) {}
+  constructor(
+    private readonly memoryService: MemoryService,
+    private readonly customDinoService: CustomDinoService,
+  ) {}
 
   private isCapabilityError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
@@ -137,7 +141,7 @@ export class AgentsService {
     // ceiling on which tools may be called — all resolved server-side. When it
     // is absent we preserve the exact prior behavior (no system message, model
     // from arg, enabledTools as the only filter).
-    const dino = dinoId ? getDino(dinoId) : undefined;
+    const dino = await resolveDino(dinoId, userId, this.customDinoService);
     const effectiveModel = dino?.model ?? model;
     this.logger.log(
       `Streaming agent for thread ${threadId} with model ${effectiveModel}` +

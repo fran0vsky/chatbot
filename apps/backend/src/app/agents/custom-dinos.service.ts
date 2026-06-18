@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { CreateCustomDinoRequest, CustomDino, UpdateCustomDinoRequest } from '@org/shared-types';
 import { DATABASE_CONNECTION, Database } from '../database/database.module';
@@ -50,6 +50,9 @@ export class CustomDinoService {
     if (!db || !req.userId) return null;
 
     this.validate(req.name, req.systemPrompt, req.model, req.toolNames ?? []);
+    if (req.avatarUrl && req.avatarUrl.trim() !== '') {
+      this.validateAvatarUrl(req.avatarUrl.trim());
+    }
 
     try {
       const [row] = await db
@@ -69,6 +72,7 @@ export class CustomDinoService {
         .returning();
       return row ? this.toPublicShape(row) : null;
     } catch (err) {
+      if (err instanceof HttpException) throw err;
       this.logger.error(`create failed: ${err instanceof Error ? err.message : String(err)}`);
       return null;
     }
@@ -122,6 +126,14 @@ export class CustomDinoService {
     const uuid = this.stripPrefix(publicId);
     if (!uuid) return null;
 
+    // CR-02: reject an empty patch before touching the DB
+    const hasAnyField = Object.keys(req).some(
+      (k) => (req as Record<string, unknown>)[k] !== undefined,
+    );
+    if (!hasAnyField) {
+      throw new BadRequestException('update request must include at least one field');
+    }
+
     // Partial validation: only validate fields the caller is changing
     const nameTrimmed = req.name?.trim();
     const systemPromptTrimmed = req.systemPrompt?.trim();
@@ -136,6 +148,9 @@ export class CustomDinoService {
     }
     if (req.toolNames !== undefined) {
       this.validateToolNames(req.toolNames);
+    }
+    if (req.avatarUrl !== undefined && req.avatarUrl.trim() !== '') {
+      this.validateAvatarUrl(req.avatarUrl.trim());
     }
 
     try {
@@ -157,6 +172,7 @@ export class CustomDinoService {
         .returning();
       return row ? this.toPublicShape(row) : null;
     } catch (err) {
+      if (err instanceof HttpException) throw err;
       this.logger.error(`update failed: ${err instanceof Error ? err.message : String(err)}`);
       return null;
     }
@@ -180,6 +196,27 @@ export class CustomDinoService {
   // ---------------------------------------------------------------------------
   // Projection — public summary (no systemPrompt)
   // ---------------------------------------------------------------------------
+
+  /**
+   * Return projected summaries for all custom dinos belonging to `userId`.
+   * Used by DinosController to merge into the built-in list (D-05).
+   * Returns [] when DB is off or userId missing.
+   */
+  async listSummaries(userId: string | undefined): Promise<ReturnType<typeof this.toCustomDinoSummary>[]> {
+    const db = this.connection.db;
+    if (!db || !userId) return [];
+    try {
+      const rows = await db
+        .select()
+        .from(customDinos)
+        .where(eq(customDinos.userId, userId))
+        .orderBy(desc(customDinos.createdAt));
+      return rows.map((r) => this.toCustomDinoSummary(r));
+    } catch (err) {
+      this.logger.error(`listSummaries failed: ${err instanceof Error ? err.message : String(err)}`);
+      return [];
+    }
+  }
 
   /**
    * Project a DB row to a DinoSummary-compatible object suitable for the dino picker.
@@ -235,6 +272,22 @@ export class CustomDinoService {
       if (!ALLOWED_TOOLS.has(tool)) {
         throw new BadRequestException(`toolName '${tool}' is not in the allowed tool catalogue`);
       }
+    }
+  }
+
+  /**
+   * WR-03: Require an absolute http(s) URL to prevent javascript:/data: stored-XSS vectors.
+   * Throws BadRequestException when the URL is invalid or uses a non-http(s) scheme.
+   */
+  private validateAvatarUrl(url: string): void {
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new BadRequestException('avatarUrl must use http or https');
+      }
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new BadRequestException('avatarUrl must be a valid absolute URL');
     }
   }
 
