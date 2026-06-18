@@ -1,0 +1,220 @@
+<div class="space-y-5">
+
+  <!-- Header -->
+  <div>
+    <h2 class="font-title text-xl text-jungle-accent dark:text-jungle-night-accent">
+      {{ editing ? 'Edit ' + editing.name : 'Create a dino' }}
+    </h2>
+    <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted mt-0.5">
+      {{ editing ? 'Update the fields and save.' : 'Give your dino a personality and it will appear in the picker.' }}
+    </p>
+  </div>
+
+  <!-- Error banner -->
+  @if (error()) {
+    <div
+      role="alert"
+      class="px-3 py-2 rounded-lg text-sm bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400"
+    >
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Name (required) -->
+  <div class="space-y-1.5">
+    <label
+      for="cdc-name"
+      class="block text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted"
+    >
+      Name <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    <input
+      id="cdc-name"
+      type="text"
+      [value]="name()"
+      (input)="name.set($any($event.target).value)"
+      placeholder="e.g. Captain Rex"
+      maxlength="80"
+      class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/50 dark:placeholder:text-jungle-night-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+    />
+  </div>
+
+  <!-- Avatar upload -->
+  <div class="space-y-1.5">
+    <p class="block text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted">
+      Avatar image
+    </p>
+    <div class="flex items-center gap-3">
+      @if (avatarUrl()) {
+        <img
+          [src]="avatarUrl()"
+          alt="Avatar preview"
+          class="w-16 h-16 rounded-xl object-cover bg-jungle-surface dark:bg-jungle-night-surface flex-shrink-0"
+        />
+      }
+      <div class="flex-1 space-y-1">
+        <!-- File input + label combined so the label wraps the control (rule compliance) -->
+        <label
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer bg-jungle-accent/10 dark:bg-jungle-night-accent/10 text-jungle-accent dark:text-jungle-night-accent border border-jungle-accent/30 dark:border-jungle-night-accent/30 hover:bg-jungle-accent/20 dark:hover:bg-jungle-night-accent/20 transition-colors"
+          [class.opacity-50]="uploading()"
+          [class.cursor-not-allowed]="uploading()"
+        >
+          @if (uploading()) {
+            <span class="animate-spin inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full" aria-hidden="true"></span>
+            Uploading…
+          } @else {
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+              <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+            </svg>
+            {{ avatarUrl() ? 'Replace image' : 'Upload image' }}
+          }
+          <input
+            type="file"
+            accept="image/*"
+            [disabled]="uploading()"
+            (change)="onAvatarChange($event)"
+            class="sr-only"
+          />
+        </label>
+        <p class="text-[11px] text-jungle-ink-muted/70 dark:text-jungle-night-muted/70">
+          Max 2 MB. Requires AVATAR_BUCKET to be configured.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description (blurb) -->
+  <div class="space-y-1.5">
+    <label
+      for="cdc-blurb"
+      class="block text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted"
+    >
+      Description
+    </label>
+    <textarea
+      id="cdc-blurb"
+      [value]="blurb()"
+      (input)="blurb.set($any($event.target).value)"
+      rows="2"
+      placeholder="A one-paragraph intro shown on the dino card."
+      maxlength="400"
+      class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/50 dark:placeholder:text-jungle-night-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+    ></textarea>
+  </div>
+
+  <!-- Personality / reaction prompt (required — maps to systemPrompt) -->
+  <div class="space-y-1.5">
+    <label
+      for="cdc-prompt"
+      class="block text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted"
+    >
+      How it reacts <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    @if (editing) {
+      <p class="text-[11px] text-jungle-ink-muted dark:text-jungle-night-muted">
+        Leave blank to keep the existing prompt, or write a new one to replace it.
+      </p>
+    }
+    <textarea
+      id="cdc-prompt"
+      [value]="systemPrompt()"
+      (input)="systemPrompt.set($any($event.target).value)"
+      rows="4"
+      [placeholder]="editing ? 'Leave blank to keep existing prompt…' : 'Describe the personality, tone, and how this dino should respond…'"
+      class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text placeholder:text-jungle-ink-muted/50 dark:placeholder:text-jungle-night-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent resize-none"
+    ></textarea>
+    @if (!editing) {
+      <p class="text-[11px] text-jungle-ink-muted/70 dark:text-jungle-night-muted/70">
+        Required. This prompt drives the dino's personality. It never leaves the server.
+      </p>
+    }
+  </div>
+
+  <!-- Model dropdown (required) -->
+  <div class="space-y-1.5">
+    <label
+      for="cdc-model"
+      class="block text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted"
+    >
+      Model <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    @if (models().length > 0) {
+      <select
+        id="cdc-model"
+        [value]="selectedModel()"
+        (change)="selectedModel.set($any($event.target).value)"
+        class="w-full px-3 py-2 rounded-lg text-sm bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40 text-jungle-ink dark:text-jungle-night-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+      >
+        @for (m of models(); track m.id) {
+          <option [value]="m.id">{{ m.label }}</option>
+        }
+      </select>
+    } @else {
+      <p class="text-xs text-jungle-ink-muted dark:text-jungle-night-muted italic">
+        Loading models…
+      </p>
+    }
+  </div>
+
+  <!-- Tool checkboxes -->
+  <div class="space-y-2">
+    <p class="text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted">
+      Tools
+    </p>
+    <div class="flex flex-wrap gap-2">
+      @for (tool of tools; track tool.name) {
+        <label
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm cursor-pointer border transition-colors"
+          [class.bg-jungle-accent/10]="isToolSelected(tool.name)"
+          [class.dark:bg-jungle-night-accent/10]="isToolSelected(tool.name)"
+          [class.border-jungle-accent/40]="isToolSelected(tool.name)"
+          [class.dark:border-jungle-night-accent/40]="isToolSelected(tool.name)"
+          [class.text-jungle-accent]="isToolSelected(tool.name)"
+          [class.dark:text-jungle-night-accent]="isToolSelected(tool.name)"
+          [class.bg-jungle-surface/40]="!isToolSelected(tool.name)"
+          [class.dark:bg-jungle-night-surface/40]="!isToolSelected(tool.name)"
+          [class.border-jungle-border/30]="!isToolSelected(tool.name)"
+          [class.dark:border-jungle-night-border/30]="!isToolSelected(tool.name)"
+          [class.text-jungle-ink-muted]="!isToolSelected(tool.name)"
+          [class.dark:text-jungle-night-muted]="!isToolSelected(tool.name)"
+        >
+          <input
+            type="checkbox"
+            [checked]="isToolSelected(tool.name)"
+            (change)="toggleTool(tool.name)"
+            class="rounded border-jungle-border/60 dark:border-jungle-night-border/60 bg-transparent text-jungle-accent dark:text-jungle-night-accent focus:ring-jungle-accent dark:focus:ring-jungle-night-accent"
+          />
+          {{ tool.label }}
+        </label>
+      }
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="flex items-center justify-end gap-3 pt-2 border-t border-jungle-border/30 dark:border-jungle-night-border/30">
+    <button
+      type="button"
+      (click)="cancel()"
+      class="px-4 py-2 rounded-xl text-sm text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="!canSave()"
+      class="px-5 py-2 rounded-xl text-sm font-medium bg-jungle-accent dark:bg-jungle-night-accent text-white disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+    >
+      @if (saving()) {
+        <span class="flex items-center gap-1.5">
+          <span class="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" aria-hidden="true"></span>
+          Saving…
+        </span>
+      } @else {
+        {{ editing ? 'Save changes' : 'Create dino' }}
+      }
+    </button>
+  </div>
+
+</div>

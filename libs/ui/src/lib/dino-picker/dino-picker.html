@@ -4,12 +4,51 @@
       <app-dino-card
         [dino]="dino"
         [active]="dino.id === activeDinoId"
+        [custom]="dino.id.startsWith('custom:')"
         (selected)="dinoSelected.emit($event)"
+        (editDino)="editDino.emit($event)"
+        (deleteDino)="deleteDino.emit($event)"
       />
     }
+
+    <!-- "Add a dino" tile — always shown at the end of the grid -->
+    <button
+      type="button"
+      (click)="addDino.emit()"
+      class="flex flex-col items-center justify-center gap-3 w-full p-5 rounded-2xl bg-jungle-surface/40 dark:bg-jungle-night-surface/40 backdrop-blur-sm border border-dashed border-jungle-border/60 dark:border-jungle-night-border/60 hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-all duration-200 text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent min-h-[140px]"
+      aria-label="Create a custom dino"
+    >
+      <span class="flex items-center justify-center w-12 h-12 rounded-full bg-jungle-accent/10 dark:bg-jungle-night-accent/10 text-jungle-accent dark:text-jungle-night-accent">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+      </span>
+      <span class="text-sm font-medium">Create a dino</span>
+    </button>
   </div>
 } @else {
-  <div class="text-center py-12 text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">
-    No dinos available right now. Check your connection and try again.
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- "Add a dino" tile shown even when roster is empty -->
+    <button
+      type="button"
+      (click)="addDino.emit()"
+      class="flex flex-col items-center justify-center gap-3 w-full p-5 rounded-2xl bg-jungle-surface/40 dark:bg-jungle-night-surface/40 backdrop-blur-sm border border-dashed border-jungle-border/60 dark:border-jungle-night-border/60 hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:bg-jungle-surface/60 dark:hover:bg-jungle-night-surface/60 transition-all duration-200 text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent min-h-[140px]"
+      aria-label="Create a custom dino"
+    >
+      <span class="flex items-center justify-center w-12 h-12 rounded-full bg-jungle-accent/10 dark:bg-jungle-night-accent/10 text-jungle-accent dark:text-jungle-night-accent">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+      </span>
+      <span class="text-sm font-medium">Create a dino</span>
+    </button>
+
+    <div class="col-span-full text-center py-8 text-sm text-jungle-ink-muted dark:text-jungle-night-muted italic">
+      No dinos available right now. Check your connection and try again.
+    </div>
   </div>
 }

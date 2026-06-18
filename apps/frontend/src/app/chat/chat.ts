@@ -20,8 +20,10 @@ import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { AssistantService } from '../voice/assistant.service.js';
 import { SsmlHint } from '../voice/tts-provider.js';
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
+import { CustomDinoCreator } from './custom-dino-creator';
 import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
+import { DinoService } from './dino.service';
 import { GroupchatService } from './groupchat.service';
 import { SkillService } from './skill.service';
 import * as DinoActions from '../store/dino/dino.actions';
@@ -98,13 +100,14 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
+  imports: [CustomDinoCreator, DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
 })
 export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   private readonly chatService = inject(ChatService);
+  private readonly dinoService = inject(DinoService);
   private readonly skillService = inject(SkillService);
   readonly groupchatService = inject(GroupchatService);
   readonly arenaService = inject(ArenaService);
@@ -600,6 +603,61 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
 
   closePicker(): void {
     this.store.dispatch(UiActions.closePicker());
+    this.cdr.markForCheck();
+  }
+
+  // ─────────────────── Custom Dino Creator (CDINO-01/CDINO-03) ────────────
+
+  /**
+   * When true, the CustomDinoCreator overlay is shown.
+   * Named distinctly from skillPanelOpen; method openDinoCreator() avoids
+   * collision with the existing openCreator() (D-07).
+   */
+  readonly dinoCreatorOpen = signal(false);
+  /**
+   * The dino being edited; undefined = create mode.
+   * Set by onEditDino() and cleared when the creator closes.
+   */
+  readonly editingDino = signal<DinoSummary | undefined>(undefined);
+
+  /** Open the creator in "add a new dino" mode. */
+  openDinoCreator(): void {
+    this.editingDino.set(undefined);
+    this.dinoCreatorOpen.set(true);
+  }
+
+  /** Open the creator pre-filled with an existing custom dino. */
+  onEditDino(dino: DinoSummary): void {
+    this.editingDino.set(dino);
+    this.dinoCreatorOpen.set(true);
+  }
+
+  /**
+   * Confirm + delete a custom dino, then reload the roster (D-07/D-08).
+   * Uses window.confirm for the delete prompt (acceptable for this phase).
+   */
+  onDeleteDino(dino: DinoSummary): void {
+    if (!window.confirm(`Delete "${dino.name}"? This cannot be undone.`)) return;
+    this.dinoService.deleteCustomDino(dino.id).subscribe({
+      next: () => {
+        this.store.dispatch(DinoActions.loadDinos());
+        this.cdr.markForCheck();
+      },
+      error: () => this.cdr.markForCheck(),
+    });
+  }
+
+  /** Called after a successful create or update — close overlay + reload roster. */
+  onDinoSaved(): void {
+    this.dinoCreatorOpen.set(false);
+    this.editingDino.set(undefined);
+    this.store.dispatch(DinoActions.loadDinos());
+    this.cdr.markForCheck();
+  }
+
+  closeDinoCreator(): void {
+    this.dinoCreatorOpen.set(false);
+    this.editingDino.set(undefined);
     this.cdr.markForCheck();
   }
 

@@ -2,14 +2,53 @@
   type="button"
   (click)="selected.emit(dino)"
   [attr.aria-pressed]="active"
-  class="group flex w-full flex-col gap-3 text-left p-5 rounded-2xl bg-jungle-surface/70 dark:bg-jungle-night-surface/70 backdrop-blur-sm border border-jungle-border/40 dark:border-jungle-night-border/40 hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+  class="group relative flex w-full flex-col gap-3 text-left p-5 rounded-2xl bg-jungle-surface/70 dark:bg-jungle-night-surface/70 backdrop-blur-sm border border-jungle-border/40 dark:border-jungle-night-border/40 hover:border-jungle-accent dark:hover:border-jungle-night-accent hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
   [class.ring-2]="active"
   [class.ring-jungle-accent]="active"
   [class.dark:ring-jungle-night-accent]="active"
 >
+  <!-- Edit / Delete affordances — custom cards only, top-right corner -->
+  @if (custom) {
+    <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+      <button
+        type="button"
+        (click)="$event.stopPropagation(); editDino.emit(dino)"
+        aria-label="Edit dino"
+        title="Edit"
+        class="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-jungle-accent/15 dark:bg-jungle-night-accent/15 text-jungle-accent dark:text-jungle-night-accent border border-jungle-accent/30 dark:border-jungle-night-accent/30 hover:bg-jungle-accent/25 dark:hover:bg-jungle-night-accent/25 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+      >
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M12.146.854a.5.5 0 0 1 .707 0l2.293 2.293a.5.5 0 0 1 0 .707L4.854 14.146a.5.5 0 0 1-.353.147H2a.5.5 0 0 1-.5-.5v-2.5a.5.5 0 0 1 .146-.354L12.146.854zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zM3 10.207V12.5h2.293l8.5-8.5L11.5 1.707 3 10.207z"/>
+        </svg>
+        Edit
+      </button>
+      <button
+        type="button"
+        (click)="$event.stopPropagation(); deleteDino.emit(dino)"
+        aria-label="Delete dino"
+        title="Delete"
+        class="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+      >
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+        </svg>
+        Del
+      </button>
+    </div>
+  }
+
   <div class="flex items-start gap-3">
     <div class="flex-shrink-0">
-      <app-mascot size="md" [dinoId]="dino.id" class="w-20 h-20" />
+      @if (dino.avatarUrl) {
+        <img
+          [src]="dino.avatarUrl"
+          [alt]="dino.name"
+          class="w-20 h-20 rounded-xl object-cover bg-jungle-surface dark:bg-jungle-night-surface"
+        />
+      } @else {
+        <app-mascot size="md" [dinoId]="dino.id" class="w-20 h-20" />
+      }
     </div>
     <div class="min-w-0 flex-1">
       <div class="flex items-center justify-between gap-2">

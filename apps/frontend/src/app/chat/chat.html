@@ -117,6 +117,9 @@
               [dinos]="dinos()"
               [activeDinoId]="activeDinoId()"
               (dinoSelected)="pickDino($event)"
+              (addDino)="openDinoCreator()"
+              (editDino)="onEditDino($event)"
+              (deleteDino)="onDeleteDino($event)"
             />
           </div>
         </div>
@@ -765,6 +768,9 @@
           [dinos]="dinos()"
           [activeDinoId]="activeDinoId()"
           (dinoSelected)="pickDino($event)"
+          (addDino)="openDinoCreator()"
+          (editDino)="onEditDino($event)"
+          (deleteDino)="onDeleteDino($event)"
         />
       </div>
     </div>
@@ -929,6 +935,53 @@
           (skillDeleted)="onSkillDeleted($event)"
           (memoryDeleted)="onMemoryDeleted($event)"
           (skillEdited)="onSkillEdited($event)"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- Custom Dino Creator overlay (CDINO-01/CDINO-03) — mirrors the skill overlay pattern -->
+  @if (dinoCreatorOpen()) {
+    <div
+      class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+      (click)="closeDinoCreator()"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="fixed inset-0 z-[61] flex items-center justify-center p-4 pointer-events-none"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="editingDino() ? 'Edit ' + editingDino()!.name : 'Create a custom dino'"
+    >
+      <div
+        class="pointer-events-auto w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-jungle-bg dark:bg-jungle-night border border-jungle-border/40 dark:border-jungle-night-border/40 shadow-2xl p-6"
+      >
+        <div class="flex items-start justify-between mb-5">
+          <div>
+            <h2 class="font-title text-2xl text-jungle-accent dark:text-jungle-night-accent">
+              {{ editingDino() ? 'Edit ' + editingDino()!.name : 'Create a dino' }}
+            </h2>
+            <p class="text-sm text-jungle-ink-muted dark:text-jungle-night-muted">
+              {{ editingDino() ? 'Update your custom dino.' : 'Design a dino with your own personality and tools.' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="closeDinoCreator()"
+            aria-label="Close"
+            class="p-2 rounded-full text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-accent dark:hover:text-jungle-night-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <app-custom-dino-creator
+          [editing]="editingDino()"
+          (saved)="onDinoSaved()"
+          (cancelled)="closeDinoCreator()"
         />
       </div>
     </div>
