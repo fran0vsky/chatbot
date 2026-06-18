@@ -172,7 +172,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 39. Deploy Truth & Smoke Checks | 3/3 | Complete   | 2026-06-16 |
 | 40. Skill Recall Cadence | 2/2 | Complete   | 2026-06-17 |
 | 41. Autonomous Dino Minds (Group Engine v3) | 3/3 | Complete   | 2026-06-17 |
-| 42. Custom Dino Creator | 1/4 | In Progress (gaps planned: 02–04) | 2026-06-18 |
+| 42. Custom Dino Creator | 2/4 | In Progress|  |
 | 43. When-to-React Configuration | 0/TBD | Not planned | - |
 | 44. Pre-Launch UAT Sweep | 0/TBD | Not planned | - |
 
@@ -774,7 +774,7 @@ Plans:
   3. Custom dinos persist in the DB scoped to the anonymous user id, and can be edited and deleted (CDINO-03)
   4. A custom dino can be selected into a group chat and participates via the Phase 41 engine (CDINO-04)
 **Scope note:** In — DB table + CRUD API, creation/edit UI, registry-merge resolution (built-in registry + per-user custom dinos), avatar handling (storage decision — base64-in-DB vs bucket — made and documented in-phase), default model assignment (decide at discuss-phase whether users pick a model or get a default). Out — sharing dinos between users, marketplace, custom tool authoring.
-**Plans:** 4 planned — 01 executed (data+API layer); 02 (avatar upload), 03 (chat-loop resolution + /api/dinos merge), 04 (creation/edit/delete UI) planned via /gsd:plan-phase 42 --gaps to close VERIFICATION gaps
+**Plans:** 2/4 plans executed
 **UI hint:** yes
 
 ### Phase 43: When-to-React Configuration

@@ -18,6 +18,7 @@ MACHINE_TYPE="${GCE_MACHINE_TYPE:-e2-small}"
 ARTIFACT_REPO="${GCP_ARTIFACT_REPO:-chatbot}"
 FRONTEND_BUCKET="${FRONTEND_BUCKET:-${PROJECT_ID}-frontend}"
 STORYBOOK_BUCKET="${STORYBOOK_BUCKET:-${PROJECT_ID}-storybook}"
+AVATAR_BUCKET="${AVATAR_BUCKET:-${PROJECT_ID}-dino-avatars}"
 CLOUD_SQL_INSTANCE="${CLOUD_SQL_INSTANCE:-chatbot-db}"
 DB_NAME="${DB_NAME:-chatbot}"
 DB_USER="${DB_USER:-chatbot}"
@@ -55,7 +56,8 @@ gcloud iam service-accounts create "$VM_SA_NAME" \
 
 for role in \
   roles/artifactregistry.reader \
-  roles/secretmanager.secretAccessor; do
+  roles/secretmanager.secretAccessor \
+  roles/storage.objectAdmin; do
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="serviceAccount:${VM_SA_EMAIL}" \
     --role="$role" --quiet
@@ -101,6 +103,21 @@ for BUCKET in "$FRONTEND_BUCKET" "$STORYBOOK_BUCKET"; do
     --web-main-page-suffix=index.html \
     --web-error-page=index.html
 done
+
+# ── GCS avatars bucket (Phase 42-02) ─────────────────────────────────────────
+# Public-read, uniform-bucket-level-access — avatars are NOT an SPA, so no
+# static-website config is applied.  The VM SA is granted objectAdmin above so
+# the running backend can upload objects via ADC (no key file needed).
+echo "==> Avatars bucket..."
+gcloud storage buckets create "gs://${AVATAR_BUCKET}" \
+  --location="$REGION" \
+  --uniform-bucket-level-access 2>/dev/null \
+  || echo "    gs://${AVATAR_BUCKET} already exists, skipping creation"
+
+# Public read access — anyone can fetch avatar images via their public URL
+gcloud storage buckets add-iam-policy-binding "gs://${AVATAR_BUCKET}" \
+  --member=allUsers \
+  --role=roles/storage.objectViewer --quiet
 
 # ── Cloud SQL (PostgreSQL 16) ─────────────────────────────────────────────────
 echo "==> Cloud SQL instance (this takes ~5 minutes)..."
@@ -191,6 +208,7 @@ echo "       GCE_INSTANCE       = ${INSTANCE_NAME}"
 echo "       GCE_ZONE           = ${ZONE}"
 echo "       FRONTEND_BUCKET    = ${FRONTEND_BUCKET}"
 echo "       STORYBOOK_BUCKET   = ${STORYBOOK_BUCKET}"
+echo "       AVATAR_BUCKET      = ${AVATAR_BUCKET}"
 echo "       FRONTEND_URL       = https://storage.googleapis.com/${FRONTEND_BUCKET}"
 echo "       GCP_WIF_PROVIDER   = (from WIF setup above)"
 echo "       GCP_WIF_SERVICE_ACCOUNT = ${CI_SA_EMAIL}"
