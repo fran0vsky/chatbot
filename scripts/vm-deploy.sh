@@ -88,11 +88,15 @@ docker image prune -f >/dev/null
 # Keep last 3 backend images; drop the rest.
 docker images --filter=reference="*/backend" --format='{{.ID}}' | tail -n +4 | xargs -r docker rmi || true
 
+# Probe health from INSIDE the container: it runs on the 'web' network with no
+# host port published (only Caddy publishes 80/443), so curling localhost:3000
+# on the VM host always fails. The image ships node, so reach the app on its own
+# loopback via the container's runtime.
 echo "[deploy] Waiting for container to become healthy (up to 60s)..."
 HEALTHY=false
 for i in $(seq 1 12); do
     sleep 5
-    if curl -fsS "http://localhost:3000/api/health" > /dev/null 2>&1; then
+    if docker exec "$CONTAINER_NAME" node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" > /dev/null 2>&1; then
         echo "[deploy] Backend is healthy after ~$((i * 5))s"
         HEALTHY=true
         break
