@@ -50,7 +50,11 @@ CREATE TABLE IF NOT EXISTS "user_memories" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "messages" ADD CONSTRAINT "messages_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "messages" ADD CONSTRAINT "messages_session_id_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."sessions"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "dino_skills_user_dino_idx" ON "dino_skills" USING btree ("user_id","dino_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "messages_session_idx" ON "messages" USING btree ("session_id","sequence");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "sessions_user_idx" ON "sessions" USING btree ("user_id");--> statement-breakpoint

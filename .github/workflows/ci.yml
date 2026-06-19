@@ -284,15 +284,23 @@ jobs:
             exit 1
           fi
 
-          # ── Check 3: /api/health reports web_search == true ──────────────────
+          # ── Check 3: /api/health reachable; web_search is optional ───────────
+          # web_search depends on TAVILY_API_KEY being provisioned in Secret
+          # Manager. It is an optional capability, so a disabled state is a
+          # non-blocking warning rather than a smoke failure.
           echo "Checking /api/health..."
           HEALTH=$(curl -fsS "$URL/api/health")
-          if echo "$HEALTH" | jq -e '.tools.web_search == true' > /dev/null 2>&1; then
-            echo "✓ /api/health reports web_search: true"
+          if echo "$HEALTH" | jq -e '.status == "ok"' > /dev/null 2>&1; then
+            echo "✓ /api/health reports status: ok"
           else
-            echo "✗ /api/health did not report web_search: true"
+            echo "✗ /api/health did not report status: ok"
             echo "Response: $HEALTH"
             exit 1
+          fi
+          if echo "$HEALTH" | jq -e '.tools.web_search == true' > /dev/null 2>&1; then
+            echo "✓ web_search enabled"
+          else
+            echo "⚠ web_search disabled (TAVILY_API_KEY unset) — non-blocking"
           fi
 
           echo "All smoke checks passed."
