@@ -88,5 +88,23 @@ docker image prune -f >/dev/null
 # Keep last 3 backend images; drop the rest.
 docker images --filter=reference="*/backend" --format='{{.ID}}' | tail -n +4 | xargs -r docker rmi || true
 
+echo "[deploy] Waiting for container to become healthy (up to 60s)..."
+HEALTHY=false
+for i in $(seq 1 12); do
+    sleep 5
+    if curl -fsS "http://localhost:3000/api/health" > /dev/null 2>&1; then
+        echo "[deploy] Backend is healthy after ~$((i * 5))s"
+        HEALTHY=true
+        break
+    fi
+    echo "[deploy]   Not ready yet (attempt $i/12)..."
+done
+
 echo "[deploy] Done. Container status:"
 docker ps --filter "name=$CONTAINER_NAME" --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+if [ "$HEALTHY" != "true" ]; then
+    echo "[deploy] ERROR: backend did not become healthy. Container logs:"
+    docker logs --tail 100 "$CONTAINER_NAME" 2>&1
+    exit 1
+fi
