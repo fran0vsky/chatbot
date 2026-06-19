@@ -221,6 +221,23 @@ jobs:
           set -euo pipefail
           URL="https://dinoagents.duckdns.org"
 
+          # ── Wait for backend to be ready (container may still be booting) ──────
+          echo "Waiting for backend to be ready..."
+          READY=false
+          for attempt in $(seq 1 12); do
+            if curl -fsS "$URL/api/health" > /dev/null 2>&1; then
+              echo "✓ Backend ready after ~$((($attempt - 1) * 5))s"
+              READY=true
+              break
+            fi
+            echo "  Not ready yet (attempt $attempt/12), sleeping 5s..."
+            sleep 5
+          done
+          if [ "$READY" != "true" ]; then
+            echo "✗ Backend did not become ready after 60s"
+            exit 1
+          fi
+
           # ── Check 1: /api/dinos returns 200 and a non-empty JSON array ────────
           echo "Checking /api/dinos..."
           DINOS=$(curl -fsS "$URL/api/dinos")
