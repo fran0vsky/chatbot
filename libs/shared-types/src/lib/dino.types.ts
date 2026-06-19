@@ -122,6 +122,40 @@ export interface SaveCreatedSkillResponse {
   action: 'created' | 'updated';
 }
 
+// --- When-to-React Configuration contracts (Phase 43) ---
+// These types are shared between the backend (ReactivityService, group engine)
+// and the frontend (settings panel). The level governs FREQUENCY of participation;
+// the dino's persona still governs CONTENT/STYLE (D-06 precedence).
+
+/**
+ * The four when-to-react presets. Ordered from most-silent to most-talkative.
+ * - 'never'  → deterministic silent clamp (the dino NEVER autonomously decides to speak)
+ * - 'rarely' → propensity nudge toward staying quiet unless clearly additive
+ * - 'normal' → no nudge, no clamp (default — byte-identical to current behavior)
+ * - 'chatty' → propensity nudge toward answering / at least reacting
+ */
+export type ReactionLevel = 'never' | 'rarely' | 'normal' | 'chatty';
+
+/**
+ * Ordered source-of-truth array. Use this for validation and for rendering
+ * the 4-step control in order (most silent → most talkative).
+ */
+export const REACTION_LEVELS: readonly ReactionLevel[] = ['never', 'rarely', 'normal', 'chatty'];
+
+/** A map of dinoId → resolved ReactionLevel for a single user's group-chat session. */
+export type DinoReactivityMap = Record<string, ReactionLevel>;
+
+/** Request body for PUT /api/dino-reactivity/:dinoId — upsert one dino's level. */
+export interface SetReactivityRequest {
+  userId: string;
+  level: ReactionLevel;
+}
+
+/** Response from GET /api/dino-reactivity?userId= — all stored levels for that user. */
+export interface ReactivityResponse {
+  levels: DinoReactivityMap;
+}
+
 // --- Custom Dino Creator contracts (Phase 42) ---
 // A custom dino is the same shape as a built-in — model + system prompt + tool subset —
 // persisted per anonymous user, selectable in the picker, and resolvable in the chat loop.

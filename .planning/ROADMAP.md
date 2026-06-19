@@ -73,7 +73,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 40: Skill Recall Cadence** - "what it remembers": once per conversation the dino pulls its single most relevant learned skill (mentor note) (completed 2026-06-17)
 - [x] **Phase 41: Autonomous Dino Minds (Group Engine v3)** - every incoming message triggers one decision call per participant dino on its own model — answer / reaction / no answer — with the user message + full thread in context before every action (mentor note) (completed 2026-06-17)
 - [x] **Phase 42: Custom Dino Creator** - add-a-dino flow: name, avatar image, description, personality/reaction prompt, tool subset; persisted per user; joins picker + group chat (mentor note) (in progress: data+API layer done; gaps_found — needs avatar upload, chat-loop resolution, creation UI plans) (completed 2026-06-18)
-- [ ] **Phase 43: When-to-React Configuration** - user-facing group-chat config for when each dino reacts (built-in + custom dinos) (mentor note)
+- [ ] **Phase 43: When-to-React Configuration** - user-facing group-chat config for when each dino reacts (built-in + custom dinos) (mentor note) (in progress: Plan 01 persistence+engine done; Plan 02 settings UI pending)
 - [ ] **Phase 44: Pre-Launch UAT Sweep** - burn down the pending HUMAN-UAT backlog on the production site, fix fallout, ready the app for first real users
 
 ## Phase Details
@@ -789,7 +789,7 @@ Plans:
   3. For custom dinos, the authored "how it reacts" prompt and this setting compose predictably (precedence documented)
   4. Defaults preserve current behavior for users who never touch the setting
 **Scope note:** In — settings UI, engine hook into the Phase 41 per-dino decision call, persistence of the setting. Out — per-message reaction overrides, reaction analytics.
-**Plans:** TBD (run `/gsd-plan-phase 43`)
+**Plans:** 1/2 complete (Plan 01: persistence + engine hook done; Plan 02: settings UI pending)
 **UI hint:** yes
 
 ### Phase 44: Pre-Launch UAT Sweep

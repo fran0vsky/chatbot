@@ -6,14 +6,17 @@ import {
   ChatHistoryItem,
   Dino,
   DinoDecision,
+  DinoReactivityMap,
   GroupMessage,
   GroupStreamEvent,
+  ReactionLevel,
   SpeechIntent,
   ARTIST_DEFAULT_REACTION,
 } from '@org/shared-types';
 import { AgentsService } from './agents.service';
 import { resolveDino } from './dino-resolver';
 import { CustomDinoService } from './custom-dinos.service';
+import { ReactivityService } from './reactivity.service';
 import { getProfile } from './group/agent-profiles';
 import { ConversationState, initConversationState } from './group/governor';
 import {
@@ -110,6 +113,7 @@ export class GroupAgentsService {
   constructor(
     private readonly agentsService: AgentsService,
     private readonly customDinoService: CustomDinoService,
+    private readonly reactivity: ReactivityService,
   ) {}
 
   /**
@@ -160,11 +164,12 @@ export class GroupAgentsService {
     roster: Dino[],
     hasPriorDinoThisRound: boolean,
     signal: AbortSignal,
+    level: ReactionLevel = 'normal',
   ): Promise<DinoDecision> {
     try {
       const attributedHistory = buildAttributedHistory(state.transcript, dino.id, roster);
       const threadText = attributedHistory.map((h) => h.text).join('\n');
-      const { system, human } = buildDecisionPrompt(profile, threadText, hasPriorDinoThisRound);
+      const { system, human } = buildDecisionPrompt(profile, threadText, hasPriorDinoThisRound, level);
       const llm = new ChatOpenAI({
         model: dino.model,
         apiKey: process.env['OPENROUTER_API_KEY'],
@@ -222,6 +227,10 @@ export class GroupAgentsService {
       return;
     }
 
+    // Resolve all per-dino reaction levels for this user ONCE (D-04). Degrades
+    // to {} on null-db so every dino defaults to 'normal' (SC#4, T-43-01-03).
+    const levels: DinoReactivityMap = await this.reactivity.getLevels(userId ?? '');
+
     // Working transcript: prior history + the just-received user message.
     const state: ConversationState = initConversationState(history ?? [], {
       subtopics: [],
@@ -265,10 +274,21 @@ export class GroupAgentsService {
         const profile = getProfile(dino.id);
         const hasPriorDinoThisRound = state.transcript.some((m) => m.role === 'dino');
         const isForcedAnswer = roundIndex === 0 && forced.has(dino.id);
+        // Resolve this dino's configured level; default to 'normal' when not stored (SC#4).
+        const level: ReactionLevel = (levels[dino.id] as ReactionLevel) ?? 'normal';
 
         // --- decide -----------------------------------------------------------
         let decision: DinoDecision;
-        if (dino.imageGen === true) {
+
+        // 'never' clamp: a dino configured to never speak is silenced
+        // DETERMINISTICALLY before any LLM call, saving both the decision call
+        // AND any potential image-gen react path. Exception: @mentioned dinos
+        // (isForcedAnswer) always respond — an explicit per-message @mention
+        // beats a standing when-to-react config (D-06, analogous to the image-gen
+        // exception). This is the hard guarantee for SC#2 (T-43-01-04).
+        if (level === 'never' && !isForcedAnswer) {
+          decision = { action: 'silent' };
+        } else if (dino.imageGen === true) {
           decision = this.imageGenDecision(state);
         } else if (isForcedAnswer) {
           decision = { action: 'answer', intent: 'answer_user', confidence: profile.confidence };
@@ -280,6 +300,7 @@ export class GroupAgentsService {
             roster,
             hasPriorDinoThisRound,
             signal,
+            level,
           );
         }
         if (signal.aborted) return;

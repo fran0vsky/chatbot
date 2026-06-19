@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { AgentsService } from './agents.service';
+import type { ReactivityService } from './reactivity.service';
 import {
   GroupAgentsService,
   buildAttributedHistory,
@@ -15,6 +16,11 @@ import type {
   StreamEvent,
 } from '@org/shared-types';
 import { MAX_ROUNDS, MAX_TOTAL_ANSWERS } from './group/decision';
+
+/** A no-op ReactivityService stub: always returns {} (null-db-like behavior). */
+function fakeReactivity(): ReactivityService {
+  return { getLevels: async () => ({}), setLevel: async () => ({ dinoId: '', level: 'normal' as const }) } as unknown as ReactivityService;
+}
 
 const rexford = getDino('rexford');
 const veloce = getDino('veloce');
@@ -46,7 +52,7 @@ function makeService(opts: {
 } {
   const streamAgent = vi.fn(() => fakeStreamAgent(opts.answerText));
   const agents = { streamAgent } as unknown as AgentsService;
-  const service = new GroupAgentsService(agents);
+  const service = new GroupAgentsService(agents, {} as never, fakeReactivity());
 
   const decide = opts.decision ?? ({ action: 'answer', intent: 'answer_user', confidence: 0.7 } as DinoDecision);
   const decideAction = vi.fn(async (...args: unknown[]) => {
@@ -190,7 +196,7 @@ describe('GroupAgentsService.streamGroup (v3 autonomous loop)', () => {
     // turns should already be in the thread the decision call receives.
     const seen: number[] = [];
     const streamAgent = vi.fn(() => fakeStreamAgent('a'));
-    const service = new GroupAgentsService({ streamAgent } as unknown as AgentsService);
+    const service = new GroupAgentsService({ streamAgent } as unknown as AgentsService, {} as never, fakeReactivity());
     vi.spyOn(
       service as unknown as { decideAction: (...a: unknown[]) => Promise<DinoDecision> },
       'decideAction',

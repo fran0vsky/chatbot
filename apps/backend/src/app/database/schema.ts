@@ -1,7 +1,7 @@
 // Drizzle schema for DinoAgents persistence.
 // Initial scope: conversation sessions + messages. Auth user table added later.
 
-import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const sessions = pgTable(
   'sessions',
@@ -123,6 +123,28 @@ export const customDinos = pgTable(
   }),
 );
 
+// Per-(user × dino) when-to-react configuration. Stores the user's chosen
+// ReactionLevel for a specific dino. Built-in ids and `custom:<uuid>` ids
+// slot in identically — no branching needed. Degrades gracefully: when the
+// table is absent (null-db / local dev) the engine defaults every dino to
+// 'normal' (identical behavior to current). The unique index on (userId, dinoId)
+// enables single-row upserts.
+export const dinoReactivity = pgTable(
+  'dino_reactivity',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull(),
+    dinoId: text('dino_id').notNull(),
+    /** Stored level. One of: 'never' | 'rarely' | 'normal' | 'chatty'. */
+    level: text('level').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    userDinoUniqueIdx: uniqueIndex('dino_reactivity_user_dino_idx').on(table.userId, table.dinoId),
+  }),
+);
+
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Message = typeof messages.$inferSelect;
@@ -135,3 +157,5 @@ export type DinoRatingRow = typeof dinoRatings.$inferSelect;
 export type NewDinoRatingRow = typeof dinoRatings.$inferInsert;
 export type CustomDinoRow = typeof customDinos.$inferSelect;
 export type NewCustomDinoRow = typeof customDinos.$inferInsert;
+export type DinoReactivityRow = typeof dinoReactivity.$inferSelect;
+export type NewDinoReactivityRow = typeof dinoReactivity.$inferInsert;

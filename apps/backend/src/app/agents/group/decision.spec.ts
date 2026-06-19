@@ -55,6 +55,46 @@ describe('buildDecisionPrompt', () => {
   });
 });
 
+describe('buildDecisionPrompt — level nudge (Phase 43)', () => {
+  const p = AGENT_PROFILES['rexford'];
+
+  it('normal level produces output identical to no-level call (no nudge injected)', () => {
+    const withLevel = buildDecisionPrompt(p, 'User: hi', true, 'normal');
+    const withoutLevel = buildDecisionPrompt(p, 'User: hi', true);
+    expect(withLevel.system).toBe(withoutLevel.system);
+    expect(withLevel.human).toBe(withoutLevel.human);
+  });
+
+  it("'rarely' injects a distinct nudge line not present in 'normal'", () => {
+    const rarely = buildDecisionPrompt(p, 'User: hi', true, 'rarely');
+    const normal = buildDecisionPrompt(p, 'User: hi', true, 'normal');
+    expect(rarely.system).not.toBe(normal.system);
+    // The nudge line steers toward silence
+    expect(rarely.system).toContain('stay quiet');
+  });
+
+  it("'chatty' injects a distinct nudge line not present in 'normal'", () => {
+    const chatty = buildDecisionPrompt(p, 'User: hi', true, 'chatty');
+    const normal = buildDecisionPrompt(p, 'User: hi', true, 'normal');
+    expect(chatty.system).not.toBe(normal.system);
+    // The nudge line steers toward speaking
+    expect(chatty.system).toContain('chime in');
+  });
+
+  it("'rarely' and 'chatty' nudges are distinct from each other", () => {
+    const rarely = buildDecisionPrompt(p, 'User: hi', true, 'rarely');
+    const chatty = buildDecisionPrompt(p, 'User: hi', true, 'chatty');
+    expect(rarely.system).not.toBe(chatty.system);
+  });
+
+  it("'never' level adds no nudge (it is not a propensity guide — engine clamps before this call)", () => {
+    const never = buildDecisionPrompt(p, 'User: hi', true, 'never');
+    const normal = buildDecisionPrompt(p, 'User: hi', true, 'normal');
+    // 'never' must not inject extra text — it is only enforced via the engine clamp
+    expect(never.system).toBe(normal.system);
+  });
+});
+
 describe('parseDecision tolerance', () => {
   it('parses fenced JSON', () => {
     const d = parseDecision('```json\n{"action":"react","emoji":"🔥"}\n```');

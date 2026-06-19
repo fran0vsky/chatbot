@@ -1,6 +1,7 @@
 import {
   AgentProfile,
   DinoDecision,
+  ReactionLevel,
   SpeechIntent,
 } from '@org/shared-types';
 
@@ -69,6 +70,19 @@ export interface DecisionPrompt {
   human: string;
 }
 
+// --- Level nudge map (D-01/D-05/D-06) -----------------------------------------
+// PRECEDENCE NOTE: persona (personality/speakingStyle lines above) governs CONTENT
+// and STYLE; the when-to-react level governs FREQUENCY only. A nudge line is
+// appended AFTER the persona block so it cannot override characterisation — only
+// propensity (D-06 / SC#3). 'normal' → no nudge (identical output to pre-Phase-43).
+// 'never' is never passed here (engine short-circuits before this call, D-02).
+const LEVEL_NUDGE: Partial<Record<ReactionLevel, string>> = {
+  rarely:
+    'You tend to stay quiet — only speak when you clearly add something new; otherwise prefer "react" or "silent".',
+  chatty:
+    'You love to chime in — lean toward "answer" or at least "react"; stay engaged and contribute often.',
+};
+
 /**
  * Build the system + human prompt instructing ONE dino, fully in its own
  * persona, to choose answer / react / silent and (for answer) its own stance.
@@ -77,13 +91,20 @@ export interface DecisionPrompt {
  * thread (user message + this round's earlier turns). `hasPriorDinoThisRound`
  * tells the dino whether anyone has already spoken this round (so it can react /
  * reply or, if it would only echo, stay silent).
+ *
+ * The optional `level` (default 'normal') injects a propensity nudge:
+ * - 'normal' → no nudge (output byte-identical to pre-Phase-43)
+ * - 'rarely' → nudge toward staying silent unless clearly additive
+ * - 'chatty' → nudge toward answering or at least reacting
+ * - 'never'  → should not reach here (engine clamps BEFORE this call); treated as no nudge
  */
 export function buildDecisionPrompt(
   profile: AgentProfile,
   attributedThreadText: string,
   hasPriorDinoThisRound: boolean,
+  level: ReactionLevel = 'normal',
 ): DecisionPrompt {
-  const system = [
+  const systemLines = [
     `You ARE ${profile.name}, a ${profile.species} in a group chat. Stay fully in character.`,
     `Personality: ${profile.personality}`,
     `Speaking style: ${profile.speakingStyle}`,
@@ -108,7 +129,16 @@ export function buildDecisionPrompt(
     '{ "action": "answer"|"react"|"silent", "intent"?: <one of the stances>,',
     '  "emoji"?: string, "replyToMessageId"?: string, "replyToAgentId"?: string,',
     '  "confidence"?: number 0..1 }',
-  ].join('\n');
+  ];
+
+  // Append frequency nudge AFTER all persona/rules lines so persona governs
+  // content while level governs frequency (D-06 / SC#3). 'normal' adds nothing.
+  const nudge = LEVEL_NUDGE[level];
+  if (nudge) {
+    systemLines.push('', nudge);
+  }
+
+  const system = systemLines.join('\n');
 
   const human = [
     attributedThreadText,

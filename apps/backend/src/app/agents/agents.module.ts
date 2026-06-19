@@ -8,12 +8,15 @@ import { CustomDinoService } from './custom-dinos.service';
 import { DinosController } from './dinos.controller';
 import { GroupAgentsController } from './group-agents.controller';
 import { GroupAgentsService } from './group-agents.service';
+import { ReactivityController } from './reactivity.controller';
+import { ReactivityService } from './reactivity.service';
 import { MemoryModule } from '../memory/memory.module';
 
 @Module({
   imports: [MemoryModule],
-  controllers: [AgentsController, DinosController, GroupAgentsController, CustomDinosController, AvatarController],
-  providers: [AgentsService, GroupAgentsService, CustomDinoService, AvatarService],
-  exports: [AgentsService],
+  controllers: [AgentsController, DinosController, GroupAgentsController, CustomDinosController, AvatarController, ReactivityController],
+  providers: [AgentsService, GroupAgentsService, CustomDinoService, AvatarService, ReactivityService],
+  // ReactivityService exported so GroupAgentsService can inject it after constructor injection.
+  exports: [AgentsService, ReactivityService],
 })
 export class AgentsModule {}
