@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
 status: executing
-stopped_at: Phase 43 Plan 01 complete — Plan 02 (settings UI) pending
-last_updated: "2026-06-19T10:00:00.000Z"
-last_activity: 2026-06-19 -- Phase 43 Plan 01 executed (persistence + engine hook)
+stopped_at: Phase 43 complete — Phase 44 (Pre-Launch UAT Sweep) pending
+last_updated: "2026-06-19T10:30:00.000Z"
+last_activity: 2026-06-19 -- Phase 43 Plan 02 executed (frontend settings UI + HUMAN-UAT)
 progress:
   total_phases: 11
   completed_phases: 9
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 ## Current Position
 
-Phase: 43 (when-to-react-configuration) — EXECUTING
-Plan: 2 of 2 (Plan 01 complete; Plan 02 settings UI pending)
-Status: Executing Phase 43
-Last activity: 2026-06-19 -- Phase 43 Plan 01 complete (persistence + engine hook delivered)
+Phase: 44 (pre-launch-uat-sweep) — PENDING
+Plan: Phase 43 complete (2/2 plans); Phase 44 pending
+Status: Ready for Phase 44
+Last activity: 2026-06-19 -- Phase 43 Plan 02 complete (frontend ReactivitySettings + ReactivityService + GroupChat wiring + HUMAN-UAT)
 
 ## Performance Metrics
 
@@ -86,6 +86,10 @@ Recent decisions affecting current work:
 - Phase 43-01: 'never' is a hard deterministic clamp BEFORE any LLM call; @mentioned dinos bypass it (D-06)
 - Phase 43-01: Level nudge appended AFTER persona lines — level governs frequency, persona governs content (D-06/SC#3)
 - Phase 43-01: dino_reactivity table must be created on Cloud SQL manually at deploy time
+- Phase 43-02: ReactivityService mirrors SkillService (HttpClient + loadUserId() + signal); setLevel() optimistic
+- Phase 43-02: ReactivitySettings is presentational (no service, Input/Output only, OnPush standalone, Storybook)
+- Phase 43-02: Panel toggled via reactivityPanelOpen signal; load() called on open only (lazy HTTP)
+- Phase 43-02: participantDinos() promoted from private to allow template binding
 
 - Init: OpenRouter replaces Gemini; @langchain/openai with configuration.baseURL
 - Init: GPT-4o mini as default model (`openai/gpt-4o-mini` namespaced ID required)
