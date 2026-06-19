@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → … → 11 (v1.0 complete) �
 | 40. Skill Recall Cadence | 2/2 | Complete   | 2026-06-17 |
 | 41. Autonomous Dino Minds (Group Engine v3) | 3/3 | Complete   | 2026-06-17 |
 | 42. Custom Dino Creator | 4/4 | Complete   | 2026-06-18 |
-| 43. When-to-React Configuration | 0/TBD | Not planned | - |
+| 43. When-to-React Configuration | 2/2 | Complete    | 2026-06-19 |
 | 44. Pre-Launch UAT Sweep | 0/TBD | Not planned | - |
 
 ### Phase 4: Dark Theme and Visual Polish
@@ -789,7 +789,7 @@ Plans:
   3. For custom dinos, the authored "how it reacts" prompt and this setting compose predictably (precedence documented)
   4. Defaults preserve current behavior for users who never touch the setting
 **Scope note:** In — settings UI, engine hook into the Phase 41 per-dino decision call, persistence of the setting. Out — per-message reaction overrides, reaction analytics.
-**Plans:** 1/2 complete (Plan 01: persistence + engine hook done; Plan 02: settings UI pending)
+**Plans:** 2/2 plans complete
 **UI hint:** yes
 
 ### Phase 44: Pre-Launch UAT Sweep

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: — Production Parity & Custom Dinos
-status: executing
-stopped_at: Phase 43 complete — Phase 44 (Pre-Launch UAT Sweep) pending
-last_updated: "2026-06-19T10:30:00.000Z"
-last_activity: 2026-06-19 -- Phase 43 Plan 02 executed (frontend settings UI + HUMAN-UAT)
+status: ready_to_plan
+stopped_at: Phase 43 complete (2/2) — ready to discuss Phase 44
+last_updated: 2026-06-19T10:37:10.088Z
+last_activity: 2026-06-19 -- Phase 44 execution started
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 31
-  completed_plans: 33
-  percent: 84
+  completed_plans: 84
+  percent: 82
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-04 — DinoAgents rebrand)
 
 **Core value:** A user can open the app, type a message, get a real answer, and keep the conversation going.
-**Current focus:** Phase 43 — when-to-react-configuration
+**Current focus:** Phase 44 — pre launch uat sweep
 
 ## Current Position
 
-Phase: 44 (pre-launch-uat-sweep) — PENDING
-Plan: Phase 43 complete (2/2 plans); Phase 44 pending
-Status: Ready for Phase 44
-Last activity: 2026-06-19 -- Phase 43 Plan 02 complete (frontend ReactivitySettings + ReactivityService + GroupChat wiring + HUMAN-UAT)
+Phase: 44
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-19
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 13
+- Total plans completed: 15
 - Average duration: —
 - Total execution time: —
 
@@ -47,6 +47,7 @@ Last activity: 2026-06-19 -- Phase 43 Plan 02 complete (frontend ReactivitySetti
 | 12 | 3 | - | - |
 | 24 | 1 | - | - |
 | Phase 42 P03 | 35 | 7 tasks | 9 files |
+| 43 | 2 | - | - |
 
 ## Accumulated Context
 

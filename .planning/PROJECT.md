@@ -134,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-30 — Phase 24 (Dino Arena + Leaderboard) code-complete: blind compare, vote, documented Elo (K=24, base 1000) persisted via `dino_ratings`, Leaderboard tab; live smoke test pending human UAT. v1.1 Phases 13–17 deferred to backlog.*
+*Last updated: 2026-06-19 — Phase 43 (When-to-React Configuration) code-complete: per-dino reaction level (never/rarely/normal/chatty) persisted via `dino_reactivity`, engine nudge + `never` clamp in the group decision loop, and a `ReactivitySettings` panel in the group-chat surface; defaults preserve prior behavior. 4 HUMAN-UAT items pending (live browser/DB). Earlier note — Phase 24 (Dino Arena + Leaderboard): documented Elo (K=24, base 1000) via `dino_ratings`. v1.1 Phases 13–17 deferred to backlog.*
