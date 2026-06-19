@@ -17,3 +17,4 @@ export { GroupResponse } from './lib/group-response/group-response.js';
 export type { GroupResponseStatus } from './lib/group-response/group-response.js';
 export { Leaderboard } from './lib/leaderboard/leaderboard.js';
 export { UsageRing } from './lib/usage-ring/usage-ring.js';
+export { ReactivitySettings } from './lib/reactivity-settings/reactivity-settings.js';

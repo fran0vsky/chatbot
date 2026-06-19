@@ -14,17 +14,18 @@ import {
 } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, GroupReaction, IMAGE_TOKEN_COST, LeaderboardRow, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow, reactionLabel } from '@org/shared-types';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, GroupReaction, IMAGE_TOKEN_COST, LeaderboardRow, ReactionLevel, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow, reactionLabel } from '@org/shared-types';
 import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
 import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { AssistantService } from '../voice/assistant.service.js';
 import { SsmlHint } from '../voice/tts-provider.js';
-import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble } from '@chatbot/ui';
+import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, ReactivitySettings, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { CustomDinoCreator } from './custom-dino-creator';
 import { ArenaService } from './arena.service';
 import { ChatService } from './chat.service';
 import { DinoService } from './dino.service';
 import { GroupchatService } from './groupchat.service';
+import { ReactivityService } from './reactivity.service.js';
 import { SkillService } from './skill.service';
 import * as DinoActions from '../store/dino/dino.actions';
 import * as SessionActions from '../store/session/session.actions';
@@ -100,7 +101,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [CustomDinoCreator, DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, SkillManager, ToolCallBubble],
+  imports: [CustomDinoCreator, DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, ReactivitySettings, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -109,6 +110,7 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   private readonly chatService = inject(ChatService);
   private readonly dinoService = inject(DinoService);
   private readonly skillService = inject(SkillService);
+  readonly reactivityService = inject(ReactivityService);
   readonly groupchatService = inject(GroupchatService);
   readonly arenaService = inject(ArenaService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -507,7 +509,7 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   /** The participant dinos resolved to summaries, in selection order. */
-  private participantDinos(): DinoSummary[] {
+  participantDinos(): DinoSummary[] {
     return this.selectedGroupDinoIds()
       .map((id) => this.groupDinoById(id))
       .filter((d): d is DinoSummary => d !== undefined);
@@ -662,6 +664,27 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   // ───────── Teach-a-skill + learned-items management (MEM-04..06) ─────────
+
+  // ─────────────── Reactivity settings panel (Phase 43, GRP3-04) ──────────────
+
+  /**
+   * When true the reactivity settings panel is visible alongside the group dino
+   * selector. Load levels on open; only write on explicit user change.
+   */
+  readonly reactivityPanelOpen = signal(false);
+
+  toggleReactivityPanel(): void {
+    const opening = !this.reactivityPanelOpen();
+    this.reactivityPanelOpen.set(opening);
+    if (opening) {
+      this.reactivityService.load();
+    }
+    this.cdr.markForCheck();
+  }
+
+  onLevelChanged(event: { dinoId: string; level: ReactionLevel }): void {
+    this.reactivityService.setLevel(event.dinoId, event.level);
+  }
 
   /** When true, the teach-a-skill + "what this dino knows" overlay is shown. */
   readonly skillPanelOpen = signal(false);

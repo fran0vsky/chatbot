@@ -1,0 +1,45 @@
+<div class="space-y-4">
+  <h3 class="text-xs font-semibold uppercase tracking-wide text-jungle-ink-muted dark:text-jungle-night-muted">
+    Reaction frequency
+  </h3>
+
+  @if (dinos.length === 0) {
+    <p class="text-sm text-jungle-ink-muted/70 dark:text-jungle-night-muted/70 italic">
+      Select at least one dino above to configure reaction levels.
+    </p>
+  } @else {
+    <ul class="space-y-3">
+      @for (dino of dinos; track dino.id) {
+        <li class="flex flex-col gap-2 px-4 py-3 rounded-xl bg-jungle-surface/60 dark:bg-jungle-night-surface/60 border border-jungle-border/40 dark:border-jungle-night-border/40">
+          <!-- Dino row: avatar + name -->
+          <div class="flex items-center gap-2.5">
+            <app-mascot [dinoId]="dino.id" size="sm" class="flex-shrink-0 w-8 h-8" />
+            <span class="text-sm font-medium text-jungle-ink dark:text-jungle-night-text truncate">{{ dino.name }}</span>
+          </div>
+
+          <!-- Segmented control: iterate REACTION_LEVELS (no hardcoded literals) -->
+          <div class="flex rounded-lg overflow-hidden border border-jungle-border/40 dark:border-jungle-night-border/40 divide-x divide-jungle-border/40 dark:divide-jungle-night-border/40" role="group" [attr.aria-label]="dino.name + ' reaction frequency'">
+            @for (level of reactionLevels; track level) {
+              @let isActive = currentLevel(dino.id) === level;
+              <button
+                type="button"
+                (click)="onLevelClick(dino.id, level)"
+                [attr.aria-pressed]="isActive"
+                [attr.aria-label]="levelLabel(level)"
+                class="flex-1 px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:ring-inset"
+                [class.bg-jungle-accent]="isActive"
+                [class.dark:bg-jungle-night-accent]="isActive"
+                [class.text-white]="isActive"
+                [class.bg-transparent]="!isActive"
+                [class.text-jungle-ink-muted]="!isActive"
+                [class.dark:text-jungle-night-muted]="!isActive"
+                [class.hover:bg-jungle-accent\/10]="!isActive"
+                [class.dark:hover:bg-jungle-night-accent\/10]="!isActive"
+              >{{ levelLabel(level) }}</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>
