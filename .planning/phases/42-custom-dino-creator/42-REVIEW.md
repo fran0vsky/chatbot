@@ -1,213 +1,367 @@
 ---
 phase: 42-custom-dino-creator
-reviewed: 2026-06-18T00:00:00Z
+reviewed: 2026-06-19T00:00:00Z
 depth: standard
-files_reviewed: 7
+files_reviewed: 27
 files_reviewed_list:
-  - libs/shared-types/src/lib/dino.types.ts
-  - apps/backend/src/app/database/schema.ts
-  - apps/backend/src/app/agents/custom-dinos.service.ts
-  - apps/backend/src/app/agents/custom-dinos.controller.ts
-  - apps/backend/src/app/agents/model-catalogue.ts
   - apps/backend/src/app/agents/agents.module.ts
+  - apps/backend/src/app/agents/agents.service.ts
+  - apps/backend/src/app/agents/avatar.controller.ts
+  - apps/backend/src/app/agents/avatar.service.spec.ts
+  - apps/backend/src/app/agents/avatar.service.ts
+  - apps/backend/src/app/agents/custom-dinos.controller.ts
   - apps/backend/src/app/agents/custom-dinos.service.spec.ts
+  - apps/backend/src/app/agents/custom-dinos.service.ts
+  - apps/backend/src/app/agents/dino-resolver.spec.ts
+  - apps/backend/src/app/agents/dino-resolver.ts
+  - apps/backend/src/app/agents/dinos.controller.ts
+  - apps/backend/src/app/agents/dinos/dinos.ts
+  - apps/backend/src/app/agents/group-agents.service.ts
+  - apps/backend/src/app/agents/model-catalogue.ts
+  - apps/backend/src/app/database/schema.ts
+  - apps/frontend/src/app/chat/chat.html
+  - apps/frontend/src/app/chat/chat.ts
+  - apps/frontend/src/app/chat/custom-dino-creator.html
+  - apps/frontend/src/app/chat/custom-dino-creator.ts
+  - apps/frontend/src/app/chat/dino.service.spec.ts
+  - apps/frontend/src/app/chat/dino.service.ts
+  - infrastructure/provision-gcp.sh
+  - libs/shared-types/src/lib/dino.types.ts
+  - libs/ui/src/lib/dino-card/dino-card.html
+  - libs/ui/src/lib/dino-card/dino-card.ts
+  - libs/ui/src/lib/dino-picker/dino-picker.html
+  - libs/ui/src/lib/dino-picker/dino-picker.ts
 findings:
-  critical: 2
-  warning: 4
-  info: 2
-  total: 8
+  critical: 3
+  warning: 6
+  info: 3
+  total: 12
 status: issues_found
 ---
 
 # Phase 42: Code Review Report
 
-**Reviewed:** 2026-06-18
+**Reviewed:** 2026-06-19
 **Depth:** standard
-**Files Reviewed:** 7
+**Files Reviewed:** 27
 **Status:** issues_found
 
 ## Summary
 
-This phase delivers the persistence layer and REST API for user-authored custom dinos: a Drizzle table (`customDinos`), a CRUD service (`CustomDinoService`) with graceful DB-null degradation and server-side model/tool validation, a thin NestJS controller, and a curated model catalogue. The overall shape is sound — the graceful-degradation pattern is consistent, the `systemPrompt` allowlist projection prevents leaks, and the `custom:` prefix strategy is clean.
+Full-phase review covering all four plans executed in Phase 42: the custom dino CRUD
+backend (42-01), avatar upload (42-02), dino resolver and backend merge (42-03), and the
+frontend Custom Dino Creator UI (42-04).
 
-Two blockers were found:
+The core architecture is sound — the `custom:` id prefix, server-side resolution through
+`resolveDino`, the `systemPrompt`-exclusion projection (`toCustomDinoSummary`), and
+catalogue-based model/tool validation are all correctly implemented. The previous 42-01
+blockers (CR-01 agent loop never resolves custom dinos, CR-02 silent empty-patch UPDATE,
+WR-01/WR-03 HttpException swallowing and avatarUrl XSS) are resolved: `resolveDino` now
+branches on `custom:`, the empty-patch guard and `validateAvatarUrl` are in place, and
+the spec file covers all four regressions.
 
-1. **The chat path never resolves custom dinos.** `AgentsService.streamAgent` always calls the built-in `getDino()`. A `dinoId` beginning with `custom:` falls through to the built-in fallback and produces a wrong dino — the entire feature is silent dead code at the user-facing level.
-2. **`update()` silently succeeds when no editable field is supplied**, touching only `updatedAt`. The `.set({updatedAt: new Date()})` path issues a real UPDATE that matches by `(id, userId)` but changes nothing meaningful. Callers receive a non-null `CustomDino` and have no way to know the update was a no-op triggered by an empty body.
-
-Four warnings and two info items follow.
+Three new blockers remain, plus six warnings.
 
 ---
+
+## Structural Findings (fallow)
+
+No structural pre-pass was provided for this review.
+
+---
+
+## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: Custom dinos are never resolved in the chat agent loop
+### CR-01: No server-side authentication — userId is fully client-controlled on all custom-dino endpoints
 
-**File:** `apps/backend/src/app/agents/agents.service.ts:140`
-**Issue:** `streamAgent` always calls `getDino(dinoId)` from the built-in registry. `getDino` falls back to `DEFAULT_DINO_ID` for any unknown id (including `custom:*` ids), so a user who selects their custom dino actually chats with the default built-in dino. `CustomDinoService.getById` is never called from the agent path. The service doc-comment at line 31–32 of `custom-dinos.service.ts` describes the branching intent (`id.startsWith('custom:') → DB lookup`) but it was never wired. The feature's CRUD and persistence work, but it cannot be exercised end-to-end.
+**File:** `apps/backend/src/app/agents/custom-dinos.controller.ts:36-65`
+**Issue:** Every route that scopes access to a user's custom dinos accepts `userId` as a
+plain query parameter (`@Query('userId')`) or in the JSON request body. There is no
+middleware, guard, or session token that verifies the caller owns the supplied `userId`.
+Any caller can pass an arbitrary value and read, update, or delete another user's custom
+dinos — including their (server-stored) system prompts — by guessing or enumerating ids.
 
-**Fix:** Inject `CustomDinoService` into `AgentsService` and branch on the prefix before calling `getDino`:
-
-```typescript
-// agents.service.ts — in streamAgent, replace:
-const dino = dinoId ? getDino(dinoId) : undefined;
-
-// with:
-let dino: Dino | undefined;
-if (dinoId) {
-  if (dinoId.startsWith('custom:')) {
-    const custom = await this.customDinoService.getById(dinoId, userId);
-    if (custom) {
-      // Map CustomDino → Dino shape expected by the agent loop
-      dino = {
-        id: custom.id,
-        name: custom.name,
-        species: custom.species ?? '',
-        persona: custom.persona ?? '',
-        blurb: custom.blurb ?? '',
-        specialty: 'Custom dino',
-        model: custom.model,
-        systemPrompt: custom.systemPrompt,
-        toolNames: custom.toolNames,
-        accent: custom.accent,
-      };
-    }
-  } else {
-    dino = getDino(dinoId);
-  }
-}
+```
+GET  /api/custom-dinos?userId=victim-id
+PUT  /api/custom-dinos/custom:uuid?userId=victim-id
+DEL  /api/custom-dinos/custom:uuid?userId=victim-id
 ```
 
-`CustomDinoService` must also be exported from `AgentsModule` (or moved to a shared module) and injected into `AgentsService`.
+The avatar endpoint (`POST /api/custom-dinos/avatar`) carries no userId at all, allowing
+any unauthenticated caller to upload files to the public GCS bucket and incur storage and
+egress costs with no rate-limit or ownership check.
+
+**Fix:** The project uses an anonymous per-device id (no auth yet). At minimum:
+1. Bind the device id server-side in a signed HTTP-only cookie or a short-lived JWT so
+   the backend can verify `req.userId === cookie.deviceId` rather than trusting the body.
+2. Until a cookie/token exists, document the risk explicitly in the endpoint JSDoc.
+3. For the avatar endpoint, require a `userId` parameter and verify it matches a known
+   device id before accepting the upload.
 
 ---
 
-### CR-02: `update()` issues a silent no-op UPDATE when the request body is empty
+### CR-02: GCS upload never makes the object public — returns a URL that may be inaccessible
 
-**File:** `apps/backend/src/app/agents/custom-dinos.service.ts:141–158`
-**Issue:** When `UpdateCustomDinoRequest` arrives with all fields absent (an empty JSON object `{}`), every conditional spread is skipped and Drizzle executes `UPDATE custom_dinos SET updated_at = $1 WHERE id = $2 AND user_id = $3`. The query succeeds, `returning()` returns the unchanged row, and the caller gets a non-null `CustomDino` with a bumped `updatedAt`. The client has no signal that nothing was changed. More importantly, this can be triggered by a misbehaving client sending `PUT /custom-dinos/:id?userId=...` with `{}` — it silently "touches" arbitrary dinos owned by the userId without any validation error.
+**File:** `apps/backend/src/app/agents/avatar.service.ts:72-87`
+**Issue:** `AvatarService.upload()` calls `file.save(buffer, saveOptions)` where
+`saveOptions` sets only `contentType`. The returned URL
+`https://storage.googleapis.com/${bucket}/${objectName}` is hardcoded as if the object
+is always public-read. Accessibility depends entirely on a bucket-level IAM binding
+(`allUsers → roles/storage.objectViewer`) that must have been applied by the provisioning
+script. If that binding is absent — on a fresh staging environment, after a bucket
+recreate, or if uniform-bucket-level-access is toggled — the upload succeeds but the URL
+returns HTTP 403. The caller has no way to detect this.
 
-**Fix:** Guard at the top of the `update` method and reject empty-patch requests before touching the DB:
+Separately, the GCS Node.js client does not apply `predefinedAcl: 'publicRead'` by
+default even when uniform-bucket-level-access is disabled, so on buckets with legacy
+per-object ACLs the object is private.
+
+**Fix:** Set `predefinedAcl: 'publicRead'` in `saveOptions` to make the object public
+unconditionally:
 
 ```typescript
-async update(publicId: string, userId: string | undefined, req: UpdateCustomDinoRequest): Promise<CustomDino | null> {
-  // ... existing null/prefix guards ...
+const saveOptions: SaveOptions = {
+  contentType: file.mimetype,
+  predefinedAcl: 'publicRead',
+};
+```
 
-  const hasAnyField = Object.keys(req).some((k) => (req as Record<string, unknown>)[k] !== undefined);
-  if (!hasAnyField) {
-    throw new BadRequestException('update request must include at least one field');
-  }
+Or call `file.makePublic()` after a successful `save()` and propagate the error as a
+`BadRequestException` if it fails.
 
-  // ... rest of validation + DB update ...
-}
+---
+
+### CR-03: `canSave` requires non-empty `systemPrompt` in edit mode, blocking saves when the prompt is intentionally left blank
+
+**File:** `apps/frontend/src/app/chat/custom-dino-creator.ts:79-86`
+**Issue:** The template (`custom-dino-creator.html:114-131`) displays the hint "Leave
+blank to keep the existing prompt" in edit mode, and the field placeholder reads "Leave
+blank to keep existing prompt…". The backend `update()` correctly treats an absent
+`systemPrompt` as "no change". However, `canSave` applies the same guard in both modes:
+
+```typescript
+this.systemPrompt().trim().length > 0
+```
+
+In edit mode this means the Save button stays disabled unless the user types a new system
+prompt. A user who opens the edit form to change only the name or model will find Save
+permanently disabled until they re-enter the server-side prompt they cannot see. The UI
+promise ("leave blank to keep") is broken by the validation logic.
+
+**Fix:**
+
+```typescript
+readonly canSave = computed(() => {
+  const base =
+    this.name().trim().length > 0 &&
+    this.selectedModel().length > 0 &&
+    !this.uploading() &&
+    !this.saving();
+  if (this.editing) return base;                            // systemPrompt optional in edit
+  return base && this.systemPrompt().trim().length > 0;    // required in create
+});
 ```
 
 ---
 
 ## Warnings
 
-### WR-01: `create()` silently swallows validation errors thrown inside the `try` block
+### WR-01: `hasPriorDinoThisRound` checks the entire transcript instead of only the current round
 
-**File:** `apps/backend/src/app/agents/custom-dinos.service.ts:48–75`
-**Issue:** `this.validate()` is called before the `try` block, so its `BadRequestException` propagates correctly. However, if `validate()` is ever moved or a future developer adds input-dependent logic inside the try block that throws `BadRequestException`, the outer `catch (err)` will swallow it and return `null`. The catch clause logs a generic message and returns null without distinguishing between infra errors (transient, silent) and validation errors (client errors, should 400). The same pattern exists in `update()` at line 160–162.
-
-**Fix:** Re-throw `BadRequestException` (or any `HttpException`) inside the catch so validation errors always surface:
+**File:** `apps/backend/src/app/agents/group-agents.service.ts:266`
+**Issue:**
 
 ```typescript
-} catch (err) {
-  if (err instanceof BadRequestException) throw err;
-  this.logger.error(`create failed: ${err instanceof Error ? err.message : String(err)}`);
-  return null;
-}
+const hasPriorDinoThisRound = state.transcript.some((m) => m.role === 'dino');
 ```
 
-Apply the same guard in `update()`.
+This scans the whole accumulated transcript across all rounds. From round 1 onwards the
+flag is always `true` (some dino has spoken before), even for the very first dino
+processed in the current round who has no peer turns in-round yet. The decision prompt
+and `buildDirective` use this flag to encourage dinos to "build on what the prior dino
+said this round" — but in rounds 2+ the "prior dino" is from a previous round, producing
+confused or misdirected responses.
 
----
-
-### WR-02: `PUT /custom-dinos/:id` takes `userId` as a query parameter
-
-**File:** `apps/backend/src/app/agents/custom-dinos.controller.ts:45–52`
-**Issue:** The `DELETE` and `PUT` routes accept `userId` via `@Query('userId')`. For `DELETE` a query param is acceptable. For `PUT` (which has a request body), passing `userId` as a query parameter is inconsistent and fragile — HTTP clients and proxies may strip or log query strings differently, and the body is the appropriate place for authenticated or semi-authenticated identity. This also creates a footgun: a caller might send `userId` in the body and wonder why the ownership check fails.
-
-**Fix:** Accept `userId` from the request body instead. Update `UpdateCustomDinoRequest` to include an optional `userId` field for the controller to extract, or add a dedicated `userId` body field and keep `UpdateCustomDinoRequest` unchanged by reading it separately:
-
-```typescript
-@Put('custom-dinos/:id')
-update(
-  @Param('id') id: string,
-  @Body() body: UpdateCustomDinoRequest & { userId?: string },
-): Promise<CustomDino | null> {
-  return this.customDinoService.update(id, body.userId, body);
-}
-```
-
----
-
-### WR-03: `avatarUrl` is stored and returned without any URL validation
-
-**File:** `apps/backend/src/app/agents/custom-dinos.service.ts:61` and `apps/backend/src/app/agents/custom-dinos.service.ts:147`
-**Issue:** `avatarUrl` is accepted, trimmed, and persisted without checking that it is a valid URL. A caller can store arbitrary strings (including `javascript:` URIs or `data:` URIs). When the frontend renders this value as an `<img src>` without further sanitisation, a `data:` URI is harmless, but a `javascript:` URI in an `<a href>` context (or a malformed URL passed to `new URL()` elsewhere) could cause issues. This is a stored-XSS vector if the frontend ever sets `href` or `innerHTML` from `avatarUrl` without sanitising.
-
-**Fix:** Add a URL format check to the `validate()` method and inline in `update()`:
+**Fix:** Capture the transcript length before the inner loop and check only messages
+added since then:
 
 ```typescript
-private validateAvatarUrl(url: string): void {
-  try {
-    const parsed = new URL(url);
-    if (!['http:', 'https:'].includes(parsed.protocol)) {
-      throw new BadRequestException('avatarUrl must use http or https');
-    }
-  } catch {
-    throw new BadRequestException('avatarUrl must be a valid absolute URL');
+for (let roundIndex = 0; roundIndex < MAX_ROUNDS; roundIndex++) {
+  const roundStartIdx = state.transcript.length; // capture here, before the dino loop
+  // ...
+  for (const dino of order) {
+    const hasPriorDinoThisRound = state.transcript
+      .slice(roundStartIdx)
+      .some((m) => m.role === 'dino');
+    // ...
   }
 }
 ```
 
 ---
 
-### WR-04: Drizzle `updatedAt` is not updated automatically — relies on application-layer `new Date()`
+### WR-02: `FileInterceptor` has no file-size limit — entire body is buffered before validation
 
-**File:** `apps/backend/src/app/database/schema.ts:119` and `apps/backend/src/app/agents/custom-dinos.service.ts:154`
-**Issue:** The `updatedAt` column uses `.defaultNow()` (initial insert default), but there is no `$onUpdate` hook. The service manually passes `updatedAt: new Date()` in the `.set()` call. If a future developer adds a new update path or bulk-import and omits this line, `updatedAt` will silently retain its old value. The `sessions` table (line 16) has the same pattern — it is an existing project-wide gap — but the new `customDinos` table repeats it.
+**File:** `apps/backend/src/app/agents/avatar.controller.ts:21`
+**Issue:** `@UseInterceptors(FileInterceptor('file'))` uses the default Multer
+configuration which applies no `fileSize` limit. NestJS buffers the entire multipart
+body into memory before invoking `AvatarService.upload()`. The 2 MB check in
+`avatar.service.ts:61` fires only after the full body is already in memory. A client
+sending a 500 MB upload will exhaust server memory before any validation runs.
 
-**Fix:** Use Drizzle's `$onUpdate` to make the timestamp automatic:
+**Fix:** Pass Multer limits at the interceptor level:
 
 ```typescript
-updatedAt: timestamp('updated_at', { withTimezone: true })
-  .notNull()
-  .defaultNow()
-  .$onUpdate(() => new Date()),
+@UseInterceptors(
+  FileInterceptor('file', { limits: { fileSize: 2 * 1024 * 1024 + 1 } }),
+)
 ```
 
-Then the manual `updatedAt: new Date()` in the service `.set()` call can be removed safely.
+---
+
+### WR-03: `save()` in edit mode always sends `name` even when unchanged; an empty-name input would hit a backend 400
+
+**File:** `apps/frontend/src/app/chat/custom-dino-creator.ts:169-176`
+**Issue:** The edit branch of `save()` always includes `name: this.name().trim()` in the
+`UpdateCustomDinoRequest`, regardless of whether the user changed it. The `canSave` guard
+blocks a save when `name` is empty, so a 400 from the backend on this path is unlikely
+in practice. However, if a user clears the name field (which makes `canSave` false and
+disables Save), then navigates away and back, the stale empty-name signal could get into
+an inconsistent state.
+
+More importantly, the comment "PATCH only what the form provides (D-04)" is misleading:
+every visible field is always included in the PUT body regardless of what changed. If the
+D-04 intent was true fine-grained patching, the implementation does not match.
+
+**Fix:** Either remove the D-04 comment and document "always send all visible fields",
+or genuinely diff against `editing` and omit fields that did not change. At minimum,
+include `name` only when it has been modified.
+
+---
+
+### WR-04: `getDino()` silently falls back to `DEFAULT_DINO` for unknown built-in ids
+
+**File:** `apps/backend/src/app/agents/dinos/dinos.ts:121-123`
+**Issue:**
+
+```typescript
+export function getDino(id?: string): Dino {
+  return DINOS.find((d) => d.id === id) ?? DEFAULT_DINO;
+}
+```
+
+`resolveDino` calls `getDino(id)` for any non-`custom:` id. If the frontend sends a
+stale or invalid built-in id (e.g. a dino removed from the registry), the agent silently
+adopts Rexford's system prompt and toolset. The caller receives a valid-looking `Dino`
+with no indication the id was not found.
+
+**Fix:** Return `undefined` for unrecognised ids and let callers decide the fallback
+explicitly:
+
+```typescript
+export function getDino(id?: string): Dino | undefined {
+  return DINOS.find((d) => d.id === id);
+}
+```
+
+Update `resolveDino` and any other callers that relied on the implicit fallback to
+reference `DEFAULT_DINO` explicitly when they want the fallback behaviour.
+
+---
+
+### WR-05: `activeDinoAvatarSrc` produces a broken image path for custom dinos
+
+**File:** `apps/frontend/src/app/chat/chat.ts:142-145`
+**Issue:**
+
+```typescript
+readonly activeDinoAvatarSrc = computed(() => {
+  const id = this.activeDinoId();
+  return id ? `/spino/dinos/avatars/${id}.png` : '/spino/spino-avatar.png';
+});
+```
+
+For a custom dino with `id = 'custom:abc123'` this produces
+`/spino/dinos/avatars/custom:abc123.png`, which does not exist as a static asset. The
+active-dino header (`chat.html:511`) uses this signal, so custom dinos always show a
+broken image. The `avatarUrl` field is available on `activeDino()` (a `DinoSummary`
+containing `avatarUrl?: string`) but is never consulted.
+
+**Fix:**
+
+```typescript
+readonly activeDinoAvatarSrc = computed(() => {
+  const dino = this.activeDino();
+  if (!dino) return '/spino/spino-avatar.png';
+  return dino.avatarUrl ?? `/spino/dinos/avatars/${dino.id}.png`;
+});
+```
+
+---
+
+### WR-06: `loadDinos()` in `DinoService` is an unmanaged fire-and-forget subscription that can race
+
+**File:** `apps/frontend/src/app/chat/dino.service.ts:39-52`
+**Issue:** `loadDinos()` calls `this.http.get(...).subscribe(...)` inline without
+returning or storing the subscription. If called multiple times quickly (e.g. after
+create, then after delete), multiple in-flight requests race; the last HTTP response to
+arrive wins and may overwrite a fresher result with a staler one. The ngrx effect uses
+`fetchDinos()` (returns an `Observable`) with proper `switchMap` cancellation — the
+`loadDinos()` imperative path bypasses this protection.
+
+**Fix:** Remove `loadDinos()` and have all callers dispatch `DinoActions.loadDinos`
+through the store so the ngrx effect and its `switchMap` handle cancellation. If
+`loadDinos()` must remain for non-store callers, return the subscription or switch to
+`switchMap` internally.
 
 ---
 
 ## Info
 
-### IN-01: `toCustomDinoSummary` is public but only used within the service or tests — consider narrowing visibility
+### IN-01: `FormsModule` imported in `CustomDinoCreator` but never used
 
-**File:** `apps/backend/src/app/agents/custom-dinos.service.ts:189`
-**Issue:** `toCustomDinoSummary` is declared `public` (no modifier = public in TypeScript classes) and is used directly in tests. However, the method is a projection helper that belongs to the service's internal responsibilities. Making it part of the public API surface means callers outside the module can invoke it with raw `CustomDinoRow` objects they obtained from elsewhere, bypassing the service's scoping checks. In the current codebase it is only called in tests, but as the codebase grows other controllers may call it directly.
+**File:** `apps/frontend/src/app/chat/custom-dino-creator.ts:11,41`
+**Issue:** `FormsModule` appears in the `imports` array of the standalone `CustomDinoCreator`
+component. The template uses only signal-driven one-way binding (`[value]=` / `(input)=`)
+and never uses `ngModel` or `ngForm`. The import is dead weight.
 
-**Fix:** If the projection is only needed for the dino-picker list, consider returning already-projected objects from `list()` (or a new `listSummaries()` method) and making `toCustomDinoSummary` private. If it must remain public for use by other services, document the expectation explicitly.
-
----
-
-### IN-02: `CustomDinoService` is not exported from `AgentsModule`
-
-**File:** `apps/backend/src/app/agents/agents.module.ts:15`
-**Issue:** `exports: [AgentsService]` — `CustomDinoService` is not exported. This is not currently a problem (nothing outside `AgentsModule` needs it yet), but once CR-01 is fixed by injecting it into `AgentsService`, the injection will work because both are in the same module. If any other module (e.g. a future `DinosModule` or gateway) needs to resolve custom dinos, it will require an export. Low risk now but worth noting.
-
-**Fix:** Add `CustomDinoService` to the `exports` array if/when it is needed by sibling modules:
-
-```typescript
-exports: [AgentsService, CustomDinoService],
-```
+**Fix:** Remove `FormsModule` from the `imports` array.
 
 ---
 
-_Reviewed: 2026-06-18_
+### IN-02: `infrastructure/provision-gcp.sh` embeds the database password in a Secret Manager secret but offers no rotation path
+
+**File:** `infrastructure/provision-gcp.sh:145-146`
+**Issue:** `DATABASE_URL` is assembled from `DB_PASSWORD` and stored as a plaintext Secret
+Manager entry. The password is also present in the shell environment and history during
+the run. No rotation mechanism is scripted; rotating the password requires updating both
+the Cloud SQL user and the Secret Manager secret manually.
+
+**Fix:** (Operational guidance.) After running the script, unset `DB_PASSWORD` from the
+shell environment (`unset DB_PASSWORD`) and clear shell history. Consider storing the DB
+password as a separate secret distinct from the full connection string to allow
+independent rotation.
+
+---
+
+### IN-03: `customDinos.updatedAt` declares `$onUpdate` in the schema but the service also sets it manually
+
+**File:** `apps/backend/src/app/database/schema.ts:119` and
+`apps/backend/src/app/agents/custom-dinos.service.ts:169`
+**Issue:** The `updatedAt` column is declared with `.$onUpdate(() => new Date())`, which
+should automatically populate the field on any Drizzle `UPDATE`. The `update()` method in
+`CustomDinoService` also explicitly spreads `updatedAt: new Date()` into the `.set()`
+call. The double-set is harmless but redundant; the schema declaration gives a false
+impression that `updatedAt` is auto-managed, making the explicit set confusing to future
+maintainers.
+
+**Fix:** Remove `updatedAt: new Date()` from the `.set()` call in
+`custom-dinos.service.ts:169` and rely on the Drizzle `$onUpdate` hook alone.
+
+---
+
+_Reviewed: 2026-06-19_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
