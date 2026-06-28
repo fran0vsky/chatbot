@@ -66,6 +66,18 @@ export type MessageRole = 'user' | 'assistant' | 'error' | 'tool';
 export interface ChatMessage {
   text: string;
   role: MessageRole;
+  /**
+   * Stable per-message id. Used to anchor side threads to a specific message
+   * (Side Threads feature). Optional for backward-compat with sessions persisted
+   * before ids existed — backfilled on load.
+   */
+  id?: string;
+  /**
+   * True when this assistant message is the condensed summary folded into the
+   * main conversation after a side thread was merged. Styled distinctly so the
+   * user can tell "main answer" from "merged side-note".
+   */
+  mergeNote?: boolean;
   /** Image the user attached to this turn (base64 data URL), rendered inline (VIS-01). */
   imageDataUrl?: string;
   toolName?: string;
@@ -91,12 +103,36 @@ export interface ChatMessage {
   replyToAgentId?: string;
 }
 
+/**
+ * A side thread (drill-down branch) anchored to a specific main-thread message.
+ * Lets the user interrogate / fact-check an answer in an ISOLATED context: the
+ * main agent never sees these turns until the thread is merged. Because the
+ * backend is stateless and replays whatever `history` the client sends, keeping
+ * branch turns in this separate array is the entire isolation mechanism.
+ */
+export interface SideThread {
+  id: string;
+  /** id of the main-thread ChatMessage this thread drills into. */
+  anchorMessageId: string;
+  /** Short preview of the anchored message, for the thread header. */
+  anchorPreview: string;
+  /** The branch's own back-and-forth (ja → dino → ja). Never enters main context. */
+  messages: ChatMessage[];
+  /** 'open' while drilling; 'merged' once folded into main; 'discarded' if dropped. */
+  status: 'open' | 'merged' | 'discarded';
+  /** The condensed takeaway loaded into the main context on merge. */
+  mergeSummary?: string;
+  createdAt: number;
+}
+
 export interface ConversationSession {
   id: string;
   title: string;
   messages: ChatMessage[];
   createdAt: number;
   pinned?: boolean;
+  /** Side threads (drill-down branches) opened against this session's messages. */
+  sideThreads?: SideThread[];
   /** The dino bound to this session; sent as dinoId on every message. */
   dinoId?: string;
   /** True when this session is a persisted group thread (D-08). */

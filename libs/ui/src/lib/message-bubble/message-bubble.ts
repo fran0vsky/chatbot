@@ -30,6 +30,10 @@ export class MessageBubble {
   @Input() animate = false;
   @Input() canRegenerate = false;
   @Input() canEdit = false;
+  /** Whether this message can spawn a drill-down side thread. */
+  @Input() canDrill = false;
+  /** Whether a side thread already exists for this message (badge state). */
+  @Input() hasBranch = false;
 
   /** Whether TTS is supported in this browser (hides button when false). */
   @Input() ttsSupported = true;
@@ -40,6 +44,8 @@ export class MessageBubble {
   @Output() editSubmit = new EventEmitter<string>();
   /** Emits message.text when the user clicks the read-aloud button. */
   @Output() readAloud = new EventEmitter<string>();
+  /** Emits when the user opens a drill-down side thread on this message. */
+  @Output() drill = new EventEmitter<void>();
 
   copied = false;
   editing = false;
@@ -121,6 +127,10 @@ export class MessageBubble {
 
   onRegenerate(): void {
     this.regenerate.emit();
+  }
+
+  onDrill(): void {
+    this.drill.emit();
   }
 
   onReadAloud(): void {

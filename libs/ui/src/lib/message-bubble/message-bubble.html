@@ -40,18 +40,43 @@
               </svg>
             </div>
           </div>
-          @if (canEdit) {
-            <button
-              type="button"
-              (click)="startEdit()"
-              class="absolute -left-9 top-1/2 -translate-y-1/2 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-jungle-surface dark:bg-jungle-night-surface text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent focus-visible:opacity-100"
-              aria-label="Edit and resend"
-              title="Edit and resend (forks a new chat)"
-            >
-              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-              </svg>
-            </button>
+          @if (canEdit || canDrill) {
+            <div class="absolute -left-9 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+              @if (canEdit) {
+                <button
+                  type="button"
+                  (click)="startEdit()"
+                  class="p-1.5 rounded-full bg-jungle-surface dark:bg-jungle-night-surface text-jungle-ink-muted dark:text-jungle-night-muted hover:text-jungle-ink dark:hover:text-jungle-night-text shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                  aria-label="Edit and resend"
+                  title="Edit and resend (forks a new chat)"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                </button>
+              }
+              @if (canDrill) {
+                <button
+                  type="button"
+                  (click)="onDrill()"
+                  class="p-1.5 rounded-full bg-jungle-surface dark:bg-jungle-night-surface shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent"
+                  [class.text-jungle-accent]="hasBranch"
+                  [class.dark:text-jungle-night-accent]="hasBranch"
+                  [class.text-jungle-ink-muted]="!hasBranch"
+                  [class.dark:text-jungle-night-muted]="!hasBranch"
+                  [class.hover:text-jungle-accent]="!hasBranch"
+                  [class.dark:hover:text-jungle-night-accent]="!hasBranch"
+                  [attr.aria-label]="hasBranch ? 'Open side thread' : 'Drill into this message'"
+                  [title]="hasBranch ? 'Open side thread' : 'Drill in (side thread)'"
+                  [attr.aria-pressed]="hasBranch"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M3 5a1 1 0 011-1h4a1 1 0 010 2H5v9a1 1 0 001 1h9a1 1 0 010 2H6a3 3 0 01-3-3V5z" />
+                    <path d="M9 9a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-2 0v-3.59l-4.29 4.3a1 1 0 01-1.42-1.42l4.3-4.29H10a1 1 0 01-1-1z" />
+                  </svg>
+                </button>
+              }
+            </div>
           }
         </div>
       }
@@ -202,6 +227,27 @@
           >
             <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        }
+        @if (canDrill) {
+          <button
+            type="button"
+            (click)="onDrill()"
+            class="p-1.5 rounded-md hover:bg-jungle-surface/40 dark:hover:bg-jungle-night-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jungle-accent dark:focus-visible:ring-jungle-night-accent transition-colors"
+            [class.text-jungle-accent]="hasBranch"
+            [class.dark:text-jungle-night-accent]="hasBranch"
+            [class.text-jungle-ink-muted]="!hasBranch"
+            [class.dark:text-jungle-night-muted]="!hasBranch"
+            [class.hover:text-jungle-accent]="!hasBranch"
+            [class.dark:hover:text-jungle-night-accent]="!hasBranch"
+            [attr.aria-label]="hasBranch ? 'Open side thread' : 'Drill into this answer'"
+            [title]="hasBranch ? 'Open side thread' : 'Drill in (side thread)'"
+            [attr.aria-pressed]="hasBranch"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M3 5a1 1 0 011-1h4a1 1 0 010 2H5v9a1 1 0 001 1h9a1 1 0 010 2H6a3 3 0 01-3-3V5z" />
+              <path d="M9 9a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-2 0v-3.59l-4.29 4.3a1 1 0 01-1.42-1.42l4.3-4.29H10a1 1 0 01-1-1z" />
             </svg>
           </button>
         }

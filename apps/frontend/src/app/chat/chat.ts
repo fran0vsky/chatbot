@@ -14,15 +14,17 @@ import {
 } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, GroupReaction, IMAGE_TOKEN_COST, LeaderboardRow, ReactionLevel, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow, reactionLabel } from '@org/shared-types';
+import { ChatHistoryItem, ChatMessage, ConversationSession, DinoSkill, DinoSummary, GroupReaction, IMAGE_TOKEN_COST, LeaderboardRow, ReactionLevel, SideThread, StreamEvent, ToolCallRecord, ToolInfo, VoiceProfile, estimateTextTokens, getContextWindow, reactionLabel } from '@org/shared-types';
 import { VoiceSynthesisService } from '../voice/voice-synthesis.service.js';
 import { VoiceRecognitionService } from '../voice/voice-recognition.service.js';
 import { AssistantService } from '../voice/assistant.service.js';
 import { SsmlHint } from '../voice/tts-provider.js';
 import { DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, ReactivitySettings, SkillManager, ToolCallBubble } from '@chatbot/ui';
 import { CustomDinoCreator } from './custom-dino-creator';
+import { SideThreadComponent } from './side-thread';
+import { buildHistory } from './history-builder';
 import { ArenaService } from './arena.service';
-import { ChatService } from './chat.service';
+import { ChatService, newUuid } from './chat.service';
 import { DinoService } from './dino.service';
 import { GroupchatService } from './groupchat.service';
 import { ReactivityService } from './reactivity.service.js';
@@ -101,7 +103,7 @@ interface KnowledgeFile {
 @Component({
   standalone: true,
   selector: 'app-chat',
-  imports: [CustomDinoCreator, DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, ReactivitySettings, SkillManager, ToolCallBubble],
+  imports: [CustomDinoCreator, DinoPicker, GroupResponse, HistoryPanel, InputComposer, Leaderboard, Mascot, MessageBubble, ReasoningBlock, ReactivitySettings, SideThreadComponent, SkillManager, ToolCallBubble],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -144,6 +146,42 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
   readonly activeDinoAvatarSrc = computed(() => {
     const id = this.activeDinoId();
     return id ? `/spino/dinos/avatars/${id}.png` : '/spino/spino-avatar.png';
+  });
+
+  // ─── Side threads (drill-down branches) ───
+  // Kept as component signals (mirrors the arena/group transient-state pattern) and
+  // persisted into the session snapshot via persistActiveSession; the persist effect
+  // writes that snapshot to localStorage. Isolation is structural: branch turns live
+  // here, never in `messages()`, so buildHistory() for the main thread can't see them.
+  readonly sideThreads = signal<SideThread[]>([]);
+  /** id of the side thread shown in the drawer, or null when the drawer is closed. */
+  readonly activeSideThreadId = signal<string | null>(null);
+
+  readonly activeSideThread = computed<SideThread | undefined>(() =>
+    this.sideThreads().find((t) => t.id === this.activeSideThreadId()),
+  );
+
+  /** Anchor message ids that have a non-discarded side thread — drives the bubble badge. */
+  readonly branchedMessageIds = computed<Set<string>>(
+    () =>
+      new Set(
+        this.sideThreads()
+          .filter((t) => t.status !== 'discarded')
+          .map((t) => t.anchorMessageId),
+      ),
+  );
+
+  /**
+   * Main-thread context a side thread inherits: every message up to & including the
+   * anchored one. The branch dino sees this plus the branch's own turns. Falls back
+   * to the whole transcript if the anchor was since removed (e.g. via regenerate).
+   */
+  readonly activeSideThreadContext = computed<ChatMessage[]>(() => {
+    const thread = this.activeSideThread();
+    if (!thread) return [];
+    const msgs = this.messages();
+    const idx = msgs.findIndex((m) => m.id === thread.anchorMessageId);
+    return idx === -1 ? msgs : msgs.slice(0, idx + 1);
   });
 
   isLoading = false;
@@ -1138,11 +1176,18 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     this.cdr.markForCheck();
     this.activeSkill.set(null);
     this.saveCurrentSession();
+    this.activeSideThreadId.set(null);
     this.sessionTitle = session.title;
     this.sessionCreatedAt = session.createdAt;
     this.store.dispatch(DinoActions.setActiveDino({ dinoId: session.dinoId }));
     this.chatService.setThread(session.id);
-    this.store.dispatch(SessionActions.switchSession({ session }));
+    // Backfill stable ids on legacy messages so side-thread anchoring is reliable.
+    const withIds: ConversationSession = {
+      ...session,
+      messages: session.messages.map((m) => (m.id ? m : { ...m, id: newUuid() })),
+    };
+    this.sideThreads.set(withIds.sideThreads ?? []);
+    this.store.dispatch(SessionActions.switchSession({ session: withIds }));
     this.store.dispatch(UiActions.closeHistory());
     requestAnimationFrame(() => {
       this.threadSwitching = false;
@@ -1185,11 +1230,13 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     this.sessionTitle = '';
     this.sessionCreatedAt = 0;
     this.activeSkill.set(null);
+    this.sideThreads.set([]);
+    this.activeSideThreadId.set(null);
     this.chatService.resetThread();
     this.store.dispatch(
       SessionActions.newChat({
         sessionId: this.chatService.currentThreadId,
-        messages: [{ ...WELCOME_MESSAGE, createdAt: Date.now() }],
+        messages: [{ ...WELCOME_MESSAGE, id: newUuid(), createdAt: Date.now() }],
       }),
     );
     this.store.dispatch(UiActions.closeHistory());
@@ -1211,6 +1258,7 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
           messages: [...this.messages()],
           createdAt,
           dinoId: this.activeDinoId(),
+          sideThreads: this.sideThreads(),
         },
       }),
     );
@@ -1228,7 +1276,7 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
 
     this.store.dispatch(
       SessionActions.appendMessage({
-        message: { text, role: 'user', createdAt: Date.now(), imageDataUrl },
+        message: { id: newUuid(), text, role: 'user', createdAt: Date.now(), imageDataUrl },
       }),
     );
     this.beginRequest();
@@ -1268,11 +1316,169 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     this.sessionCreatedAt = Date.now();
     this.store.dispatch(
       SessionActions.setMessages({
-        messages: [...truncated, { text: newText, role: 'user', createdAt: Date.now() }],
+        messages: [...truncated, { id: newUuid(), text: newText, role: 'user', createdAt: Date.now() }],
       }),
     );
     this.beginRequest();
     this.dispatchRequest(newText);
+  }
+
+  // ─── Side threads (drill-down branches) ───
+
+  /** True while a merge summary is being generated (gates the branch composer). */
+  readonly mergeInProgress = signal(false);
+
+  /** Short, single-line preview of a message for the side-thread header / anchor. */
+  private previewText(m: ChatMessage): string {
+    const t = (m.text || (m.imageDataUrl ? 'Image' : '')).trim().replace(/\s+/g, ' ');
+    return t.length > 80 ? t.slice(0, 80) + '…' : t;
+  }
+
+  /** Ensure the message at `index` has a stable id, backfilling it into the store. */
+  private ensureMessageId(index: number): string {
+    const msgs = this.messages();
+    const msg = msgs[index];
+    if (msg.id) return msg.id;
+    const id = newUuid();
+    const next = msgs.slice();
+    next[index] = { ...msg, id };
+    this.store.dispatch(SessionActions.setMessages({ messages: next }));
+    return id;
+  }
+
+  /** Open (or re-focus) a drill-down side thread anchored to the message at `index`. */
+  onDrillIn(index: number): void {
+    const msgs = this.messages();
+    if (index < 0 || index >= msgs.length) return;
+    const anchorId = this.ensureMessageId(index);
+
+    const existing = this.sideThreads().find(
+      (t) => t.anchorMessageId === anchorId && t.status !== 'discarded',
+    );
+    if (existing) {
+      this.activeSideThreadId.set(existing.id);
+    } else {
+      const thread: SideThread = {
+        id: newUuid(),
+        anchorMessageId: anchorId,
+        anchorPreview: this.previewText(msgs[index]),
+        messages: [],
+        status: 'open',
+        createdAt: Date.now(),
+      };
+      this.sideThreads.update((list) => [...list, thread]);
+      this.activeSideThreadId.set(thread.id);
+      this.persistActiveSession(this.sessionTitle || 'Untitled', this.sessionCreatedAt || Date.now());
+    }
+    this.cdr.markForCheck();
+  }
+
+  /** Persist a branch's evolving message list (emitted after each branch turn). */
+  onBranchMessagesChanged(threadId: string, messages: ChatMessage[]): void {
+    this.sideThreads.update((list) =>
+      list.map((t) => (t.id === threadId ? { ...t, messages } : t)),
+    );
+    this.persistActiveSession(this.sessionTitle || 'Untitled', this.sessionCreatedAt || Date.now());
+  }
+
+  /** Close the drawer without changing the thread's state. */
+  onCloseSideThread(): void {
+    this.activeSideThreadId.set(null);
+    this.cdr.markForCheck();
+  }
+
+  /** Drop a side thread — its turns never reach the main context. */
+  onDiscardSideThread(threadId: string): void {
+    this.sideThreads.update((list) =>
+      list.map((t) => (t.id === threadId ? { ...t, status: 'discarded' as const } : t)),
+    );
+    this.activeSideThreadId.set(null);
+    this.persistActiveSession(this.sessionTitle || 'Untitled', this.sessionCreatedAt || Date.now());
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Merge a side thread back into the main conversation: summarize it with the
+   * dino, append the summary as a `mergeNote` assistant message (now visible to
+   * the main agent on the next turn), and mark the thread merged.
+   */
+  async onMergeSideThread(threadId: string, branchMessages: ChatMessage[]): Promise<void> {
+    const thread = this.sideThreads().find((t) => t.id === threadId);
+    if (!thread || thread.status !== 'open') return;
+
+    const summary = await this.summarizeBranch(thread, branchMessages);
+
+    this.sideThreads.update((list) =>
+      list.map((t) =>
+        t.id === threadId
+          ? { ...t, status: 'merged' as const, mergeSummary: summary, messages: branchMessages }
+          : t,
+      ),
+    );
+    this.store.dispatch(
+      SessionActions.appendMessage({
+        message: {
+          id: newUuid(),
+          text: summary,
+          role: 'assistant',
+          mergeNote: true,
+          createdAt: Date.now(),
+        },
+      }),
+    );
+    this.activeSideThreadId.set(null);
+    this.persistActiveSession(this.sessionTitle || 'Untitled', this.sessionCreatedAt || Date.now());
+    this.cdr.detectChanges();
+    this.scrollToBottom();
+  }
+
+  /**
+   * Condense a side thread into a 1–2 sentence takeaway via the same dino. Tools
+   * are disabled for the summary pass. Never throws — falls back to the branch's
+   * last substantive answer so a merge always produces something.
+   */
+  private async summarizeBranch(thread: SideThread, branchMessages: ChatMessage[]): Promise<string> {
+    this.mergeInProgress.set(true);
+    this.cdr.markForCheck();
+    const controller = new AbortController();
+    const history = buildHistory(branchMessages);
+    const prompt =
+      `The conversation above was a side discussion drilling into this earlier point: "${thread.anchorPreview}". ` +
+      'In 1-2 sentences, summarize the key takeaway or conclusion so it can be folded back into the main conversation. ' +
+      'Reply with ONLY the summary — no preamble.';
+    let out = '';
+    try {
+      for await (const event of this.chatService.streamMessage(
+        prompt,
+        this.activeDinoId(),
+        controller.signal,
+        [],
+        history,
+      )) {
+        if (event.type === 'token') out += event.text;
+        else if (event.type === 'done') out = event.response || out;
+        else if (event.type === 'error') {
+          out = '';
+          break;
+        }
+      }
+    } catch {
+      out = '';
+    } finally {
+      this.mergeInProgress.set(false);
+      this.cdr.markForCheck();
+    }
+    const summary = out.trim() || this.fallbackBranchSummary(branchMessages);
+    return summary;
+  }
+
+  /** Last substantive assistant answer in the branch — used when summarization fails. */
+  private fallbackBranchSummary(branchMessages: ChatMessage[]): string {
+    for (let i = branchMessages.length - 1; i >= 0; i--) {
+      const m = branchMessages[i];
+      if (m.role === 'assistant' && m.text.trim().length > 0) return m.text.trim();
+    }
+    return 'Side discussion merged into the main conversation.';
   }
 
   private beginRequest(): void {
@@ -1286,67 +1492,11 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     this.scrollToBottom();
   }
 
-  // Recent prior turns sent so the backend has within-thread context. Includes
-  // tool messages (empty text but real toolResult) and forwards imageDataUrl for
-  // vision replay. The current turn is excluded; the backend receives it as `message`.
+  // Recent prior turns sent so the backend has within-thread context. The current
+  // turn is excluded (sent separately as `message`). Delegates to the shared pure
+  // buildHistory so the main thread and side threads compose context identically.
   private buildHistory(): ChatHistoryItem[] {
-    const HISTORY_CAP = 20;
-    const IMAGE_CAP = 2;
-
-    const allMessages = this.messages().slice(0, -1);
-
-    // Build raw list: keep user/assistant turns with non-empty text, and tool turns
-    // with a toolResult. Map each to a ChatHistoryItem carrying all replay fields.
-    const raw: ChatHistoryItem[] = allMessages.flatMap((m): ChatHistoryItem[] => {
-      if (m.role === 'user' && m.text.trim().length > 0) {
-        return [{ role: 'user', text: m.text, ...(m.imageDataUrl ? { imageDataUrl: m.imageDataUrl } : {}) }];
-      }
-      if (m.role === 'assistant' && m.text.trim().length > 0) {
-        return [{ role: 'assistant', text: m.text }];
-      }
-      if (m.role === 'tool' && (m.toolName || m.toolResult)) {
-        return [{
-          role: 'tool',
-          text: '',
-          ...(m.toolName ? { toolName: m.toolName } : {}),
-          ...(m.toolArgs ? { toolArgs: m.toolArgs } : {}),
-          ...(m.toolResult ? { toolResult: m.toolResult } : {}),
-        }];
-      }
-      return [];
-    });
-
-    // Apply HISTORY_CAP to conversational (user/assistant) turns only.
-    // Count how many user/assistant turns to keep (last HISTORY_CAP),
-    // then find the oldest kept conversational turn's index and slice from there.
-    let convCount = 0;
-    let cutIdx = raw.length;
-    for (let i = raw.length - 1; i >= 0; i--) {
-      if (raw[i].role === 'user' || raw[i].role === 'assistant') {
-        convCount++;
-        if (convCount === HISTORY_CAP) {
-          cutIdx = i;
-          break;
-        }
-      }
-    }
-    const capped = raw.slice(cutIdx === raw.length ? 0 : cutIdx);
-
-    // Apply last-2-images cap: walk newest→oldest and strip imageDataUrl from
-    // user items beyond the IMAGE_CAP most-recent image-bearing turns.
-    let imgCount = 0;
-    for (let i = capped.length - 1; i >= 0; i--) {
-      if (capped[i].role === 'user' && capped[i].imageDataUrl) {
-        imgCount++;
-        if (imgCount > IMAGE_CAP) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { imageDataUrl: _, ...rest } = capped[i];
-          capped[i] = rest;
-        }
-      }
-    }
-
-    return capped;
+    return buildHistory(this.messages().slice(0, -1));
   }
 
   private async dispatchRequest(text: string, imageDataUrl?: string): Promise<void> {
@@ -1468,6 +1618,7 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
     }
     const generatedImage = this.streamingImage();
     const assistantMsg: ChatMessage = {
+      id: newUuid(),
       text: response,
       role: 'assistant',
       createdAt: Date.now(),
@@ -1502,7 +1653,7 @@ export class ChatComponent implements OnInit, OnDestroy, DoCheck {
         : `\n\n_Response interrupted: ${message}_`;
       this.store.dispatch(
         SessionActions.appendMessage({
-          message: { text: partial + footer, role: 'assistant', createdAt: Date.now() },
+          message: { id: newUuid(), text: partial + footer, role: 'assistant', createdAt: Date.now() },
         }),
       );
     } else {
