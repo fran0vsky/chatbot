@@ -49,7 +49,7 @@ export class SideThreadComponent implements OnChanges, OnDestroy {
   @Output() messagesChanged = new EventEmitter<ChatMessage[]>();
   @Output() merge = new EventEmitter<ChatMessage[]>();
   @Output() discard = new EventEmitter<void>();
-  @Output() close = new EventEmitter<void>();
+  @Output() closeThread = new EventEmitter<void>();
 
   readonly messages = signal<ChatMessage[]>([]);
   readonly streamingText = signal('');
@@ -111,7 +111,7 @@ export class SideThreadComponent implements OnChanges, OnDestroy {
   }
 
   onClose(): void {
-    this.close.emit();
+    this.closeThread.emit();
   }
 
   onStop(): void {
