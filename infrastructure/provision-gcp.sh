@@ -6,6 +6,7 @@
 #   export GCP_PROJECT_ID=your-project-id
 #   export DB_PASSWORD=choose-a-strong-password
 #   export OPENROUTER_API_KEY=sk-or-...
+#   export TAVILY_API_KEY=tvly-...   # optional — enables web search in prod
 #   bash infrastructure/provision-gcp.sh
 set -euo pipefail
 
@@ -160,6 +161,15 @@ store_secret() {
 
 store_secret "openrouter-api-key" "$OPENROUTER_API_KEY"
 store_secret "database-url"       "$DATABASE_URL"
+
+# Web search (Tavily) is optional. vm-deploy.sh reads this secret and tolerates
+# its absence (web_search degrades to "Search unavailable"). Provision it only
+# when TAVILY_API_KEY is supplied so the search tool works on the deployed site.
+if [[ -n "${TAVILY_API_KEY:-}" ]]; then
+  store_secret "tavily-api-key" "$TAVILY_API_KEY"
+else
+  echo "    (TAVILY_API_KEY unset — skipping tavily-api-key secret; web search will be disabled in prod)"
+fi
 
 # ── CI service account (used by GitHub Actions via WIF) ──────────────────────
 echo "==> CI service account..."

@@ -145,12 +145,14 @@ jobs:
           GCE_ZONE: ${{ vars.GCE_ZONE }}
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          AVATAR_BUCKET: ${{ vars.AVATAR_BUCKET }}
           IMAGE: ${{ needs.build-backend-image.outputs.image }}
         run: |
           GCE_INSTANCE="${GCE_INSTANCE//[[:space:]]/}"
           GCE_ZONE="${GCE_ZONE//[[:space:]]/}"
           GCP_PROJECT_ID="${GCP_PROJECT_ID//[[:space:]]/}"
           FRONTEND_URL="${FRONTEND_URL//[[:space:]]/}"
+          AVATAR_BUCKET="${AVATAR_BUCKET//[[:space:]]/}"
           # --quiet stops gcloud from prompting "Do you want to create .ssh
           # dir?" — otherwise that prompt reads from stdin and consumes the
           # script we're trying to pipe through.
@@ -161,7 +163,7 @@ jobs:
             --project="$GCP_PROJECT_ID" \
             --tunnel-through-iap \
             --ssh-flag="-o StrictHostKeyChecking=no" \
-            --command="sudo bash -s -- '$IMAGE' '$FRONTEND_URL'" \
+            --command="sudo bash -s -- '$IMAGE' '$FRONTEND_URL' '$AVATAR_BUCKET'" \
             < scripts/vm-deploy.sh
 
   # ── Deploy Storybook to GCS (after e2e passes) ─────────────────────────────

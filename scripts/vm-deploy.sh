@@ -6,6 +6,9 @@
 # Args:
 #   $1 = full image path in Artifact Registry (e.g. europe-west1-docker.pkg.dev/proj/repo/backend:sha)
 #   $2 = frontend URL (CORS origin for the Nest backend)
+#   $3 = avatar GCS bucket name (optional; defaults to <project>-dino-avatars to
+#        match infrastructure/provision-gcp.sh). Without it, the backend's
+#        custom-dino avatar upload returns "avatar upload is not configured".
 
 set -euo pipefail
 
@@ -13,6 +16,7 @@ IMAGE_PATH="${1:-}"
 FRONTEND_URL="${2:-}"
 CONTAINER_NAME="spinochat"
 PROJECT_ID="chatbot-franek-2026"
+AVATAR_BUCKET="${3:-${PROJECT_ID}-dino-avatars}"
 
 if [[ -z "$IMAGE_PATH" ]]; then
     echo "ERROR: image path arg required" >&2
@@ -81,6 +85,7 @@ docker run -d \
     -e TAVILY_API_KEY="$TAVILY_KEY" \
     -e DATABASE_URL="$DATABASE_URL" \
     -e CORS_ORIGIN="$FRONTEND_URL" \
+    -e AVATAR_BUCKET="$AVATAR_BUCKET" \
     "$IMAGE_PATH"
 
 echo "[deploy] Pruning dangling images"

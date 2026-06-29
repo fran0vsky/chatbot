@@ -12,4 +12,10 @@ services:
       - PORT=3000
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - CORS_ORIGIN=${CORS_ORIGIN:-https://{DOMAIN}}
+      # Pass these through so a local container mirrors prod and surfaces the
+      # same feature gaps (web search, avatar upload, DB persistence) instead of
+      # silently disabling them.
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - AVATAR_BUCKET=${AVATAR_BUCKET:-}
+      - DATABASE_URL=${DATABASE_URL:-}
     restart: unless-stopped
