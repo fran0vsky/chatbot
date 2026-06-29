@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { DinoReactivityMap, REACTION_LEVELS, ReactionLevel } from '@org/shared-types';
 import { DATABASE_CONNECTION, Database } from '../database/database.module';
 import { dinoReactivity } from '../database/schema';
+import { logDbError } from '../database/db-error.util';
 
 type DbConnection = { db: Database | null; pool: unknown };
 
@@ -40,7 +41,7 @@ export class ReactivityService {
         return acc;
       }, {});
     } catch (err) {
-      this.logger.error(`getLevels failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'getLevels', err);
       return {};
     }
   }
@@ -82,7 +83,7 @@ export class ReactivityService {
           },
         });
     } catch (err) {
-      this.logger.error(`setLevel failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'setLevel', err);
       // Degrade silently — the caller still gets a usable response (T-43-01-03).
     }
 

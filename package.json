@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "db:generate": "cd apps/backend && drizzle-kit generate"
   },
   "private": true,
   "devDependencies": {

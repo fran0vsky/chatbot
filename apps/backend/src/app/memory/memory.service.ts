@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { DATABASE_CONNECTION, Database } from '../database/database.module';
 import { dinoSkills, userMemories, UserMemory } from '../database/schema';
+import { logDbError } from '../database/db-error.util';
 
 type DbConnection = { db: Database | null; pool: unknown };
 
@@ -43,7 +44,7 @@ export class MemoryService {
         .limit(limit);
       return rows.map((r) => r.content);
     } catch (err) {
-      this.logger.error(`getMemories failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'getMemories', err);
       return [];
     }
   }
@@ -69,7 +70,7 @@ export class MemoryService {
       if (fresh.length === 0) return;
       await db.insert(userMemories).values(fresh.map((content) => ({ userId, dinoId, content, source })));
     } catch (err) {
-      this.logger.error(`writeMemories failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'writeMemories', err);
     }
   }
 
@@ -84,7 +85,7 @@ export class MemoryService {
         .where(and(eq(userMemories.userId, userId), eq(userMemories.dinoId, dinoId)))
         .orderBy(desc(userMemories.createdAt));
     } catch (err) {
-      this.logger.error(`listMemories failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'listMemories', err);
       return [];
     }
   }
@@ -96,7 +97,7 @@ export class MemoryService {
     try {
       await db.delete(userMemories).where(eq(userMemories.id, id));
     } catch (err) {
-      this.logger.error(`deleteMemory failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'deleteMemory', err);
     }
   }
 
@@ -118,7 +119,7 @@ export class MemoryService {
         .where(and(eq(dinoSkills.userId, userId), eq(dinoSkills.dinoId, dinoId)))
         .orderBy(desc(dinoSkills.createdAt));
     } catch (err) {
-      this.logger.error(`getSkills failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'getSkills', err);
       return [];
     }
   }
@@ -148,7 +149,7 @@ export class MemoryService {
         });
       return row ?? null;
     } catch (err) {
-      this.logger.error(`addSkill failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'addSkill', err);
       return null;
     }
   }
@@ -177,7 +178,7 @@ export class MemoryService {
         });
       return row ?? null;
     } catch (err) {
-      this.logger.error(`updateSkill failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'updateSkill', err);
       return null;
     }
   }
@@ -189,7 +190,7 @@ export class MemoryService {
     try {
       await db.delete(dinoSkills).where(eq(dinoSkills.id, id));
     } catch (err) {
-      this.logger.error(`deleteSkill failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'deleteSkill', err);
     }
   }
 }

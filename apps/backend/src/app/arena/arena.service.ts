@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DATABASE_CONNECTION, Database } from '../database/database.module';
 import { dinoRatings } from '../database/schema';
+import { logDbError } from '../database/db-error.util';
 import { DINOS } from '../agents/dinos/dinos';
 import { updateElo, DEFAULT_RATING } from './elo';
 import { ArenaVote, DinoRating, LeaderboardRow } from '@org/shared-types';
@@ -90,9 +91,7 @@ export class ArenaService {
       // Upsert both rows.
       await Promise.all([this.upsertRating(db, newA), this.upsertRating(db, newB)]);
     } catch (err) {
-      this.logger.error(
-        `recordVote failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      logDbError(this.logger, 'recordVote', err);
       // Do not re-throw — a rating failure must never break the client flow.
     }
   }
@@ -122,9 +121,7 @@ export class ArenaService {
           });
         }
       } catch (err) {
-        this.logger.error(
-          `getLeaderboard DB read failed: ${err instanceof Error ? err.message : String(err)}`,
-        );
+        logDbError(this.logger, 'getLeaderboard', err);
         // Fall through — use registry defaults for all dinos.
       }
     }

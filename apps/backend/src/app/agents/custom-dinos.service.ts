@@ -1,8 +1,16 @@
-import { BadRequestException, HttpException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Inject,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { CreateCustomDinoRequest, CustomDino, UpdateCustomDinoRequest } from '@org/shared-types';
 import { DATABASE_CONNECTION, Database } from '../database/database.module';
 import { customDinos, CustomDinoRow } from '../database/schema';
+import { logDbError } from '../database/db-error.util';
 import { isAllowedModel } from './model-catalogue';
 
 type DbConnection = { db: Database | null; pool: unknown };
@@ -73,8 +81,11 @@ export class CustomDinoService {
       return row ? this.toPublicShape(row) : null;
     } catch (err) {
       if (err instanceof HttpException) throw err;
-      this.logger.error(`create failed: ${err instanceof Error ? err.message : String(err)}`);
-      return null;
+      // DB is configured but the write threw (drift / connectivity). Surface a 503
+      // so the user gets feedback instead of a silent null (the empty-row path
+      // below still returns null — that is a successful no-row insert, not an error).
+      logDbError(this.logger, 'create', err);
+      throw new ServiceUnavailableException('Could not create custom dino (database error)');
     }
   }
 
@@ -90,7 +101,7 @@ export class CustomDinoService {
         .orderBy(desc(customDinos.createdAt));
       return rows.map((r) => this.toPublicShape(r));
     } catch (err) {
-      this.logger.error(`list failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'list', err);
       return [];
     }
   }
@@ -109,7 +120,7 @@ export class CustomDinoService {
         .where(and(eq(customDinos.id, uuid), eq(customDinos.userId, userId)));
       return row ? this.toPublicShape(row) : null;
     } catch (err) {
-      this.logger.error(`getById failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'getById', err);
       return null;
     }
   }
@@ -173,8 +184,8 @@ export class CustomDinoService {
       return row ? this.toPublicShape(row) : null;
     } catch (err) {
       if (err instanceof HttpException) throw err;
-      this.logger.error(`update failed: ${err instanceof Error ? err.message : String(err)}`);
-      return null;
+      logDbError(this.logger, 'update', err);
+      throw new ServiceUnavailableException('Could not update custom dino (database error)');
     }
   }
 
@@ -189,7 +200,7 @@ export class CustomDinoService {
         .delete(customDinos)
         .where(and(eq(customDinos.id, uuid), eq(customDinos.userId, userId)));
     } catch (err) {
-      this.logger.error(`delete failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'delete', err);
     }
   }
 
@@ -213,7 +224,7 @@ export class CustomDinoService {
         .orderBy(desc(customDinos.createdAt));
       return rows.map((r) => this.toCustomDinoSummary(r));
     } catch (err) {
-      this.logger.error(`listSummaries failed: ${err instanceof Error ? err.message : String(err)}`);
+      logDbError(this.logger, 'listSummaries', err);
       return [];
     }
   }
